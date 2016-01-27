@@ -1,0 +1,3 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+access_calendar_ics_manager,res.groups,model_calendar_ics,base.group_erp_manager,1,1,1,1
+access_calendar_ics_all,res.groups,model_calendar_ics,,1,0,0,0

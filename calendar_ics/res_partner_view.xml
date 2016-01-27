@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_partner_form" model="ir.ui.view">
+            <field name="name">res.partner.ics</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <page name="internal_notes" position="after">
+                    <page name="ics" string="Calendar ICS">
+                        <group>
+                            <field name="ics_url" placeholder="http://your calendar ics url..."/>
+                            <field name="ics_active" />
+                            <field name="ics_frequency" />
+                            <field name="ics_nextdate" />
+                            <button string="Check url"  type="object" name="get_ics_events" />
+                            <button string="Remove events"  type="object" name="rm_ics_events" />
+                        
+                        </group>
+                    
+                    </page>
+                </page>
+            </field>
+        </record>
+
+    </data>
+</openerp>
