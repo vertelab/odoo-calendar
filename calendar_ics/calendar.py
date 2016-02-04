@@ -25,6 +25,9 @@ from datetime import datetime, timedelta
 from time import strptime, mktime
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 
+from openerp import http
+from openerp.http import request
+
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -44,6 +47,17 @@ except ImportError:
 
 # http://ical.oops.se/holidays/Sweden/-1,+1
 # http://www.skatteverketkalender.se/skvcal-manadsmoms-maxfyrtiomiljoner-ingenperiodisk-ingenrotrut-verk1.ics
+class res_partner_icalendar(http.Controller):
+#        http://partner/<res.partner>/calendar/[private.ics|freebusy.ics|public.ics]
+    
+    @http.route(['/partner/<model("res.partner"):partner>/calendar/private.ics', ], type='http', auth="user", website=True)
+    def icalendar_private(self, partner=False, **post):
+        cr, uid, context, pool = request.cr, request.uid, request.context, request.registry
+        if partner:
+            return partner.get_ics_calendar(type='private').to_ical()
+        else:
+            pass # Some error page
+
 
 class res_partner(models.Model):
     _inherit = "res.partner"
@@ -123,6 +137,19 @@ class res_partner(models.Model):
                 _logger.error('ICS %s' % record)
                 self.env['calendar.event'].create(record)
           
+        def get_ics_calendar(self,type='public'):
+            calendar = Calendar()
+            if type == 'private':
+                calendar.add_component([self.env['calendar.event'].search([('partner_ids','in',self.id)]).get_ics_event()]) 
+            elif type == 'public':
+                for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]).get_ics_event():
+                    if event.get('class') == 'public':
+                         calendar.add_component(event)
+                
+            return calendar
+            # return calendar.to_ical()
+            
+            
         # vtodo, vjournal, vfreebusy
 
 
