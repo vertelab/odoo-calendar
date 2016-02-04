@@ -68,7 +68,7 @@ class res_partner(models.Model):
 
     @api.one
     def rm_ics_events(self):
-        self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_pren','=',True)]).unlink()
+        self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_subscription','=',True)]).unlink()
 
     @api.one
     def get_ics_events(self):
@@ -83,7 +83,7 @@ class res_partner(models.Model):
                 return False
             _logger.error('ICS %s' % res)
 
-            self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_pren','=',True)]).unlink()
+            self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_subscription','=',True)]).unlink()
             #~ for event in self.env['calendar.event'].search([('ics_id','=',self.id)]):
                 #~ event.unlink()
                     
@@ -110,7 +110,7 @@ class res_partner(models.Model):
                                                       ('summary','name',summary),
                                                       ] if event.get(r[0])}
                 record['partner_ids'] = [(6,0,[self.id])]
-                record['ics_pren'] = True
+                record['ics_subscription'] = True
                 record['start'] = record.get('start_date')
                 record['stop'] = record.get('stop_date') or record.get('start')
                 record['description'] = description
@@ -155,6 +155,6 @@ class res_partner(models.Model):
 class calendar_event(models.Model):
     _inherit = 'calendar.event'
     
-    ics_pren = fields.Boolean(default=False) # partner_ids + ics_pren -> its ok to delete
+    ics_subscription = fields.Boolean(default=False) # partner_ids + ics_subscription -> its ok to delete
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
