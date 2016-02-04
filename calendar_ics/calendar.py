@@ -91,7 +91,7 @@ class res_partner(models.Model):
                 #~ if not event.get('uid'):
                     #~ event.add('uid',reduce(lambda x,y: x ^ y, map(ord, str(event.get('dtstart') and event.get('dtstart').dt or '' + event.get('summary') + event.get('dtend') and event.get('dtend').dt or ''))) % 1024)
 
-                summary = 'max'
+                summary = ''
                 description = unicode(event.get('description', ''))
                 if unicode(event.get('summary')) and len(unicode(event.get('summary'))) < 35:
                     summary = unicode(event.get('summary'))
