@@ -33,7 +33,7 @@ _logger = logging.getLogger(__name__)
 
 
 try:
-    from icalendar import Calendar, Event
+    from icalendar import Calendar, Event, vDatetime
 except ImportError:
     raise Warning('icalendar library missing, pip install icalendar')
 
@@ -65,7 +65,7 @@ class res_partner_icalendar(http.Controller):
         else:
             pass # Some error page
 
-    @http.route(['/partner/<model("res.partner"):partner>/calendar/public.ics'], type='http', auth="user", website=True)
+    @http.route(['/partner/<model("res.partner"):partner>/calendar/public.ics'], type='http', auth="public", website=True)
     def icalendar_public(self, partner=False, **post):
         if partner:
             #~ raise Warning("Public successfull %s" % partner.get_ics_calendar(type='public').to_ical())
@@ -95,6 +95,7 @@ class res_partner(models.Model):
     ics_show_as = fields.Selection([('free', 'Free'), ('busy', 'Busy')], string='Show Time as')
     ics_location = fields.Char(string='Location', help="Location of Event")
     ics_allday = fields.Boolean(string='All Day')
+    #~ ics_url_field = fields.Char(compute='<metod som skall användas>')
 
     @api.v7
     def ics_cron_job(self, cr, uid, context=None):
@@ -124,42 +125,9 @@ class res_partner(models.Model):
             self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_subscription','=',True)]).unlink()
             #~ for event in self.env['calendar.event'].search([('ics_id','=',self.id)]):
                 #~ event.unlink()
-                    
-            for event in Calendar.from_ical(res).walk('vevent'):            
-                #~ if not event.get('uid'):
-                    #~ event.add('uid',reduce(lambda x,y: x ^ y, map(ord, str(event.get('dtstart') and event.get('dtstart').dt or '' + event.get('summary') + event.get('dtend') and event.get('dtend').dt or ''))) % 1024)
-
-                summary = ''
-                description = unicode(event.get('description', ''))
-                if unicode(event.get('summary')) and len(unicode(event.get('summary'))) < 35:
-                    summary = unicode(event.get('summary'))
-                elif len(unicode(event.get('summary'))) >= 35:
-                    summary = unicode(event.get('summary'))[:35]
-                    if not event.get('description'):
-                        description = unicode(event.get('summary'))
                 
-                record = {r[1]:r[2] for r in [ ('dtstart','start_date',event.get('dtstart') and event.get('dtstart').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                                                      ('dtend','stop_date',event.get('dtend') and event.get('dtend').dt.strftime(DEFAULT_SERVER_DATE_FORMAT)),
-                                                      #~ ('dtstamp','start_datetime',event.get('dtstamp') and event.get('dtstamp').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                                                      #~ ('description','description',description),
-                                                      ('duration','duration',event.get('duration')),
-                                                      ('location','location',event.get('location') and unicode(event.get('location')) or self.ics_location),
-                                                      ('class','class',event.get('class') and str(event.get('class')) or self.ics_class),
-                                                      ('summary','name',summary),
-                                                      ] if event.get(r[0])}
-                record['partner_ids'] = [(6,0,[self.id])]
-                record['ics_subscription'] = True
-                record['start'] = record.get('start_date')
-                record['stop'] = record.get('stop_date') or record.get('start')
-                record['description'] = description
-                record['show_as'] = self.ics_show_as
-                record['allday'] = self.ics_allday
-
-                if not record.get('stop_date'):
-                    record['allday'] = True
-                    record['stop_date'] = record['start_date']
-                _logger.error('ICS %s' % record)
-                self.env['calendar.event'].create(record)
+            self.env['calendar.event'].set_ics_event(res, self)
+                    
           
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
@@ -172,10 +140,15 @@ class res_partner(models.Model):
                 calendar.add_component(event.get_ics_event())
             
         return calendar
-            # return calendar.to_ical()
+        
+    #~ def create_ics_url(self):
+        #~ return 
+        
+        
+    # return calendar.to_ical()
             
             
-        # vtodo, vjournal, vfreebusy
+    # vtodo, vjournal, vfreebusy
 
 
   #~ eventprop  = *(
@@ -219,16 +192,60 @@ class calendar_event(models.Model):
         #~ ('summary','name',summary),
         #~ ]
 
+    @api.one
+    def set_ics_event(self, ics_file, partner):
+        for event in Calendar.from_ical(ics_file).walk('vevent'):            
+            #~ if not event.get('uid'):
+                #~ event.add('uid',reduce(lambda x,y: x ^ y, map(ord, str(event.get('dtstart') and event.get('dtstart').dt or '' + event.get('summary') + event.get('dtend') and event.get('dtend').dt or ''))) % 1024)
+
+            summary = ''
+            description = unicode(event.get('description', ''))
+            if unicode(event.get('summary')) and len(unicode(event.get('summary'))) < 35:
+                summary = unicode(event.get('summary'))
+            elif len(unicode(event.get('summary'))) >= 35:
+                summary = unicode(event.get('summary'))[:35]
+                if not event.get('description'):
+                    description = unicode(event.get('summary'))
+            
+            record = {r[1]:r[2] for r in [ ('dtstart','start_date',event.get('dtstart') and event.get('dtstart').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                                                  ('dtend','stop_date',event.get('dtend') and event.get('dtend').dt.strftime(DEFAULT_SERVER_DATE_FORMAT)),
+                                                  #~ ('dtstamp','start_datetime',event.get('dtstamp') and event.get('dtstamp').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                                                  #~ ('description','description',description),
+                                                  ('duration','duration',event.get('duration')),
+                                                  ('location','location',event.get('location') and unicode(event.get('location')) or partner.ics_location),
+                                                  ('class','class',event.get('class') and str(event.get('class')) or partner.ics_class),
+                                                  ('summary','name',summary),
+                                                  ] if event.get(r[0])}
+            record['partner_ids'] = [(6,0,[partner.id])]
+            record['ics_subscription'] = True
+            record['start'] = record.get('start_date')
+            record['stop'] = record.get('stop_date') or record.get('start')
+            record['description'] = description
+            record['show_as'] = partner.ics_show_as
+            record['allday'] = partner.ics_allday
+
+            if not record.get('stop_date'):
+                record['allday'] = True
+                record['stop_date'] = record['start_date']
+            _logger.error('ICS %s' % record)
+            self.env['calendar.event'].create(record)
 
     @api.multi
     def get_ics_event(self):
         event = self[0]
         ics = Event()
         calendar = Calendar()
+        date_format = DEFAULT_SERVER_DATETIME_FORMAT
         
         ics['uid'] = event.id
-        ics['dtstart'] = event.start_date
-        ics['dtend'] = event.stop_date
+        ics['allday'] = event.allday
+        
+        if ics['allday']:
+            date_format = DEFAULT_SERVER_DATE_FORMAT
+            
+        ics['dtstart'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.start_date, date_format))))
+        ics['dtend'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.stop_date, date_format))))
+        #~ raise Warning('%s disco %s yesyesyes %s' % (ics['dtstart'], ics['dtend'], datetime(2005,4,4,8,0,0)))
         ics['summary'] = event.name
         ics['description'] = event.description
         #~ ics['class'] = event.class
