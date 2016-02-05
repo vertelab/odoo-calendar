@@ -49,15 +49,39 @@ except ImportError:
 # http://www.skatteverketkalender.se/skvcal-manadsmoms-maxfyrtiomiljoner-ingenperiodisk-ingenrotrut-verk1.ics
 class res_partner_icalendar(http.Controller):
 #        http://partner/<res.partner>/calendar/[private.ics|freebusy.ics|public.ics]
+     #~ simple_blog_list = request.env['blog.post'].sudo().search([('blog_id', '=', simple_blog.id)], order='message_last_post desc')
     
-    @http.route(['/partner/<model("res.partner"):partner>/calendar/private.ics', ], type='http', auth="user", website=True)
+    @http.route(['/partner/<model("res.partner"):partner>/calendar/private.ics'], type='http', auth="user", website=True)
     def icalendar_private(self, partner=False, **post):
-        cr, uid, context, pool = request.cr, request.uid, request.context, request.registry
         if partner:
             return partner.get_ics_calendar(type='private').to_ical()
         else:
             pass # Some error page
 
+    @http.route(['/partner/<model("res.partner"):partner>/calendar/freebusy.ics'], type='http', auth="user", website=True)
+    def icalendar_freebusy(self, partner=False, **post):
+        if partner:
+            return partner.get_ics_calendar(type='freebusy').to_ical()
+        else:
+            pass # Some error page
+
+    @http.route(['/partner/<model("res.partner"):partner>/calendar/public.ics'], type='http', auth="user", website=True)
+    def icalendar_public(self, partner=False, **post):
+        if partner:
+            #~ raise Warning("Public successfull %s" % partner.get_ics_calendar(type='public').to_ical())
+            #~ return partner.get_ics_calendar(type='public').to_ical()
+            document = partner.get_ics_calendar(type='public').to_ical()
+            return request.make_response(
+                document,
+                headers=[
+                    ('Content-Disposition', 'attachment; filename="public.ics"'),
+                    ('Content-Type', 'text/calendar'),
+                    ('Content-Length', len(document)),
+                ]
+            )
+        else:
+            raise Warning("Public failed")
+            pass # Some error page
 
 class res_partner(models.Model):
     _inherit = "res.partner"
@@ -137,16 +161,17 @@ class res_partner(models.Model):
                 _logger.error('ICS %s' % record)
                 self.env['calendar.event'].create(record)
           
-        def get_ics_calendar(self,type='public'):
-            calendar = Calendar()
-            if type == 'private':
-                calendar.add_component([self.env['calendar.event'].search([('partner_ids','in',self.id)]).get_ics_event()]) 
-            elif type == 'public':
-                for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]).get_ics_event():
-                    if event.get('class') == 'public':
-                         calendar.add_component(event)
-                
-            return calendar
+    def get_ics_calendar(self,type='public'):
+        calendar = Calendar()
+        if type == 'private':
+            calendar.add_component([self.env['calendar.event'].search([('partner_ids','in',self.id)]).get_ics_event()]) 
+        elif type == 'public':
+            for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
+                #~ raise Warning(event.get_ics_event().get('class'))
+                #~ if event.get_ics_event()['class'] == 'public':
+                calendar.add_component(event.get_ics_event())
+            
+        return calendar
             # return calendar.to_ical()
             
             
@@ -183,5 +208,33 @@ class calendar_event(models.Model):
     _inherit = 'calendar.event'
     
     ics_subscription = fields.Boolean(default=False) # partner_ids + ics_subscription -> its ok to delete
+    #~ ics_record = [ 
+        #~ ('dtstart','start_date','self._dtstart()'),
+        #~ ('dtend','stop_date',event.get('dtend') and event.get('dtend').dt.strftime(DEFAULT_SERVER_DATE_FORMAT)),
+        #~ ('dtstamp','start_datetime',event.get('dtstamp') and event.get('dtstamp').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+        #~ ('description','description',description),
+        #~ ('duration','duration',event.get('duration')),
+        #~ ('location','location',event.get('location') and unicode(event.get('location')) or self.ics_location),
+        #~ ('class','class',event.get('class') and str(event.get('class')) or self.ics_class),
+        #~ ('summary','name',summary),
+        #~ ]
+
+
+    @api.multi
+    def get_ics_event(self):
+        event = self[0]
+        ics = Event()
+        calendar = Calendar()
+        
+        ics['uid'] = event.id
+        ics['dtstart'] = event.start_date
+        ics['dtend'] = event.stop_date
+        ics['summary'] = event.name
+        ics['description'] = event.description
+        #~ ics['class'] = event.class
+
+        #~ calendar.add_component(ics)
+        #~ raise Warning(calendar.to_ical())
+        return ics
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
