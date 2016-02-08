@@ -132,7 +132,7 @@ class res_partner(models.Model):
                 
             self.env['calendar.event'].set_ics_event(res, self)
                     
-          
+    @api.one
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
         if type == 'private':
@@ -189,7 +189,7 @@ class calendar_event(models.Model):
         #~ ('summary','name',summary),
         #~ ]
 
-    @api.one
+    @api.multi
     def set_ics_event(self, ics_file, partner):
         for event in Calendar.from_ical(ics_file).walk('vevent'):            
             #~ if not event.get('uid'):
