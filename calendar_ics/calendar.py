@@ -111,8 +111,6 @@ class res_partner(models.Model):
 
     @api.one
     def rm_ics_events(self):
-        #~ raise Warning('%s/partner/%s/calendar/%s.ics' % (self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id, self.ics_class))
-        #~ raise Warning(self.env['ir.config_parameter'].sudo().get_param('web.base.url'))
         self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_subscription','=',True)]).unlink()
 
     @api.one
@@ -147,10 +145,6 @@ class res_partner(models.Model):
             
         return calendar
         
-        
-    # return calendar.to_ical()
-            
-            
     # vtodo, vjournal, vfreebusy
 
 

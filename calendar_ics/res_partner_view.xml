@@ -22,7 +22,6 @@
               <field name="ics_location" />
               <field name="ics_allday" />
               <field name="ics_url_field" />
-              <button string="Get Calendar" type="object" name="icalendar_public" />
             </group>
           </page>
         </page>
