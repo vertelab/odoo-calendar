@@ -132,7 +132,6 @@ class res_partner(models.Model):
                 
             self.env['calendar.event'].set_ics_event(res, self)
                     
-    @api.one
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
         if type == 'private':
@@ -242,7 +241,6 @@ class calendar_event(models.Model):
             
         ics['dtstart'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.start_date, date_format))))
         ics['dtend'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.stop_date, date_format))))
-        #~ raise Warning('%s disco %s yesyesyes %s' % (ics['dtstart'], ics['dtend'], datetime(2005,4,4,8,0,0)))
         ics['summary'] = event.name
         ics['description'] = event.description
         #~ ics['class'] = event.class
