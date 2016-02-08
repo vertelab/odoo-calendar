@@ -95,7 +95,11 @@ class res_partner(models.Model):
     ics_show_as = fields.Selection([('free', 'Free'), ('busy', 'Busy')], string='Show Time as')
     ics_location = fields.Char(string='Location', help="Location of Event")
     ics_allday = fields.Boolean(string='All Day')
-    #~ ics_url_field = fields.Char(compute='<metod som skall användas>')
+    ics_url_field = fields.Char(string='URL to the calendar', compute='create_ics_url')
+
+    @api.one
+    def create_ics_url(self):
+        self.ics_url_field = '%s/partner/%s/calendar/%s.ics' % (self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id, self.ics_class)
 
     @api.v7
     def ics_cron_job(self, cr, uid, context=None):
@@ -107,6 +111,8 @@ class res_partner(models.Model):
 
     @api.one
     def rm_ics_events(self):
+        #~ raise Warning('%s/partner/%s/calendar/%s.ics' % (self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id, self.ics_class))
+        #~ raise Warning(self.env['ir.config_parameter'].sudo().get_param('web.base.url'))
         self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_subscription','=',True)]).unlink()
 
     @api.one
@@ -140,9 +146,6 @@ class res_partner(models.Model):
                 calendar.add_component(event.get_ics_event())
             
         return calendar
-        
-    #~ def create_ics_url(self):
-        #~ return 
         
         
     # return calendar.to_ical()
