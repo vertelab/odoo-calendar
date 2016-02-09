@@ -70,7 +70,7 @@ class res_partner_icalendar(http.Controller):
         if partner:
             #~ raise Warning("Public successfull %s" % partner.get_ics_calendar(type='public').to_ical())
             #~ return partner.get_ics_calendar(type='public').to_ical()
-            document = partner.get_ics_calendar(type='public').to_ical()
+            document = partner.sudo().get_ics_calendar(type='public').to_ical()
             return request.make_response(
                 document,
                 headers=[
