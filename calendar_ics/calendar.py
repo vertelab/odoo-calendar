@@ -20,9 +20,10 @@
 ##############################################################################
 
 from openerp import models, fields, api, _
+from pytz import timezone
 from openerp.exceptions import except_orm, Warning, RedirectWarning
 from datetime import datetime, timedelta
-from time import strptime, mktime
+from time import strptime, mktime, strftime
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 
 from openerp import http
@@ -58,11 +59,22 @@ class res_partner_icalendar(http.Controller):
         else:
             pass # Some error page
 
-    @http.route(['/partner/<model("res.partner"):partner>/calendar/freebusy.ics'], type='http', auth="user", website=True)
+    @http.route(['/partner/<model("res.partner"):partner>/calendar/freebusy.ics'], type='http', auth="public", website=True)
     def icalendar_freebusy(self, partner=False, **post):
         if partner:
-            return partner.get_ics_calendar(type='freebusy').to_ical()
+            #~ raise Warning("Public successfull %s" % partner.get_ics_calendar(type='public').to_ical())
+            #~ return partner.get_ics_calendar(type='public').to_ical()
+            document = partner.sudo().get_ics_calendar(type='freebusy').to_ical()
+            return request.make_response(
+                document,
+                headers=[
+                    ('Content-Disposition', 'attachment; filename="freebusy.ics"'),
+                    ('Content-Type', 'text/calendar'),
+                    ('Content-Length', len(document)),
+                ]
+            )
         else:
+            raise Warning()
             pass # Some error page
 
     @http.route(['/partner/<model("res.partner"):partner>/calendar/public.ics'], type='http', auth="public", website=True)
@@ -91,7 +103,7 @@ class res_partner(models.Model):
     ics_nextdate = fields.Datetime(string="Next")
     #~ ics_frequency = fields.Integer(string="Frequency",default=60, help="Frequency in minutes, 60 = every hour, 1440 once per day, 10080 week, 43920 month, 131760 quarterly")
     ics_frequency = fields.Selection([('15', 'Every fifteen minutes'), ('60', 'Every hour'), ('360', 'Four times a day'), ('1440', 'Once per day'), ('10080', 'Once every week'), ('43920', 'Once every month'), ('131760', 'Once every third month')], string='Frequency', default='60')
-    ics_class = fields.Selection([('private', 'Private'), ('public', 'Public'), ('confidential', 'Public for Employees')], string='Privacy', default='private')
+    ics_class = fields.Selection([('private', 'Private'), ('public', 'Public'), ('freebusy', 'Free/busy')], string='Privacy', default='private')
     ics_show_as = fields.Selection([('free', 'Free'), ('busy', 'Busy')], string='Show Time as')
     ics_location = fields.Char(string='Location', help="Location of Event")
     ics_allday = fields.Boolean(string='All Day')
@@ -135,15 +147,19 @@ class res_partner(models.Model):
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
         if type == 'private':
-            calendar.add_component([self.env['calendar.event'].search([('partner_ids','in',self.id)]).get_ics_event()]) 
+            calendar.add_component([self.env['calendar.event'].search([('partner_ids','in',self.id)]).get_ics_event()])
+        elif type == 'freebusy':
+            for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
+                calendar.add_component(event.get_ics_event())
         elif type == 'public':
             for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
                 #~ raise Warning(event.get_ics_event().get('class'))
                 #~ if event.get_ics_event()['class'] == 'public':
-                calendar.add_component(event.get_ics_event())
+                calendar.add_component(event.get_ics_file())
             
         return calendar
         
+
     # vtodo, vjournal, vfreebusy
 
 
@@ -177,22 +193,23 @@ class calendar_event(models.Model):
     _inherit = 'calendar.event'
     
     ics_subscription = fields.Boolean(default=False) # partner_ids + ics_subscription -> its ok to delete
-    #~ ics_record = [ 
-        #~ ('dtstart','start_date','self._dtstart()'),
-        #~ ('dtend','stop_date',event.get('dtend') and event.get('dtend').dt.strftime(DEFAULT_SERVER_DATE_FORMAT)),
-        #~ ('dtstamp','start_datetime',event.get('dtstamp') and event.get('dtstamp').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-        #~ ('description','description',description),
-        #~ ('duration','duration',event.get('duration')),
-        #~ ('location','location',event.get('location') and unicode(event.get('location')) or self.ics_location),
-        #~ ('class','class',event.get('class') and str(event.get('class')) or self.ics_class),
-        #~ ('summary','name',summary),
-        #~ ]
 
     @api.multi
     def set_ics_event(self, ics_file, partner):
         for event in Calendar.from_ical(ics_file).walk('vevent'):            
             #~ if not event.get('uid'):
                 #~ event.add('uid',reduce(lambda x,y: x ^ y, map(ord, str(event.get('dtstart') and event.get('dtstart').dt or '' + event.get('summary') + event.get('dtend') and event.get('dtend').dt or ''))) % 1024)
+                
+            ics_record = [
+                ('dtstart','start_date',event.get('dtstart') and event.get('dtstart').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                ('dtend','stop_date',event.get('dtend') and event.get('dtend').dt.strftime(DEFAULT_SERVER_DATE_FORMAT)),
+                ('dtstamp','start_datetime',event.get('dtstamp') and event.get('dtstamp').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                ('description','description',description),
+                ('duration','duration',event.get('duration')),
+                ('location','location',event.get('location') and unicode(event.get('location')) or self.ics_location),
+                ('class','class',event.get('class') and str(event.get('class')) or self.ics_class),
+                ('summary','name',summary),
+                ]
 
             summary = ''
             description = unicode(event.get('description', ''))
@@ -230,23 +247,92 @@ class calendar_event(models.Model):
     def get_ics_event(self):
         event = self[0]
         ics = Event()
+        ics = self.env['calendar.attendee'].get_ics_file(event)
         calendar = Calendar()
         date_format = DEFAULT_SERVER_DATETIME_FORMAT
         
-        ics['uid'] = event.id
-        ics['allday'] = event.allday
         
-        if ics['allday']:
-            date_format = DEFAULT_SERVER_DATE_FORMAT
-            
-        ics['dtstart'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.start_date, date_format))))
-        ics['dtend'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.stop_date, date_format))))
-        ics['summary'] = event.name
-        ics['description'] = event.description
-        #~ ics['class'] = event.class
+        #~ for t in ics_record:
+            #~ ics[t[2]] = eval(t[3])
+        #~ 
+        #~ foo = {ics[t[2]]: event.read([t[1]]) for t in ics_record}
+        #~ 
+        #~ 
+        #~ ics['uid'] = event.id
+        #~ ics['allday'] = event.allday
+        #~ 
+        #~ if ics['allday']:
+            #~ date_format = DEFAULT_SERVER_DATE_FORMAT
+            #~ 
+        #~ ics['dtstart'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.start_date, date_format))))
+        #~ ics['dtend'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.stop_date, date_format))))
+        #~ ics['summary'] = event.name
+        #~ ics['description'] = event.description
+        #~ ics['class'] = event.read(['class'])
 
         #~ calendar.add_component(ics)
         #~ raise Warning(calendar.to_ical())
+        return ics
+
+    @api.multi
+    def get_ics_file(self):
+        """
+        Returns iCalendar file for the event invitation.
+        @param event_obj: event object (browse record)
+        @return: .ics file content
+        """
+        ics = Event()
+        event_obj = self[0]
+
+        def ics_datetime(idate, allday=False):
+            if idate:
+                if allday:
+                    return fields.Date.from_string(idate)
+                else:
+                    return fields.Datetime.from_string(idate).replace(tzinfo=timezone('UTC'))
+            return False
+
+        #~ try:
+            #~ # FIXME: why isn't this in CalDAV?
+            #~ import vobject
+        #~ except ImportError:
+            #~ return res
+
+        #~ cal = vobject.iCalendar()
+        
+        #~ event = cal.add('vevent')
+        if not event_obj.start or not event_obj.stop:
+            raise osv.except_osv(_('Warning!'), _("First you have to specify the date of the invitation."))
+        ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
+        ics['dtstart'] = ics_datetime(event_obj.start, event_obj.allday)
+        ics['dtend'] = ics_datetime(event_obj.stop, event_obj.allday)
+        ics['summary'] = event_obj.name
+        if event_obj.description:
+            ics['description'] = event_obj.description
+        if event_obj.location:
+            ics['location'] = event_obj.location
+        if event_obj.rrule:
+            ics['rrule'] = event_obj.rrule
+
+        #~ if event_obj.alarm_ids:
+            #~ for alarm in event_obj.alarm_ids:
+                #~ valarm = ics.add('valarm')
+                #~ interval = alarm.interval
+                #~ duration = alarm.duration
+                #~ trigger = valarm.add('TRIGGER')
+                #~ trigger.params['related'] = ["START"]
+                #~ if interval == 'days':
+                    #~ delta = timedelta(days=duration)
+                #~ elif interval == 'hours':
+                    #~ delta = timedelta(hours=duration)
+                #~ elif interval == 'minutes':
+                    #~ delta = timedelta(minutes=duration)
+                #~ trigger.value = delta
+                #~ valarm.add('DESCRIPTION').value = alarm.name or 'Odoo'
+        #~ for attendee in event_obj.attendee_ids:
+            #~ attendee_add = ics.add('attendee')
+            #~ attendee_add.value = 'MAILTO:' + (attendee.email or '')
+        #~ res = cal.serialize()
         return ics
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
