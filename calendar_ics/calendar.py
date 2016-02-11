@@ -34,7 +34,7 @@ _logger = logging.getLogger(__name__)
 
 
 try:
-    from icalendar import Calendar, Event, vDatetime
+    from icalendar import Calendar, Event, vDatetime, FreeBusy
 except ImportError:
     raise Warning('icalendar library missing, pip install icalendar')
 
@@ -103,7 +103,7 @@ class res_partner(models.Model):
     ics_nextdate = fields.Datetime(string="Next")
     #~ ics_frequency = fields.Integer(string="Frequency",default=60, help="Frequency in minutes, 60 = every hour, 1440 once per day, 10080 week, 43920 month, 131760 quarterly")
     ics_frequency = fields.Selection([('15', 'Every fifteen minutes'), ('60', 'Every hour'), ('360', 'Four times a day'), ('1440', 'Once per day'), ('10080', 'Once every week'), ('43920', 'Once every month'), ('131760', 'Once every third month')], string='Frequency', default='60')
-    ics_class = fields.Selection([('private', 'Private'), ('public', 'Public'), ('freebusy', 'Free/busy')], string='Privacy', default='private')
+    ics_class = fields.Selection([('private', 'Private'), ('public', 'Public'), ('confidential', 'Public for Employees')], string='Privacy', default='private')
     ics_show_as = fields.Selection([('free', 'Free'), ('busy', 'Busy')], string='Show Time as')
     ics_location = fields.Char(string='Location', help="Location of Event")
     ics_allday = fields.Boolean(string='All Day')
@@ -111,7 +111,7 @@ class res_partner(models.Model):
 
     @api.one
     def create_ics_url(self):
-        self.ics_url_field = '%s/partner/%s/calendar/%s.ics' % (self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id, self.ics_class)
+        self.ics_url_field = '%s/partner/%s/calendar/public.ics' % (self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id)
 
     @api.v7
     def ics_cron_job(self, cr, uid, context=None):
@@ -149,18 +149,19 @@ class res_partner(models.Model):
         if type == 'private':
             calendar.add_component([self.env['calendar.event'].search([('partner_ids','in',self.id)]).get_ics_event()])
         elif type == 'freebusy':
+            #~ fb = FreeBusy()
+            fc = FreeBusy()
             for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
-                #~ raise Warning(event.read(['class'])[0]['class'])
-                if event.read(['class'])[0]['class'] == 'freebusy':
-                    calendar.add_component(event.get_ics_file())
+                fc.add('freebusy', event.get_ics_freebusy(), encode=0)
+            #~ fb.add_component(fc)
+            return fc
         elif type == 'public':
             for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
-                #~ raise Warning(event.get_ics_event().get('class'))
-                if event.read(['class'])[0]['class'] == 'public':
-                    calendar.add_component(event.get_ics_file())
+                calendar.add_component(event.get_ics_file())
             
         return calendar
         
+        #~ ics['freebusy'] = '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
 
     # vtodo, vjournal, vfreebusy
 
@@ -244,7 +245,7 @@ class calendar_event(models.Model):
                 record['stop_date'] = record['start_date']
             _logger.error('ICS %s' % record)
             self.env['calendar.event'].create(record)
-
+            
     @api.multi
     def get_ics_event(self):
         event = self[0]
@@ -280,7 +281,7 @@ class calendar_event(models.Model):
     def get_ics_file(self):
         """
         Returns iCalendar file for the event invitation.
-        @param event_obj: event object (browse record)
+        @param event: event object (browse record)
         @return: .ics file content
         """
         ics = Event()
@@ -308,14 +309,9 @@ class calendar_event(models.Model):
         ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
         ics['dtstart'] = ics_datetime(event.start, event.allday)
         ics['dtend'] = ics_datetime(event.stop, event.allday)
-        #~ raise Warning(event.read(['class'])[0]['class'])
-        if event.read(['class'])[0]['class'] == 'freebusy':
-            ics['summary'] = 'Busy'
-        else:
-            ics['summary'] = event.name
-        #~ raise Warning(event.read(['class'])[0]['class'])
-        #~ ics['class'] = event.read(['class'])[0]['class']
-        if event.description and event.read(['class'])[0]['class'] != 'freebusy':
+        #~ raise Warning('%s/n%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday)))
+        ics['summary'] = event.name
+        if event.description:
             ics['description'] = event.description
         if event.location:
             ics['location'] = event.location
@@ -342,7 +338,43 @@ class calendar_event(models.Model):
                 #~ attendee_add = ics.add('attendee')
                 #~ attendee_add.value = 'MAILTO:' + (attendee.email or '')
         #~ res = cal.serialize()
-        #~ raise Warning(ics['summary'])
         return ics
 
+    @api.multi
+    def get_ics_freebusy(self):
+        """
+        Returns iCalendar file for the event invitation.
+        @param event: event object (browse record)
+        @return: .ics file content
+        """
+        #~ ics = FreeBusy()
+        event = self[0]
+
+        def ics_datetime(idate, allday=False):
+            if idate:
+                if allday:
+                    return fields.Date.from_string(idate)
+                else:
+                    return fields.Datetime.from_string(idate).replace(tzinfo=timezone('UTC'))
+            return False
+
+        #~ try:
+            #~ # FIXME: why isn't this in CalDAV?
+            #~ import vobject
+        #~ except ImportError:
+            #~ return res
+
+        #~ cal = vobject.iCalendar()
+        
+        #~ event = cal.add('vevent')
+        if not event.start or not event.stop:
+            raise osv.except_osv(_('Warning!'), _("First you have to specify the date of the invitation."))
+        #~ ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
+        
+        #~ ics['freebusy'] = '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
+        
+        #~ raise Warning('%s/n%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday)))
+        
+        return '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
+        
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
