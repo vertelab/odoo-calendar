@@ -290,9 +290,9 @@ class calendar_event(models.Model):
         def ics_datetime(idate, allday=False):
             if idate:
                 if allday:
-                    return fields.Date.from_string(idate)
+                    return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical()
                 else:
-                    return fields.Datetime.from_string(idate).replace(tzinfo=timezone('UTC'))
+                    return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical()
             return False
 
         #~ try:
@@ -353,9 +353,9 @@ class calendar_event(models.Model):
         def ics_datetime(idate, allday=False):
             if idate:
                 if allday:
-                    return fields.Date.from_string(idate)
+                    return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical()
                 else:
-                    return fields.Datetime.from_string(idate).replace(tzinfo=timezone('UTC'))
+                    return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical()
             return False
 
         #~ try:
@@ -365,14 +365,13 @@ class calendar_event(models.Model):
             #~ return res
 
         #~ cal = vobject.iCalendar()
-        
         #~ event = cal.add('vevent')
+        
         if not event.start or not event.stop:
             raise osv.except_osv(_('Warning!'), _("First you have to specify the date of the invitation."))
+            
         #~ ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
-        
         #~ ics['freebusy'] = '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
-        
         #~ raise Warning('%s/n%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday)))
         
         return '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
