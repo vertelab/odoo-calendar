@@ -51,12 +51,21 @@ except ImportError:
 class res_partner_icalendar(http.Controller):
 #        http://partner/<res.partner>/calendar/[private.ics|freebusy.ics|public.ics]
      #~ simple_blog_list = request.env['blog.post'].sudo().search([('blog_id', '=', simple_blog.id)], order='message_last_post desc')
-    
-    @http.route(['/partner/<model("res.partner"):partner>/calendar/private.ics'], type='http', auth="user", website=True)
+
+    @http.route(['/partner/<model("res.partner"):partner>/calendar/private.ics'], type='http', auth="public", website=True)
     def icalendar_private(self, partner=False, **post):
         if partner:
-            return partner.get_ics_calendar(type='private').to_ical()
+            document = partner.sudo().get_ics_calendar(type='private').to_ical()
+            return request.make_response(
+                document,
+                headers=[
+                    ('Content-Disposition', 'attachment; filename="private.ics"'),
+                    ('Content-Type', 'text/calendar'),
+                    ('Content-Length', len(document)),
+                ]
+            )
         else:
+            raise Warning("Private failed")
             pass # Some error page
 
     @http.route(['/partner/<model("res.partner"):partner>/calendar/freebusy.ics'], type='http', auth="public", website=True)
@@ -68,7 +77,7 @@ class res_partner_icalendar(http.Controller):
             return request.make_response(
                 document,
                 headers=[
-                    ('Content-Disposition', 'attachment; filename="freebusy.ics"'),
+                    ('Content-Disposition', 'attachment; filename="freebusy.ifb"'),
                     ('Content-Type', 'text/calendar'),
                     ('Content-Length', len(document)),
                 ]
@@ -147,7 +156,8 @@ class res_partner(models.Model):
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
         if type == 'private':
-            calendar.add_component([self.env['calendar.event'].search([('partner_ids','in',self.id)]).get_ics_event()])
+            for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
+                calendar.add_component(event.get_ics_file())
         elif type == 'freebusy':
             #~ fb = FreeBusy()
             fc = FreeBusy()
@@ -287,10 +297,11 @@ class calendar_event(models.Model):
         ics = Event()
         event = self[0]
 
+        #~ The method below needs som proper rewriting to avoid overusing libraries.
         def ics_datetime(idate, allday=False):
             if idate:
                 if allday:
-                    return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical()
+                    return str(vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical())[:8]
                 else:
                     return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical()
             return False
@@ -350,30 +361,24 @@ class calendar_event(models.Model):
         #~ ics = FreeBusy()
         event = self[0]
 
-        def ics_datetime(idate, allday=False):
+        def ics_datetime(idate, iallday=False):
             if idate:
-                if allday:
-                    return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical()
+                if iallday:
+                    return vDatetime(idate).to_ical()
                 else:
-                    return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical()
+                    return vDatetime(idate).to_ical()
             return False
-
-        #~ try:
-            #~ # FIXME: why isn't this in CalDAV?
-            #~ import vobject
-        #~ except ImportError:
-            #~ return res
-
-        #~ cal = vobject.iCalendar()
-        #~ event = cal.add('vevent')
         
         if not event.start or not event.stop:
             raise osv.except_osv(_('Warning!'), _("First you have to specify the date of the invitation."))
-            
-        #~ ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
-        #~ ics['freebusy'] = '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
-        #~ raise Warning('%s/n%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday)))
+
+        allday = event.allday
+        event_start = datetime.fromtimestamp(mktime(strptime(event.start, DEFAULT_SERVER_DATETIME_FORMAT)))
+        event_stop = datetime.fromtimestamp(mktime(strptime(event.stop, DEFAULT_SERVER_DATETIME_FORMAT)))
         
-        return '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
+        if allday:
+            event_stop += timedelta(hours=23, minutes=59, seconds=59)
+
+        return '%s/%s' % (ics_datetime(event_start, allday), ics_datetime(event_stop, allday))
         
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
