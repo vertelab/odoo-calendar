@@ -35,9 +35,10 @@ Adds and updates calendar objects according to an ics-url
     'website': 'http://www.vertel.se',
     'depends': ['calendar',],
     'data': [ 'res_partner_view.xml',
-    #'security/ir.model.access.csv'
-    ],
+    #'security/ir.model.access.csv',
+    'calendar_ics_demo.xml'],
     'application': False,
     'installable': True,
+    'demo': [],
 }
 # vim:expandtab:smartindent:tabstop=4s:softtabstop=4:shiftwidth=4:
