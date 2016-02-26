@@ -149,10 +149,10 @@ class res_partner(models.Model):
                 
             self.env['calendar.event'].set_ics_event(res, self)
 
-    @api.multi
+    @api.one
     def get_attendee_ids(self, event):
         partner_ids = []
-        attendee_mails = []
+        #~ attendee_mails = []
         for vAttendee in event.get('attendee'):
             attendee_mailto = re.search('(:MAILTO:)([a-zA-Z0-9_@.\-]*)', vAttendee)
             attendee_cn = re.search('(CN=)([^:]*)', vAttendee)
@@ -189,13 +189,11 @@ class res_partner(models.Model):
                 #~ })
                     
             partner_ids.append(partner_id.id or None)
-            attendee_mails.append(attendee_mailto or '')
+            #~ attendee_mails.append(attendee_mailto or '')
             
-        return [partner_ids, attendee_mails]
+        return partner_ids
+        #~ return [partner_ids, attendee_mails]
             
-                
-            #~ event_id.partner_ids = [(6,0,[p.id for p in event_id.attendee_ids])]
-
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
         if type == 'private':
@@ -211,6 +209,9 @@ class res_partner(models.Model):
         elif type == 'public':
             for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
                 calendar.add_component(event.get_ics_file())
+                
+                #~ for attendees in event.attendee_ids:
+                    #~ calendar.add('attendee', event.get_event_attendees(attendees), encode=0)
             
         return calendar
         
@@ -287,7 +288,7 @@ class calendar_event(models.Model):
                                                   #~ ('attendee','attendee_ids',event.get('attendee')),
                                                   ] if event.get(r[0])}
 
-            partner_ids = self.env['res.partner'].get_attendee_ids(event)[0]
+            partner_ids = self.env['res.partner'].get_attendee_ids(event)
             if partner_ids:
                 partner_ids.append(partner.id)
             else:
@@ -388,16 +389,23 @@ class calendar_event(models.Model):
         #~ event = cal.add('vevent')
         if not event.start or not event.stop:
             raise osv.except_osv(_('Warning!'), _("First you have to specify the date of the invitation."))
+        #~ ics.add('created', ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT)), encode=0)
         ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
+        #~ ics.add('dtstart', ics_datetime(event.start, event.allday), encode=0)
         ics['dtstart'] = ics_datetime(event.start, event.allday)
+        #~ ics.add('dtend', ics_datetime(event.stop, event.allday), encode=0)
         ics['dtend'] = ics_datetime(event.stop, event.allday)
         #~ raise Warning('%s/n%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday)))
+        #~ ics.add('summary', event.name, encode=0)
         ics['summary'] = event.name
         if event.description:
+            #~ ics.add('description', event.description, encode=0)
             ics['description'] = event.description
         if event.location:
+            #~ ics.add('location', event.location, encode=0)
             ics['location'] = event.location
         if event.rrule:
+            #~ ics.add('rrule', event.rrule, encode=0)
             ics['rrule'] = event.rrule
 
         if event.alarm_ids:
@@ -415,16 +423,35 @@ class calendar_event(models.Model):
                     delta = timedelta(minutes=duration)
                 trigger.value = delta
                 valarm.add('DESCRIPTION').value = alarm.name or 'Odoo'
-        #~ if event.attendee_ids:
-            #~ for attendee in event.attendee_ids:
-                #~ attendee_add = ics.get('attendee')
-                #~ attendee_add = 'MAILTO:' + (attendee.email or '')
+        if event.attendee_ids:
+            for attendee in event.attendee_ids:
+                attendee_add = ics.get('attendee')
+                attendee_add = attendee.cn and ('CN=' + attendee.cn) or ''
+                if attendee.cn and attendee.email:
+                    attendee_add += ':'
+                attendee_add += attendee.email and ('MAILTO:' + attendee.email) or ''
                 
+                ics.add('attendee', attendee_add, encode=0)
+                #~ ics['attendee'] = attendee_add
             #~ for attendee in event_obj.attendee_ids:
                 #~ attendee_add = event.add('attendee')
-                #~ attendee_add.value = 'MAILTO:' + (attendee.email or '')            
+                #~ attendee_add.value = 'MAILTO:' + (attendee.email or '')
         #~ res = cal.serialize()
         return ics
+
+    @api.multi
+    def get_event_attendees(self, attendee):
+        ics = Event()
+        
+        attendee_add = ics.get('attendee')
+        attendee_add = attendee.cn and ('CN=' + attendee.cn) or ''
+        if attendee.cn and attendee.email:
+            attendee_add += ':'
+        attendee_add += attendee.email and ('MAILTO:' + attendee.email) or ''
+        
+        #~ ics['attendee'] = attendee_add
+        
+        return attendee_add
 
     @api.multi
     def get_ics_freebusy(self):
