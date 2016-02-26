@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<openerp>
+  <data noupdate="1">
+    <record id="calendar_event_1" model="calendar.event">
+      <field eval="1" name="active" />
+      <field name="user_id" ref="base.user_demo" />
+      <field name="partner_ids" eval="[(6,0,[ref('base.res_partner_address_4')])]" />
+      <field name="name">Demo meeting about meat</field>
+      <field name="description">Meeting to discuss project plan and hash out the details of implementation.</field>
+      <field eval="time.strftime('%Y-%m-03 10:20:00')" name="start" />
+      <field name="categ_ids" eval="[(6,0,[ref('calendar.categ_meet1')])]" />
+      <field eval="time.strftime('%Y-%m-03 16:30:00')" name="stop" />
+      <field eval="6.3" name="duration" />
+      <field eval="0" name="allday" />
+      <field name="state">open</field>
+    </record>
+    
+    <record id="calendar_event_2" model="calendar.event">
+      <field eval="1" name="active" />
+      <field name="user_id" ref="base.user_demo" />
+      <field name="partner_ids" eval="[(6,0,[ref('base.res_partner_address_4')])]" />
+      <field name="name">Demo Kickoff</field>
+      <field name="description">Weekend at burneys</field>
+      <field eval="time.strftime('%Y-%m-05 10:20:00')" name="start" />
+      <field name="categ_ids" eval="[(6,0,[ref('calendar.categ_meet1')])]" />
+      <field eval="time.strftime('%Y-%m-07 10:20:00')" name="stop" />
+      <field eval="6.3" name="duration" />
+      <field eval="0" name="allday" />
+      <field name="state">open</field>
+    </record>
+    
+    <record id="calendar_event_3" model="calendar.event">
+      <field eval="1" name="active" />
+      <field name="user_id" ref="base.user_demo" />
+      <field name="partner_ids" eval="[(6,0,[ref('base.res_partner_address_4')])]" />
+      <field name="name">Demo Bring the meat.</field>
+      <field name="description">All you can eat buffe.</field>
+      <field eval="time.strftime('%Y-%m-10')" name="start" />
+      <field name="categ_ids" eval="[(6,0,[ref('calendar.categ_meet1')])]" />
+      <field eval="time.strftime('%Y-%m-10')" name="stop" />
+      <field eval="6.3" name="duration" />
+      <field eval="1" name="allday" />
+      <field name="state">open</field>
+    </record>
+    
+    <record id="calendar_event_4" model="calendar.event">
+      <field eval="1" name="active" />
+      <field name="user_id" ref="base.user_demo" />
+      <field name="partner_ids" eval="[(6,0,[ref('base.res_partner_address_4')])]" />
+      <field name="name">Demo Trash the meat grinder</field>
+      <field name="description">Bring your own hammers and tools</field>
+      <field name="location">BurgerTown, 31 butcherstreet</field>
+      <field eval="time.strftime('%Y-%m-25 08:00:00')" name="start" />
+      <field name="categ_ids" eval="[(6,0,[ref('calendar.categ_meet1')])]" />
+      <field eval="time.strftime('%Y-%m-25 09:00:00')" name="stop" />
+      <field eval="6.3" name="duration" />
+      <field eval="0" name="allday" />
+      <field name="state">open</field>
+    </record>
+    
+    <record id="calendar_event_5" model="calendar.event">
+      <field eval="1" name="active" />
+      <field name="user_id" ref="base.user_demo" />
+      <field name="partner_ids" eval="[(6,0,[ref('base.res_partner_address_4')])]" />
+      <field name="name">Demo Trash the meat grinder reunion!</field>
+      <field name="description">Bring your own hammers and tools AND meat this time</field>
+      <field name="location">BurgerTown, 31 butcherstreet</field>
+      <field eval="time.strftime('%Y-%m-28 08:00:00')" name="start" />
+      <field name="categ_ids" eval="[(6,0,[ref('calendar.categ_meet1')])]" />
+      <field eval="time.strftime('%Y-%m-28 09:00:00')" name="stop" />
+      <field eval="6.3" name="duration" />
+      <field eval="0" name="allday" />
+      <field name="state">open</field>
+    </record>
+  </data>
+</openerp>
