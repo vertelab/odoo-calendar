@@ -25,6 +25,7 @@ from openerp.exceptions import except_orm, Warning, RedirectWarning
 from datetime import datetime, timedelta
 from time import strptime, mktime, strftime
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
+import re
 
 from openerp import http
 from openerp.http import request
@@ -52,21 +53,16 @@ class res_partner_icalendar(http.Controller):
 #        http://partner/<res.partner>/calendar/[private.ics|freebusy.ics|public.ics]
      #~ simple_blog_list = request.env['blog.post'].sudo().search([('blog_id', '=', simple_blog.id)], order='message_last_post desc')
 
-    @http.route(['/partner/<model("res.partner"):partner>/calendar/private.ics'], type='http', auth="public", website=True)
-    def icalendar_private(self, partner=False, **post):
-        if partner:
-            document = partner.sudo().get_ics_calendar(type='private').to_ical()
-            return request.make_response(
-                document,
-                headers=[
-                    ('Content-Disposition', 'attachment; filename="private.ics"'),
-                    ('Content-Type', 'text/calendar'),
-                    ('Content-Length', len(document)),
-                ]
-            )
-        else:
-            raise Warning("Private failed")
-            pass # Some error page
+    #~ @http.route(['/partner/<model("res.partner"):partner>/calendar/private.ics'], type='http', auth="public", website=True)
+    #~ def icalendar_private(self, partner=False, **post):
+        #~ if partner:
+            #~ document = partner.sudo().get_ics_calendar(type='private').to_ical()
+            #~ return request.make_response(
+                #~ headers=[('WWW-Authenticate', 'Basic realm="MaxRealm"')]
+            #~ )
+        #~ else:
+            #~ raise Warning("Private failed")
+            #~ pass # Some error page
 
     @http.route(['/partner/<model("res.partner"):partner>/calendar/freebusy.ics'], type='http', auth="public", website=True)
     def icalendar_freebusy(self, partner=False, **post):
@@ -152,7 +148,54 @@ class res_partner(models.Model):
                 #~ event.unlink()
                 
             self.env['calendar.event'].set_ics_event(res, self)
+
+    @api.multi
+    def get_attendee_ids(self, event):
+        partner_ids = []
+        attendee_mails = []
+        for vAttendee in event.get('attendee'):
+            attendee_mailto = re.search('(:MAILTO:)([a-zA-Z0-9_@.\-]*)', vAttendee)
+            attendee_cn = re.search('(CN=)([^:]*)', vAttendee)
+            if attendee_mailto:
+                attendee_mailto = attendee_mailto.group(2)
+            if attendee_cn:
+                attendee_cn = attendee_cn.group(2)
+            
+            #~ raise Warning('%s %s' % (attendee_mailto, attendee_cn))
+            if attendee_mailto:
+                partner_result = self.env['res.partner'].search([('email','=',attendee_mailto)])
+                
+                if not partner_result:
+                    partner_id = self.env['res.partner'].create({
+                        'email': attendee_mailto,
+                        'name': attendee_cn or attendee_mailto,
+                        })
+                else:
+                    partner_id = partner_result[0]
+            elif attendee_cn:
+                partner_result = self.env['res.partner'].search([('name','=',attendee_cn)])
+                
+                if not partner_result:
+                    partner_id = self.env['res.partner'].create({
+                        'name': attendee_cn or attendee_mailto,
+                        })
+                else:
+                    partner_id = partner_result[0]
+            
+            #~ self.env['calendar.attendee'].create({
+                #~ 'event_id': event_id.id,
+                #~ 'partner_id': partner_id.id or None,
+                #~ 'email': attendee_mailto or '',
+                #~ })
                     
+            partner_ids.append(partner_id.id or None)
+            attendee_mails.append(attendee_mailto or '')
+            
+        return [partner_ids, attendee_mails]
+            
+                
+            #~ event_id.partner_ids = [(6,0,[p.id for p in event_id.attendee_ids])]
+
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
         if type == 'private':
@@ -234,15 +277,26 @@ class calendar_event(models.Model):
                     description = unicode(event.get('summary'))
             
             record = {r[1]:r[2] for r in [ ('dtstart','start_date',event.get('dtstart') and event.get('dtstart').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                                                  ('dtend','stop_date',event.get('dtend') and event.get('dtend').dt.strftime(DEFAULT_SERVER_DATE_FORMAT)),
+                                                  ('dtend','stop_date',event.get('dtend') and event.get('dtend').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
                                                   #~ ('dtstamp','start_datetime',event.get('dtstamp') and event.get('dtstamp').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
                                                   #~ ('description','description',description),
                                                   ('duration','duration',event.get('duration')),
                                                   ('location','location',event.get('location') and unicode(event.get('location')) or partner.ics_location),
                                                   ('class','class',event.get('class') and str(event.get('class')) or partner.ics_class),
                                                   ('summary','name',summary),
+                                                  #~ ('attendee','attendee_ids',event.get('attendee')),
                                                   ] if event.get(r[0])}
-            record['partner_ids'] = [(6,0,[partner.id])]
+
+            partner_ids = self.env['res.partner'].get_attendee_ids(event)[0]
+            if partner_ids:
+                partner_ids.append(partner.id)
+            else:
+                partner_ids = [partner.id]
+            
+            record['partner_ids'] = [(6,0,[partner_ids])]
+            #~ record['partner_ids'] = [(6,0,self.env['res.partner'].get_attendee_ids(event)[0] and self.env['res.partner'].get_attendee_ids(event)[0].append(partner.id) or [partner.id])]
+            #~ raise Warning(record['partner_ids'])
+            #~ record['attendee_ids'] = [(6,0,[attendee])]
             record['ics_subscription'] = True
             record['start'] = record.get('start_date')
             record['stop'] = record.get('stop_date') or record.get('start')
@@ -255,6 +309,23 @@ class calendar_event(models.Model):
                 record['stop_date'] = record['start_date']
             _logger.error('ICS %s' % record)
             self.env['calendar.event'].create(record)
+            #~ event_id = self.env['calendar.event'].create(record)
+#~ 
+            #~ attendee_values = self.env['res.partner'].get_attendee_ids(event)
+            #~ for i in range(len(attendee_values[0])):
+                #~ self.env['calendar.attendee'].create({
+                    #~ 'event_id': event_id.id,
+                    #~ 'partner_id': attendee_values[0][i],
+                    #~ 'email': attendee_values[1][i],
+                    #~ })
+
+        #~ 'state': fields.selection(STATE_SELECTION, 'Status', readonly=True, help="Status of the attendee's participation"),
+        #~ 'cn': fields.function(_compute_data, string='Common name', type="char", multi='cn', store=True),
+        #~ 'partner_id': fields.many2one('res.partner', 'Contact', readonly="True"),
+        #~ 'email': fields.char('Email', help="Email of Invited Person"),
+        #~ 'availability': fields.selection([('free', 'Free'), ('busy', 'Busy')], 'Free/Busy', readonly="True"),
+        #~ 'access_token': fields.char('Invitation Token'),
+        #~ 'event_id': fields.many2one('calendar.event', 'Meeting linked', ondelete='cascade'),
             
     @api.multi
     def get_ics_event(self):
@@ -346,8 +417,12 @@ class calendar_event(models.Model):
                 valarm.add('DESCRIPTION').value = alarm.name or 'Odoo'
         #~ if event.attendee_ids:
             #~ for attendee in event.attendee_ids:
-                #~ attendee_add = ics.add('attendee')
-                #~ attendee_add.value = 'MAILTO:' + (attendee.email or '')
+                #~ attendee_add = ics.get('attendee')
+                #~ attendee_add = 'MAILTO:' + (attendee.email or '')
+                
+            #~ for attendee in event_obj.attendee_ids:
+                #~ attendee_add = event.add('attendee')
+                #~ attendee_add.value = 'MAILTO:' + (attendee.email or '')            
         #~ res = cal.serialize()
         return ics
 
