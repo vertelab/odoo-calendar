@@ -149,8 +149,9 @@ class res_partner(models.Model):
                 
             self.env['calendar.event'].set_ics_event(res, self)
 
-    @api.one
+    @api.multi
     def get_attendee_ids(self, event):
+        #~ raise Warning('get_attendee_ids run')
         partner_ids = []
         #~ attendee_mails = []
         for vAttendee in event.get('attendee'):
@@ -160,8 +161,10 @@ class res_partner(models.Model):
                 attendee_mailto = attendee_mailto.group(2)
             if attendee_cn:
                 attendee_cn = attendee_cn.group(2)
+            elif not attendee_mailto and not attendee_cn:
+                attendee_cn = vAttendee
             
-            #~ raise Warning('%s %s' % (attendee_mailto, attendee_cn))
+            #~ raise Warning('%s %s' % (vAttendee, attendee_cn))
             if attendee_mailto:
                 partner_result = self.env['res.partner'].search([('email','=',attendee_mailto)])
                 
@@ -208,14 +211,19 @@ class res_partner(models.Model):
             organizer_add += self.email and ('MAILTO:' + self.email) or ''
             fc['organizer'] = organizer_add
 
-            for event in reversed(self.env['calendar.event'].search([('partner_ids','in',self.id)])):
+            for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
                 fc.add('freebusy', event.get_ics_freebusy(), encode=0)
             #~ fb.add_component(fc)
             return fc
         elif type == 'public':
-            for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
-                calendar.add_component(event.get_ics_file())
-                
+            #~ raise Warning(self.env['calendar.event'].search([('partner_ids','in',self.id)]))
+            exported_ics = []
+            for event in reversed(self.env['calendar.event'].search([('partner_ids','in',self.id)])):
+                temporary_ics = event.get_ics_file(exported_ics)
+                if temporary_ics:
+                    exported_ics.append(temporary_ics[1])
+                    calendar.add_component(temporary_ics[0])
+            
                 #~ for attendees in event.attendee_ids:
                     #~ calendar.add('attendee', event.get_event_attendees(attendees), encode=0)
             
@@ -291,9 +299,11 @@ class calendar_event(models.Model):
                                                   ('location','location',event.get('location') and unicode(event.get('location')) or partner.ics_location),
                                                   ('class','class',event.get('class') and str(event.get('class')) or partner.ics_class),
                                                   ('summary','name',summary),
+                                                  ('rrule', 'rrule',event.get('rrule').to_ical()),
                                                   ] if event.get(r[0])}
 
             partner_ids = self.env['res.partner'].get_attendee_ids(event)
+            #~ raise Warning(self.env['res.partner'].get_attendee_ids(event))
             if partner_ids:
                 partner_ids.append(partner.id)
             else:
@@ -309,7 +319,7 @@ class calendar_event(models.Model):
             record['description'] = description
             record['show_as'] = partner.ics_show_as
             record['allday'] = partner.ics_allday
-            record['rrule'] = event.get('rrule').to_ical()
+            #~ record['rrule'] = event.get('rrule').to_ical()
             #~ raise Warning(record['rrule_type'].to_ical)
 
             if not record.get('stop_date'):
@@ -366,8 +376,9 @@ class calendar_event(models.Model):
         #~ raise Warning(calendar.to_ical())
         return ics
 
+
     @api.multi
-    def get_ics_file(self):
+    def get_ics_file(self, events_exported):
         """
         Returns iCalendar file for the event invitation.
         @param event: event object (browse record)
@@ -396,9 +407,6 @@ class calendar_event(models.Model):
         #~ event = cal.add('vevent')
         if not event.start or not event.stop:
             raise osv.except_osv(_('Warning!'), _("First you have to specify the date of the invitation."))
-        ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
-        ics['dtstart'] = ics_datetime(event.start, event.allday)
-        ics['dtend'] = ics_datetime(event.stop, event.allday)
         ics['summary'] = event.name
         if event.description:
             ics['description'] = event.description
@@ -431,21 +439,49 @@ class calendar_event(models.Model):
                 attendee_add += attendee.email and ('MAILTO:' + attendee.email) or ''
                 
                 ics.add('attendee', attendee_add, encode=0)
-        return ics
+                
+        if events_exported:
+            event_not_found = True
+            
+            for event_comparison in events_exported:
+                #~ raise Warning('event_comparison = %s ics = %s' % (event_comparison, ics))
+                if str(ics) == event_comparison:
+                    event_not_found = False
+                    break
+            
+            if event_not_found:
+                events_exported.append(str(ics))
+                
+                ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
+                ics['dtstart'] = ics_datetime(event.start, event.allday)
+                if not event.allday:
+                    ics['dtend'] = ics_datetime(event.stop, event.allday)
+                
+                return [ics, events_exported]
+            
+        else:
+            events_exported.append(str(ics))
+            
+            ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
+            ics['dtstart'] = ics_datetime(event.start, event.allday)
+            if not event.allday:
+                ics['dtend'] = ics_datetime(event.stop, event.allday)
+            
+            return [ics, events_exported]
 
-    @api.multi
-    def get_event_attendees(self, attendee):
-        ics = Event()
-        
-        attendee_add = ics.get('attendee')
-        attendee_add = attendee.cn and ('CN=' + attendee.cn) or ''
-        if attendee.cn and attendee.email:
-            attendee_add += ':'
-        attendee_add += attendee.email and ('MAILTO:' + attendee.email) or ''
-        
+    #~ @api.multi
+    #~ def get_event_attendees(self, attendee):
+        #~ ics = Event()
+        #~ 
+        #~ attendee_add = ics.get('attendee')
+        #~ attendee_add = attendee.cn and ('CN=' + attendee.cn) or ''
+        #~ if attendee.cn and attendee.email:
+            #~ attendee_add += ':'
+        #~ attendee_add += attendee.email and ('MAILTO:' + attendee.email) or ''
+        #~ 
         #~ ics['attendee'] = attendee_add
-        
-        return attendee_add
+        #~ 
+        #~ return attendee_add
 
     @api.multi
     def get_ics_freebusy(self):
@@ -459,10 +495,7 @@ class calendar_event(models.Model):
 
         def ics_datetime(idate, iallday=False):
             if idate:
-                if iallday:
-                    return vDatetime(idate).to_ical()
-                else:
-                    return vDatetime(idate).to_ical()
+                return vDatetime(idate).to_ical()
             return False
         
         if not event.start or not event.stop:
