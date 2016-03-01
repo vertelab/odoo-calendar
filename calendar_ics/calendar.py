@@ -200,9 +200,15 @@ class res_partner(models.Model):
             for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
                 calendar.add_component(event.get_ics_file())
         elif type == 'freebusy':
-            #~ fb = FreeBusy()
             fc = FreeBusy()
-            for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
+            
+            organizer_add = self.name and ('CN=' + self.name) or ''
+            if self.name and self.email:
+                organizer_add += ':'
+            organizer_add += self.email and ('MAILTO:' + self.email) or ''
+            fc['organizer'] = organizer_add
+
+            for event in reversed(self.env['calendar.event'].search([('partner_ids','in',self.id)])):
                 fc.add('freebusy', event.get_ics_freebusy(), encode=0)
             #~ fb.add_component(fc)
             return fc
@@ -285,7 +291,6 @@ class calendar_event(models.Model):
                                                   ('location','location',event.get('location') and unicode(event.get('location')) or partner.ics_location),
                                                   ('class','class',event.get('class') and str(event.get('class')) or partner.ics_class),
                                                   ('summary','name',summary),
-                                                  #~ ('attendee','attendee_ids',event.get('attendee')),
                                                   ] if event.get(r[0])}
 
             partner_ids = self.env['res.partner'].get_attendee_ids(event)
@@ -304,6 +309,8 @@ class calendar_event(models.Model):
             record['description'] = description
             record['show_as'] = partner.ics_show_as
             record['allday'] = partner.ics_allday
+            record['rrule'] = event.get('rrule').to_ical()
+            #~ raise Warning(record['rrule_type'].to_ical)
 
             if not record.get('stop_date'):
                 record['allday'] = True
@@ -389,23 +396,15 @@ class calendar_event(models.Model):
         #~ event = cal.add('vevent')
         if not event.start or not event.stop:
             raise osv.except_osv(_('Warning!'), _("First you have to specify the date of the invitation."))
-        #~ ics.add('created', ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT)), encode=0)
         ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
-        #~ ics.add('dtstart', ics_datetime(event.start, event.allday), encode=0)
         ics['dtstart'] = ics_datetime(event.start, event.allday)
-        #~ ics.add('dtend', ics_datetime(event.stop, event.allday), encode=0)
         ics['dtend'] = ics_datetime(event.stop, event.allday)
-        #~ raise Warning('%s/n%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday)))
-        #~ ics.add('summary', event.name, encode=0)
         ics['summary'] = event.name
         if event.description:
-            #~ ics.add('description', event.description, encode=0)
             ics['description'] = event.description
         if event.location:
-            #~ ics.add('location', event.location, encode=0)
             ics['location'] = event.location
         if event.rrule:
-            #~ ics.add('rrule', event.rrule, encode=0)
             ics['rrule'] = event.rrule
 
         if event.alarm_ids:
@@ -432,11 +431,6 @@ class calendar_event(models.Model):
                 attendee_add += attendee.email and ('MAILTO:' + attendee.email) or ''
                 
                 ics.add('attendee', attendee_add, encode=0)
-                #~ ics['attendee'] = attendee_add
-            #~ for attendee in event_obj.attendee_ids:
-                #~ attendee_add = event.add('attendee')
-                #~ attendee_add.value = 'MAILTO:' + (attendee.email or '')
-        #~ res = cal.serialize()
         return ics
 
     @api.multi
