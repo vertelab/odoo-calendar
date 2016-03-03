@@ -87,7 +87,7 @@ class res_partner_icalendar(http.Controller):
         if partner:
             #~ raise Warning("Public successfull %s" % partner.get_ics_calendar(type='public').to_ical())
             #~ return partner.get_ics_calendar(type='public').to_ical()
-            document = partner.sudo().get_ics_calendar(type='public').to_ical()
+            document = partner.sudo().get_ics_calendar(type='public')
             return request.make_response(
                 document,
                 headers=[
@@ -223,11 +223,20 @@ class res_partner(models.Model):
                 if temporary_ics:
                     exported_ics.append(temporary_ics[1])
                     calendar.add_component(temporary_ics[0])
+                    #~ calendar.add('vevent', temporary_ics[0], encode=0)
             
                 #~ for attendees in event.attendee_ids:
                     #~ calendar.add('attendee', event.get_event_attendees(attendees), encode=0)
-            
-        return calendar
+                    
+        tmpCalendar = calendar.to_ical()
+        tmpSearch = re.findall('RRULE:[^\n]*\\;[^\n]*', tmpCalendar)
+        
+        for counter in range(len(tmpSearch)):
+            tmpCalendar = tmpCalendar.replace(tmpSearch[counter], tmpSearch[counter].replace('\\;', ';', tmpSearch[counter].count('\\;')))
+        
+        #~ raise Warning(tmpCalendar)
+        
+        return tmpCalendar
         
         #~ ics['freebusy'] = '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
 
@@ -414,6 +423,8 @@ class calendar_event(models.Model):
             ics['location'] = event.location
         if event.rrule:
             ics['rrule'] = event.rrule
+            #~ ics.add('rrule', str(event.rrule), encode=0)
+            #~ raise Warning(ics['rrule'])
 
         if event.alarm_ids:
             for alarm in event.alarm_ids:
