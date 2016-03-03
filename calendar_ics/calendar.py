@@ -86,7 +86,7 @@ class res_partner_icalendar(http.Controller):
     def icalendar_public(self, partner=False, **post):
         if partner:
             #~ raise Warning("Public successfull %s" % partner.get_ics_calendar(type='public').to_ical())
-            #~ return partner.get_ics_calendar(type='public').to_ical()
+            #~ return partner.sudo().get_ics_calendar(type='public')
             document = partner.sudo().get_ics_calendar(type='public')
             return request.make_response(
                 document,
@@ -219,9 +219,10 @@ class res_partner(models.Model):
             #~ raise Warning(self.env['calendar.event'].search([('partner_ids','in',self.id)]))
             exported_ics = []
             for event in reversed(self.env['calendar.event'].search([('partner_ids','in',self.id)])):
-                temporary_ics = event.get_ics_file(exported_ics)
+                temporary_ics = event.get_ics_file(exported_ics, self)
                 if temporary_ics:
                     exported_ics.append(temporary_ics[1])
+                    #~ temporary_ics[0].add('url', self.ics_url_field, encode=0)
                     calendar.add_component(temporary_ics[0])
                     #~ calendar.add('vevent', temporary_ics[0], encode=0)
             
@@ -387,7 +388,7 @@ class calendar_event(models.Model):
 
 
     @api.multi
-    def get_ics_file(self, events_exported):
+    def get_ics_file(self, events_exported, partner):
         """
         Returns iCalendar file for the event invitation.
         @param event: event object (browse record)
@@ -396,6 +397,7 @@ class calendar_event(models.Model):
         ics = Event()
         event = self[0]
 
+        #~ raise Warning(self.env.cr.dbname)
         #~ The method below needs som proper rewriting to avoid overusing libraries.
         def ics_datetime(idate, allday=False):
             if idate:
@@ -463,6 +465,7 @@ class calendar_event(models.Model):
             if event_not_found:
                 events_exported.append(str(ics))
                 
+                ics['uid'] = '%s@%s/%s' % (event.id, self.env.cr.dbname, partner.id)
                 ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
                 ics['dtstart'] = ics_datetime(event.start, event.allday)
                 if not event.allday:
@@ -473,6 +476,7 @@ class calendar_event(models.Model):
         else:
             events_exported.append(str(ics))
             
+            ics['uid'] = '%s@%s/%s' % (event.id, self.env.cr.dbname, partner.id)
             ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
             ics['dtstart'] = ics_datetime(event.start, event.allday)
             if not event.allday:
