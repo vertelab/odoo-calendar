@@ -318,8 +318,8 @@ class calendar_event(models.Model):
                                                   ('rrule', 'rrule',event.get('rrule') and event.get('rrule').to_ical() or None),
                                                   ] if event.get(r[0])}
 
-            #~ partner_ids = self.env['res.partner'].get_attendee_ids(event)
-            raise Warning(self.env['res.partner'].get_attendee_ids(event))
+            partner_ids = self.env['res.partner'].get_attendee_ids(event)
+            #~ raise Warning(self.env['res.partner'].get_attendee_ids(event))
             if partner_ids:
                 partner_ids.append(partner.id)
             else:
