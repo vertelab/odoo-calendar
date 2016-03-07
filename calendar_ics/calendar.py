@@ -22,7 +22,7 @@
 from openerp import models, fields, api, _
 from pytz import timezone
 from openerp.exceptions import except_orm, Warning, RedirectWarning
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from time import strptime, mktime, strftime
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 import re
@@ -348,9 +348,18 @@ class calendar_event(models.Model):
             #~ record['rrule'] = event.get('rrule').to_ical()
             #~ raise Warning(record['rrule_type'].to_ical)
 
+            tmpStart = datetime.time(datetime.fromtimestamp(mktime(strptime(record['start'], DEFAULT_SERVER_DATETIME_FORMAT))))
+            tmpStop = datetime.fromtimestamp(mktime(strptime(record['stop'], DEFAULT_SERVER_DATETIME_FORMAT)))
+            
+            if tmpStart == time(0,0,0) and tmpStart == datetime.time(tmpStop):
+                record['allday'] = True
+
             if not record.get('stop_date'):
                 record['allday'] = True
                 record['stop_date'] = record['start_date']
+            elif record.get('stop_date') and record['allday']:
+                record['stop_date'] = vDatetime(tmpStop - timedelta(hours=24)).dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+                record['stop'] = record['stop_date']
             _logger.error('ICS %s' % record)
             self.env['calendar.event'].create(record)
             #~ event_id = self.env['calendar.event'].create(record)
@@ -493,7 +502,7 @@ class calendar_event(models.Model):
                     
                 if tmpStart != tmpEnd or not event.allday:
                     if event.allday:
-                        ics['dtend;value=date'] = tmpEnd
+                        ics['dtend;value=date'] = str(vDatetime(datetime.fromtimestamp(mktime(strptime(event.stop, DEFAULT_SERVER_DATETIME_FORMAT))) + timedelta(hours=24)).to_ical())[:8]
                     else:
                         ics['dtend'] = tmpEnd
                 
@@ -514,7 +523,7 @@ class calendar_event(models.Model):
                 
             if tmpStart != tmpEnd or not event.allday:
                 if event.allday:
-                    ics['dtend;value=date'] = tmpEnd
+                    ics['dtend;value=date'] = str(vDatetime(datetime.fromtimestamp(mktime(strptime(event.stop, DEFAULT_SERVER_DATETIME_FORMAT))) + timedelta(hours=24)).to_ical())[:8]
                 else:
                     ics['dtend'] = tmpEnd
             
