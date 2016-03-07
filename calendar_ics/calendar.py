@@ -155,53 +155,54 @@ class res_partner(models.Model):
         partner_ids = []
         #~ attendee_mails = []
         event_attendee_list = event.get('attendee')
-        if not (type(event_attendee_list) is list):
-            event_attendee_list = [event_attendee_list]
-        
-        for vAttendee in event_attendee_list:
-            _logger.error('Attendee found %s' % vAttendee)
-            attendee_mailto = re.search('(:MAILTO:)([a-zA-Z0-9_@.\-]*)', vAttendee)
-            attendee_cn = re.search('(CN=)([^:]*)', vAttendee)
-            if attendee_mailto:
-                attendee_mailto = attendee_mailto.group(2)
-            if attendee_cn:
-                attendee_cn = attendee_cn.group(2)
-            elif not attendee_mailto and not attendee_cn:
-                attendee_cn = vAttendee
-            _logger.error('Attendee found %s' % attendee_cn)
+        if event_attendee_list:
+            if not (type(event_attendee_list) is list):
+                event_attendee_list = [event_attendee_list]
             
-            #~ raise Warning('%s %s' % (vAttendee, attendee_cn))
-            if attendee_mailto:
-                partner_result = self.env['res.partner'].search([('email','=',attendee_mailto)])
+            for vAttendee in event_attendee_list:
+                _logger.error('Attendee found %s' % vAttendee)
+                attendee_mailto = re.search('(:MAILTO:)([a-zA-Z0-9_@.\-]*)', vAttendee)
+                attendee_cn = re.search('(CN=)([^:]*)', vAttendee)
+                if attendee_mailto:
+                    attendee_mailto = attendee_mailto.group(2)
+                if attendee_cn:
+                    attendee_cn = attendee_cn.group(2)
+                elif not attendee_mailto and not attendee_cn:
+                    attendee_cn = vAttendee
+                _logger.error('Attendee found %s' % attendee_cn)
                 
-                if not partner_result:
-                    partner_id = self.env['res.partner'].create({
-                        'email': attendee_mailto,
-                        'name': attendee_cn or attendee_mailto,
-                        })
-                else:
-                    partner_id = partner_result[0]
-            elif attendee_cn:
-                partner_result = self.env['res.partner'].search([('name','=',attendee_cn)])
-                
-                if not partner_result:
-                    partner_id = self.env['res.partner'].create({
-                        'name': attendee_cn or attendee_mailto,
-                        })
-                else:
-                    partner_id = partner_result[0]
-            
-            #~ self.env['calendar.attendee'].create({
-                #~ 'event_id': event_id.id,
-                #~ 'partner_id': partner_id.id or None,
-                #~ 'email': attendee_mailto or '',
-                #~ })
+                #~ raise Warning('%s %s' % (vAttendee, attendee_cn))
+                if attendee_mailto:
+                    partner_result = self.env['res.partner'].search([('email','=',attendee_mailto)])
                     
-            partner_ids.append(partner_id.id or None)
-            #~ attendee_mails.append(attendee_mailto or '')
-            
-        return partner_ids
-        #~ return [partner_ids, attendee_mails]
+                    if not partner_result:
+                        partner_id = self.env['res.partner'].create({
+                            'email': attendee_mailto,
+                            'name': attendee_cn or attendee_mailto,
+                            })
+                    else:
+                        partner_id = partner_result[0]
+                elif attendee_cn:
+                    partner_result = self.env['res.partner'].search([('name','=',attendee_cn)])
+                    
+                    if not partner_result:
+                        partner_id = self.env['res.partner'].create({
+                            'name': attendee_cn or attendee_mailto,
+                            })
+                    else:
+                        partner_id = partner_result[0]
+                
+                #~ self.env['calendar.attendee'].create({
+                    #~ 'event_id': event_id.id,
+                    #~ 'partner_id': partner_id.id or None,
+                    #~ 'email': attendee_mailto or '',
+                    #~ })
+                        
+                partner_ids.append(partner_id.id or None)
+                #~ attendee_mails.append(attendee_mailto or '')
+                
+            return partner_ids
+            #~ return [partner_ids, attendee_mails]
             
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
@@ -307,17 +308,6 @@ class calendar_event(models.Model):
             #~ if not event.get('uid'):
                 #~ event.add('uid',reduce(lambda x,y: x ^ y, map(ord, str(event.get('dtstart') and event.get('dtstart').dt or '' + event.get('summary') + event.get('dtend') and event.get('dtend').dt or ''))) % 1024)
                 
-            #~ ics_record = [
-                #~ ('dtstart','start_date',event.get('dtstart') and event.get('dtstart').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                #~ ('dtend','stop_date',event.get('dtend') and event.get('dtend').dt.strftime(DEFAULT_SERVER_DATE_FORMAT)),
-                #~ ('dtstamp','start_datetime',event.get('dtstamp') and event.get('dtstamp').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                #~ ('description','description',description),
-                #~ ('duration','duration',event.get('duration')),
-                #~ ('location','location',event.get('location') and unicode(event.get('location')) or self.ics_location),
-                #~ ('class','class',event.get('class') and str(event.get('class')) or self.ics_class),
-                #~ ('summary','name',summary),
-                #~ ]
-
             summary = ''
             description = unicode(event.get('description', ''))
             if unicode(event.get('summary')) and len(unicode(event.get('summary'))) < 35:
@@ -339,7 +329,7 @@ class calendar_event(models.Model):
                                                   ] if event.get(r[0])}
 
             partner_ids = self.env['res.partner'].get_attendee_ids(event)
-            #~ raise Warning(self.env['res.partner'].get_attendee_ids(event))
+            #~ raise Warning(partner_ids)
             if partner_ids:
                 partner_ids.append(partner.id)
             else:
@@ -430,7 +420,7 @@ class calendar_event(models.Model):
                 if allday:
                     return str(vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical())[:8]
                 else:
-                    return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical()
+                    return vDatetime(datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical() + 'Z'
             return False
 
         #~ try:
@@ -493,9 +483,19 @@ class calendar_event(models.Model):
                 
                 ics['uid'] = '%s@%s-%s' % (event.id, self.env.cr.dbname, partner.id)
                 ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
-                ics['dtstart'] = ics_datetime(event.start, event.allday)
-                if not event.allday or event.start != event.stop:
-                    ics['dtend'] = ics_datetime(event.stop, event.allday)
+                tmpStart = ics_datetime(event.start, event.allday)
+                tmpEnd = ics_datetime(event.stop, event.allday)
+                
+                if event.allday:
+                    ics['dtstart;value=date'] = tmpStart
+                else:
+                    ics['dtstart'] = tmpStart
+                    
+                if tmpStart != tmpEnd or not event.allday:
+                    if event.allday:
+                        ics['dtend;value=date'] = tmpEnd
+                    else:
+                        ics['dtend'] = tmpEnd
                 
                 return [ics, events_exported]
             
@@ -504,25 +504,21 @@ class calendar_event(models.Model):
             
             ics['uid'] = '%s@%s-%s' % (event.id, self.env.cr.dbname, partner.id)
             ics['created'] = ics_datetime(strftime(DEFAULT_SERVER_DATETIME_FORMAT))
-            ics['dtstart'] = ics_datetime(event.start, event.allday)
-            if not event.allday or event.start != event.stop:
-                ics['dtend'] = ics_datetime(event.stop, event.allday)
+            tmpStart = ics_datetime(event.start, event.allday)
+            tmpEnd = ics_datetime(event.stop, event.allday)
+            
+            if event.allday:
+                ics['dtstart;value=date'] = tmpStart
+            else:
+                ics['dtstart'] = tmpStart
+                
+            if tmpStart != tmpEnd or not event.allday:
+                if event.allday:
+                    ics['dtend;value=date'] = tmpEnd
+                else:
+                    ics['dtend'] = tmpEnd
             
             return [ics, events_exported]
-
-    #~ @api.multi
-    #~ def get_event_attendees(self, attendee):
-        #~ ics = Event()
-        #~ 
-        #~ attendee_add = ics.get('attendee')
-        #~ attendee_add = attendee.cn and ('CN=' + attendee.cn) or ''
-        #~ if attendee.cn and attendee.email:
-            #~ attendee_add += ':'
-        #~ attendee_add += attendee.email and ('MAILTO:' + attendee.email) or ''
-        #~ 
-        #~ ics['attendee'] = attendee_add
-        #~ 
-        #~ return attendee_add
 
     @api.multi
     def get_ics_freebusy(self):
