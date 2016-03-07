@@ -247,24 +247,23 @@ class res_partner(models.Model):
         
     @api.multi
     def ics_mail(self,context=None):
-	#raise Warning('%s | %s' % (ids,picking))
-		compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
-		#~ raise Warning("%s compose_form" % compose_form)
-		return {
-				'name': _('Compose Email'),
-				'type': 'ir.actions.act_window',
-				'view_type': 'form',
-				'view_mode': 'form',
-				'res_model': 'mail.compose.message',
-				'views': [(compose_form.id, 'form')],
-				'view_id': compose_form.id,
-				'target': 'new',
-				'context': None,
-				}
-			
-		return {'value': {'partner_id': False}, 'warning': {'title': 'Hello', 'message': 'Hejsan'}}
+    #raise Warning('%s | %s' % (ids,picking))
+        compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
+        #~ raise Warning("%s compose_form" % compose_form)
+        return {
+                'name': _('Compose Email'),
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'mail.compose.message',
+                'views': [(compose_form.id, 'form')],
+                'view_id': compose_form.id,
+                'target': 'new',
+                'context': None,
+                }
+
+        return {'value': {'partner_id': False}, 'warning': {'title': 'Hello', 'message': 'Hejsan'}}
  
-        
         
         #~ ics['freebusy'] = '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
 
