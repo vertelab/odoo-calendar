@@ -22,7 +22,7 @@
               <field name="ics_location" />
               <field name="ics_allday" />
               <field name="ics_url_field" />
-              <button string="ics_url_mail" type="object" name="ics_mail"/>
+              <button string="ics_url_mail" type="object" name="ics_mail" />
             </group>
           </page>
         </page>
