@@ -12,6 +12,16 @@ from openerp.http import request
 import logging
 _logger = logging.getLogger(__name__)
 
+try:
+    from icalendar import Calendar, Event, vDatetime, FreeBusy
+except ImportError:
+    raise Warning('icalendar library missing, pip install icalendar')
+
+try:
+    import urllib2
+except ImportError:
+    raise Warning('urllib2 library missing, pip install urllib2')
+
 class res_partner_icalendar(http.Controller):
 #        http://partner/<res.partner>/calendar/[private.ics|freebusy.ics|public.ics]
      #~ simple_blog_list = request.env['blog.post'].sudo().search([('blog_id', '=', simple_blog.id)], order='message_last_post desc')
