@@ -224,18 +224,25 @@ class res_partner(models.Model):
     #raise Warning('%s | %s' % (ids,picking))
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
         #~ raise Warning("%s compose_form" % compose_form)
-        res_id= self.env['mail.compose.message'].create({'template_id':self.env.ref('calendar_ics.email_ics_url').id})
+        mail= self.env['mail.compose.message'].create({
+            'template_id':self.env.ref('calendar_ics.email_ics_url').id, 
+            'model': 'res.partner',
+            'res_id': self.id,
+            })
+        mail.write(mail.onchange_template_id( # gets defaults from template
+                                self.env.ref('calendar_ics.email_ics_url').id, mail.composition_mode,
+                                mail.model, mail.res_id,context=context
+                            )['value'])
         return {
                 'name': _('Compose Email'),
                 'type': 'ir.actions.act_window',
                 'view_type': 'form',
                 'view_mode': 'form',
                 'res_model': 'mail.compose.message',
-                'res_id':res_id.id,
+                'res_id':mail.id,
                 'views': [(compose_form.id, 'form')],
                 'view_id': compose_form.id,
                 'target': 'new',
-                'context': None,
                 }
 
         return {'value': {'partner_id': False}, 'warning': {'title': 'Hello', 'message': 'Hejsan'}}
