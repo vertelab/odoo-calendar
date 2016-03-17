@@ -1,5 +1,8 @@
 <openerp>
     <data>
+<!--
+        Email Templates
+-->
         <record id="email_ics_url" model="email.template">
             <field name="name">ics_url</field>
             <field name="email_from">admin@example.com</field>
@@ -8,8 +11,10 @@
             <field name="email_to">${(object.email or '')|safe}</field>
             <field name="model_id" ref="base.model_res_partner"/>
             <field name="body_html"><![CDATA[<p>Use this url for the ${object.name} calendar:</p>
-<p>${object.ics_url_field}</p>
-]]></field>
+                                    <p>${object.ics_url_field}</p>
+                                    ]]></field>
         </record>
+        
+        
     </data>
 </openerp>

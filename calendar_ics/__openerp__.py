@@ -36,11 +36,10 @@ Adds and updates calendar objects according to an ics-url
     'depends': ['calendar',],
     'data': [ 'res_partner_view.xml',
     #'security/ir.model.access.csv',
-    'calendar_ics_demo.xml',
     'res_partner_data.xml'
     ],
     'application': False,
     'installable': True,
-    'demo': [],
+    'demo': ['calendar_ics_demo.xml',],
 }
 # vim:expandtab:smartindent:tabstop=4s:softtabstop=4:shiftwidth=4:
