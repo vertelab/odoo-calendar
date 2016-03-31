@@ -2,11 +2,14 @@
 {
     'name': "l10n_se_calendar",
 
-    'summary': """
-        Adds swedish holidays and dates of interest to your calendar.""",
+    'summary': 'Adds swedish holidays and dates of interest to your calendar.',
 
     'description': """
-        Long description of module's purpose
+        Adding swedish holidays and important dates for Skatteverket
+        
+        Swedish holidays thanks to Mozilla
+        Skatterverks-dates thanks to Compiled AB and http://www.skatteverketkalender.se/
+        
     """,
 
     'author': "Vertel AB",
