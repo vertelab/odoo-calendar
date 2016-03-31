@@ -23,12 +23,10 @@
     'name': 'Calendar ics-urls',
     'version': '0.1',
     'category': 'Tools',
-    'summary': 'Prenumerates on .ics-urls',
+    'summary': 'Subscription on calendar.ics-urls',
     'licence': 'AGPL-3',
     'description': """
 Adds and updates calendar objects according to an ics-url
-
-
 
 """,
     'author': 'Vertel AB',
