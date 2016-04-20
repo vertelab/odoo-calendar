@@ -5,6 +5,7 @@
     'summary': 'Adds swedish holidays and dates of interest to your calendar.',
 
     'description': """
+
     Adds swedish holidays to the calendar
     Adds important tax declaration dates
     
@@ -13,6 +14,10 @@
     - install the actual calendar at install-time (now you have to "check" the url or wait for the cron job)
     - The tax declarations dates varies by type of company, add a logic to choose correct url
     - Add a nice icon for the module
+
+        
+        Swedish holidays thanks to Mozilla
+        Skatterverks-dates thanks to Compiled AB and http://www.skatteverketkalender.se/
         
     """,
 

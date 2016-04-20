@@ -18,26 +18,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+from openerp import models, fields, api, _
 
-{
-    'name': 'Calendar ics-urls',
-    'version': '0.1',
-    'category': 'Tools',
-    'summary': 'Subscription on calendar.ics-urls',
-    'licence': 'AGPL-3',
-    'description': """
-Adds and updates calendar objects according to an ics-url
+class calendar_event(models.Model):
+    _inherit = 'calendar.event'
 
-""",
-    'author': 'Vertel AB',
-    'website': 'http://www.vertel.se',
-    'depends': ['calendar',],
-    'data': [ 'res_partner_view.xml',
-    #'security/ir.model.access.csv',
-    'res_partner_data.xml'
-    ],
-    'application': False,
-    'installable': True,
-    'demo': ['calendar_ics_demo.xml',],
-}
-# vim:expandtab:smartindent:tabstop=4s:softtabstop=4:shiftwidth=4:
+    color = fields.Integer(string='Color Index')

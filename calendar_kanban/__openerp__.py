@@ -20,24 +20,20 @@
 ##############################################################################
 
 {
-    'name': 'Calendar ics-urls',
+    'name': 'Calendar Kanban View',
     'version': '0.1',
     'category': 'Tools',
-    'summary': 'Subscription on calendar.ics-urls',
+    'summary': 'Kanban view for calendar',
     'licence': 'AGPL-3',
     'description': """
-Adds and updates calendar objects according to an ics-url
-
+Kanban view for calendar
 """,
     'author': 'Vertel AB',
     'website': 'http://www.vertel.se',
     'depends': ['calendar',],
-    'data': [ 'res_partner_view.xml',
-    #'security/ir.model.access.csv',
-    'res_partner_data.xml'
+    'data': [ 'views/calendar_kanban_view.xml',
     ],
     'application': False,
     'installable': True,
-    'demo': ['calendar_ics_demo.xml',],
 }
 # vim:expandtab:smartindent:tabstop=4s:softtabstop=4:shiftwidth=4:
