@@ -2,11 +2,18 @@
 {
     'name': "l10n_se_calendar",
 
-    'summary': """
-        Adds swedish holidays and dates of interest to your calendar.""",
+    'summary': 'Adds swedish holidays and dates of interest to your calendar.',
 
     'description': """
-        Long description of module's purpose
+    Adds swedish holidays to the calendar
+    Adds important tax declaration dates
+    
+    
+    Todo:
+    - install the actual calendar at install-time (now you have to "check" the url or wait for the cron job)
+    - The tax declarations dates varies by type of company, add a logic to choose correct url
+    - Add a nice icon for the module
+        
     """,
 
     'author': "Vertel AB",
