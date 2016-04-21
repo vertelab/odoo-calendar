@@ -29,13 +29,14 @@ class calendar_event(models.Model):
     week_number = fields.Char('Week number', compute='_get_week_number', store=True)
     #~ day = fields.Char(compute='_get_day', store=True)
 
-    #~ @api.depends('start_date')
     @api.one
+    @api.onchange('start_date')
     def _get_week_number(self):
-        if self.start_date:
-            self.week_number = time.strftime('%W')
-            #~ date = fields.Date.from_string(self.sort_start)
+        self.week_number = self.start_date
+        #~ if self.start_date:
+            #~ date = fields.Date.from_string(self.start_date)
             #~ self.week_number = date and date.isocalendar()[1] or ''
+            #~ self.week_number = self.start_date
 
     #~ def _set_week_number(self):
         #~ self.write({'week_number': time.strftime('%W')})
