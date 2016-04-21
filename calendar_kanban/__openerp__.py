@@ -31,7 +31,9 @@ Kanban view for calendar
     'author': 'Vertel AB',
     'website': 'http://www.vertel.se',
     'depends': ['calendar',],
-    'data': [ 'views/calendar_kanban_view.xml',
+    'data': [
+        'views/calendar_kanban_view.xml',
+        'wizard/res_partner_phonecall_wizard_view.xml',
     ],
     'application': False,
     'installable': True,
