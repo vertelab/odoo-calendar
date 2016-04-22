@@ -21,18 +21,33 @@
 from openerp import models, fields, api, _
 import time
 import datetime
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class calendar_event(models.Model):
     _inherit = 'calendar.event'
 
     color = fields.Integer(string='Color Index')
-    week_number = fields.Char(string='Week number', compute='_get_week_number')
-    day = fields.Char(compute='_get_day')
+    week_number = fields.Char(string='Week number', compute='_get_week_number', store=True)
+    #~ day = fields.Char(compute='_get_day')
 
     @api.one
-    @api.depends('start_date')
+    @api.depends('start_datetime')
     def _get_week_number(self):
-        self.week_number = fields.Date.from_string(self.start_date) and fields.Date.from_string(self.start_date).isocalendar()[1]
+        _logger.warn(self._order)
+        if self.start_datetime:
+            _logger.warn(fields.Date.from_string(self.start_datetime).isocalendar())
+            self.week_number = str(fields.Date.from_string(self.start_datetime).isocalendar()[1])
+        else:
+            self.week_number = '99'
+
+
+    #~ @api.depends('start_date')
+    #~ @api.one
+    #~ def _get_week_number(self):
+        #~ if not self.week_number:
+            #~ self.week_number = fields.Date.from_string(self.start_date) and fields.Date.from_string(self.start_date).isocalendar()[1]
         #~ if self.start_date:
             #~ date = fields.Date.from_string(self.start_date)
             #~ self.week_number = date and date.isocalendar()[1] or ''
@@ -42,10 +57,10 @@ class calendar_event(models.Model):
     #~ def _set_week_number(self):
         #~ self.write({'week_number': time.strftime('%W')})
 
-    @api.depends('start_date')
-    @api.one
-    def _get_day(self):
-        self.day = self.start_date and self.start_date[:6] or ''
+    #~ @api.depends('start_date')
+    #~ @api.one
+    #~ def _get_day(self):
+        #~ self.day = self.start_date and self.start_date[:6] or ''
 
     #~ def _set_day(self):
         #~ self.write({'start_datetime': time.strftime("%D %H:%M:%S")})

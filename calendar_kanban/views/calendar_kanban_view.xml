@@ -20,7 +20,7 @@
             <field name="name">Meetings Calendar</field>
             <field name="model">calendar.event</field>
             <field name="arch" type="xml">
-                <kanban class="oe_background_grey" default_group_by="week_number">
+                <kanban class="oe_background_grey" default_group_by="">
                     <field name="color"/>
                     <field name="name" string="Subject"/>
                     <field name="allday" invisible="True"/>
@@ -32,6 +32,7 @@
                     <field name="class" string="Privacy"/>
                     <field name="state" invisible="True"/>
                     <field name="duration"/>
+                    <field name="week_number"/>
                     <templates>
                         <t t-name="kanban-box">
                             <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_project oe_kanban_global_click">
