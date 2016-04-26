@@ -21,6 +21,7 @@
 from openerp import models, fields, api, _
 import time
 import datetime
+from datetime import date
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -29,38 +30,32 @@ class calendar_event(models.Model):
     _inherit = 'calendar.event'
 
     color = fields.Integer(string='Color Index')
-    week_number = fields.Char(string='Week number', compute='_get_week_number', store=True)
-    #~ day = fields.Char(compute='_get_day')
+    week_number = fields.Char(string='Week number', inverse='set_week_number', readonly=True, store=True)
 
     @api.one
-    @api.depends('start_datetime')
-    def _get_week_number(self):
-        _logger.warn(self._order)
-        if self.start_datetime:
-            _logger.warn(fields.Date.from_string(self.start_datetime).isocalendar())
-            self.week_number = str(fields.Date.from_string(self.start_datetime).isocalendar()[1])
-        else:
-            self.week_number = '99'
+    def get_week_number(self):
+        if self.allday:
+            self.write({
+                'week_number': str(fields.Date.from_string(self.start_date).isocalendar()[0]) + '-W' + str(fields.Date.from_string(self.start_date).isocalendar()[1]),
+                })
+        if not self.allday:
+            self.write({
+                'week_number': str(fields.Date.from_string(self.start_datetime).isocalendar()[0]) + '-W' + str(fields.Date.from_string(self.start_datetime).isocalendar()[1]),
+            })
 
-
-    #~ @api.depends('start_date')
-    #~ @api.one
-    #~ def _get_week_number(self):
-        #~ if not self.week_number:
-            #~ self.week_number = fields.Date.from_string(self.start_date) and fields.Date.from_string(self.start_date).isocalendar()[1]
-        #~ if self.start_date:
-            #~ date = fields.Date.from_string(self.start_date)
-            #~ self.week_number = date and date.isocalendar()[1] or ''
-            #~ self.week_number = self.start_date
-
-
-    #~ def _set_week_number(self):
-        #~ self.write({'week_number': time.strftime('%W')})
-
-    #~ @api.depends('start_date')
-    #~ @api.one
-    #~ def _get_day(self):
-        #~ self.day = self.start_date and self.start_date[:6] or ''
-
-    #~ def _set_day(self):
-        #~ self.write({'start_datetime': time.strftime("%D %H:%M:%S")})
+    @api.one
+    def set_week_number(self):
+        if self.allday:
+            week_day = str(fields.Date.from_string(self.stop_date).weekday() + 1 if fields.Date.from_string(self.stop_date).weekday() < 6 else 0)
+            self.write({
+                'start_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + week_day, '%Y-W%W-%w')),
+                'stop_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + week_day, '%Y-W%W-%w')),
+            })
+        if not self.allday:
+            week_day = str(fields.Date.from_string(self.start_datetime).weekday() + 1 if fields.Date.from_string(self.start_datetime).weekday() < 6 else 0)
+            meeting_start = str(fields.Datetime.from_string(self.start_datetime).hour) + ':' + str(fields.Datetime.from_string(self.start_datetime).minute) + ':' + str(fields.Datetime.from_string(self.start_datetime).second)
+            meeting_stop = str(fields.Datetime.from_string(self.stop_datetime).hour) + ':' + str(fields.Datetime.from_string(self.stop_datetime).minute) + ':' + str(fields.Datetime.from_string(self.stop_datetime).second)
+            self.write({
+                'start_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + week_day, '%Y-W%W-%w')) + ' ' + meeting_start,
+                'stop_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + week_day, '%Y-W%W-%w')) + ' ' + meeting_stop,
+            })

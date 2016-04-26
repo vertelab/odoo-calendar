@@ -8,6 +8,14 @@
             <field name="arch" type="xml">
                 <field name="duration" position="after">
                     <field name="week_number"/>
+                    <button
+                        string="Get Week Number"
+                        name="get_week_number"
+                        colspan="2"
+                        icon="gtk-copy"
+                        type="object"
+                        attrs="{'invisible': ['&amp;', ('start_datetime','=', False), ('start_date','=', False)]}"
+                        />
 <!--
                     <field name="day"/>
 -->
@@ -20,7 +28,7 @@
             <field name="name">Meetings Calendar</field>
             <field name="model">calendar.event</field>
             <field name="arch" type="xml">
-                <kanban class="oe_background_grey" default_group_by="">
+                <kanban class="oe_background_grey" default_group_by="week_number">
                     <field name="color"/>
                     <field name="name" string="Subject"/>
                     <field name="allday" invisible="True"/>
