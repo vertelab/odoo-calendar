@@ -8,17 +8,15 @@
             <field name="arch" type="xml">
                 <field name="duration" position="after">
                     <field name="week_number"/>
+                    <field name="weekday"/>
                     <button
-                        string="Get Week Number"
+                        string="Update week"
                         name="get_week_number"
                         colspan="2"
-                        icon="gtk-copy"
+                        icon=""
                         type="object"
                         attrs="{'invisible': ['&amp;', ('start_datetime','=', False), ('start_date','=', False)]}"
                         />
-<!--
-                    <field name="day"/>
--->
                 </field>
             </field>
         </record>
@@ -41,6 +39,7 @@
                     <field name="state" invisible="True"/>
                     <field name="duration"/>
                     <field name="week_number"/>
+                    <field name="weekday"/>
                     <templates>
                         <t t-name="kanban-box">
                             <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_project oe_kanban_global_click">
@@ -54,9 +53,24 @@
                                 </div>
                                 <div class="oe_kanban_content">
                                     <h4 class="text-center"><strong><field name="name"/></strong></h4>
-                                </div>
-                                <div class="text-center oe_kanban_alias">
-                                    <field name="description"/>
+                                    <div class="oe_kanban_alias" style="min-height: 50px;">
+                                        <field name="description"/>
+                                    </div>
+                                    <div class="oe_kanban_footer_left" style="margin-bottom: 0px;">
+                                        <span style="color: #309;"><field name="weekday"/></span>
+                                        <p t-if="allday == True" style="margin-bottom: 0px;">
+                                            <strong><field name="start_date"/></strong>
+                                        </p>
+                                        <p t-if="allday == True" style="margin-bottom: 0px;">
+                                            <strong><field name="stop_date"/></strong>
+                                        </p>
+                                        <p t-if="allday == False" style="margin-bottom: 0px;">
+                                            <strong><field name="start_datetime"/></strong>
+                                        </p>
+                                        <p t-if="allday == False" style="margin-bottom: 0px;">
+                                            <strong><field name="stop_datetime"/></strong>
+                                        </p>
+                                    </div>
                                 </div>
                                 <div class="oe_clear"></div>
                             </div>
