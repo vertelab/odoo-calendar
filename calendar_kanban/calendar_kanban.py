@@ -29,7 +29,7 @@ _logger = logging.getLogger(__name__)
 class calendar_event(models.Model):
     _inherit = 'calendar.event'
 
-    # return a list of next six weeks from now
+    # return a list of next six weeks from now include this week
     def next_six_weeks():
         now = datetime.date.today()
         return[
@@ -53,7 +53,6 @@ class calendar_event(models.Model):
 
     # which week shows folded by default
     FOLDED_WEEK = [
-        next_six_weeks()[0],
         next_six_weeks()[1],
         next_six_weeks()[2],
         next_six_weeks()[3],
@@ -62,7 +61,7 @@ class calendar_event(models.Model):
     ]
 
     color = fields.Integer(string='Color Index')
-    week_number = fields.Selection(WEEKS, string='Week number', inverse='set_week_number', readonly=True, store=True)
+    week_number = fields.Selection(WEEKS, string='Week number', inverse='set_week_day', readonly=True, store=True)
 
     @api.one
     def get_week_number(self):
@@ -76,7 +75,7 @@ class calendar_event(models.Model):
             })
 
     @api.one
-    def set_week_number(self):
+    def set_week_day(self):
         if self.allday:
             week_day = str(fields.Date.from_string(self.stop_date).weekday() + 1 if fields.Date.from_string(self.stop_date).weekday() < 6 else 0)
             self.write({
