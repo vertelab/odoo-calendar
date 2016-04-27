@@ -33,7 +33,6 @@ Kanban view for calendar
     'depends': ['calendar',],
     'data': [
         'views/calendar_kanban_view.xml',
-        'wizard/res_partner_phonecall_wizard_view.xml',
     ],
     'application': False,
     'installable': True,

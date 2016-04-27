@@ -15,12 +15,26 @@
             </field>
         </record>
 
+        <record id="view_calendar_event_search" model="ir.ui.view">
+            <field name="model">calendar.event</field>
+            <field name="inherit_id" ref="calendar.view_calendar_event_search"/>
+            <field name="arch" type="xml">
+                <filter string="Privacy" position="after">
+                    <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_number'}"/> 
+                    <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_number'}"/> 
+                    <filter string="Location" icon="terp-locked" domain="[]" context="{'group_by':'location'}"/> 
+                </filter>
+            </field>
+        </record>
+
+     
+
         <!-- Calendar Kanban -->
         <record id="view_calendar_event_kanban" model="ir.ui.view">
             <field name="name">Meetings Calendar</field>
             <field name="model">calendar.event</field>
             <field name="arch" type="xml">
-                <kanban class="oe_background_grey" default_group_by="week_number">
+                <kanban class="oe_background_grey" default_group_by="location">
                     <field name="color"/>
                     <field name="name" string="Subject"/>
                     <field name="allday" invisible="True"/>
@@ -82,7 +96,7 @@
             </field>
         </record>
 
-        <record model="ir.values" id="action_create_booking_menu">
+        <record model="ir.values" id="action_create_booking_menu"> <!-- wizard: choose what location -->
             <field name="name">Create Meetings</field>
             <field name="model">res.partner</field>
             <field name="key2">client_action_multi</field>
