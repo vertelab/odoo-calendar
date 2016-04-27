@@ -105,48 +105,7 @@
             <field name="view_id" ref="view_calendar_event_kanban"/>
         </record>
 
-        <record model="ir.actions.server" id="action_create_booking">
-            <field name="name">Create Meetings</field>
-            <field name="state">code</field>
-            <field name="condition" eval="True"/>
-            <field name="model_id" ref="base.model_res_partner"/>
-            <field name="code">for o in object.browse(context.get('active_ids', [])):
-    env['calendar.event'].create({
-    'name': o.name,
-    'start_datetime': '2000-01-01 00:00:00',
-    'stop_datetime': '2000-01-01 00:00:00',
-    })
-            </field>
-        </record>
 
-        <record model="ir.values" id="action_create_booking_menu"> <!-- wizard: choose what location -->
-            <field name="name">Create Meetings</field>
-            <field name="model">res.partner</field>
-            <field name="key2">client_action_multi</field>
-            <field name="value" eval="'ir.actions.server,%d' % action_create_booking"/>
-        </record>
-
-<!--
-        <record model="ir.actions.server" id="action_create_phonecall">
-            <field name="name">Create Phone Call</field>
-            <field name="state">code</field>
-            <field name="condition" eval="True"/>
-            <field name="model_id" ref="base.model_res_partner"/>
-            <field name="code">for o in object.browse(context.get('active_ids', [])):
-env['crm.phonecall'].create({
-'name': o.name,
-'partner_id': o.id,
-})
-            </field>
-        </record>
-
-        <record model="ir.values" id="action_create_phonecall_menu">
-            <field name="name">Create Phone Call</field>
-            <field name="model">res.partner</field>
-            <field name="key2">client_action_multi</field>
-            <field name="value" eval="'ir.actions.server,%d' % action_create_phonecall"/>
-        </record>
--->
 
     </data>
 </openerp>
