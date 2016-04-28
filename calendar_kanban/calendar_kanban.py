@@ -43,6 +43,7 @@ class calendar_event(models.Model):
 
     # select attribut to week_number field
     WEEKS = [
+        ('Undefied', 'Undefied'),
         (next_six_weeks()[0], next_six_weeks()[0]),
         (next_six_weeks()[1], next_six_weeks()[1]),
         (next_six_weeks()[2], next_six_weeks()[2]),
@@ -53,6 +54,7 @@ class calendar_event(models.Model):
 
     # which week shows folded by default
     FOLDED_WEEK = [
+        next_six_weeks()[3],
         next_six_weeks()[4],
         next_six_weeks()[5],
     ]
@@ -60,11 +62,9 @@ class calendar_event(models.Model):
     color = fields.Integer(string='Color Index')
     week_number = fields.Selection(WEEKS, string='Week number', inverse='reset_meeting_time', readonly=True, store=True)
     weekday = fields.Char(string='Weekday', readonly=True, store=True)
-    weekday_number = 0
-    corrent_weekday_number = 0
 
-    def get_correct_week_day(self, corrent_weekday_number):
-        return corrent_weekday_number + 1 if corrent_weekday_number < 6 else 0
+    def get_iso_week_day(self, iso_weekday_number):
+        return iso_weekday_number + 1 if iso_weekday_number < 6 else 0
 
     def get_week_day(self, weekday_number):
         if weekday_number == 1:
@@ -85,13 +85,13 @@ class calendar_event(models.Model):
     @api.one
     def get_week_number(self):
         if self.allday:
-            week_day = self.get_correct_week_day(fields.Date.from_string(self.start_date).weekday())
+            week_day = self.get_iso_week_day(fields.Date.from_string(self.start_date).weekday())
             self.write({
                 'week_number': str(fields.Date.from_string(self.start_date).isocalendar()[0]) + '-W' + str(fields.Date.from_string(self.start_date).isocalendar()[1]),
                 'weekday': self.get_week_day(week_day),
             })
         if not self.allday:
-            week_day = self.get_correct_week_day(fields.Date.from_string(self.start_datetime).weekday())
+            week_day = self.get_iso_week_day(fields.Date.from_string(self.start_datetime).weekday())
             self.write({
                 'week_number': str(fields.Date.from_string(self.start_datetime).isocalendar()[0]) + '-W' + str(fields.Date.from_string(self.start_datetime).isocalendar()[1]),
                 'weekday': self.get_week_day(week_day),
@@ -99,20 +99,26 @@ class calendar_event(models.Model):
 
     @api.one
     def reset_meeting_time(self):
-        if self.allday:
-            week_day = self.get_correct_week_day(fields.Date.from_string(self.start_date).weekday())
+        if self.week_number == 'Undefied':
             self.write({
-                'start_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')),
-                'stop_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')),
+                'start_datetime': '2010-01-01 00:00:00',
+                'stop_datetime': '2010-01-01 00:00:00',
             })
-        if not self.allday:
-            week_day = self.get_correct_week_day(fields.Date.from_string(self.start_datetime).weekday())
-            meeting_start = str(fields.Datetime.from_string(self.start_datetime).hour) + ':' + str(fields.Datetime.from_string(self.start_datetime).minute) + ':' + str(fields.Datetime.from_string(self.start_datetime).second)
-            meeting_stop = str(fields.Datetime.from_string(self.stop_datetime).hour) + ':' + str(fields.Datetime.from_string(self.stop_datetime).minute) + ':' + str(fields.Datetime.from_string(self.stop_datetime).second)
-            self.write({
-                'start_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')) + ' ' + meeting_start,
-                'stop_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')) + ' ' + meeting_stop,
-            })
+        else:
+            if self.allday:
+                week_day = self.get_iso_week_day(fields.Date.from_string(self.start_date).weekday())
+                self.write({
+                    'start_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')),
+                    'stop_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')),
+                })
+            if not self.allday:
+                week_day = self.get_iso_week_day(fields.Date.from_string(self.start_datetime).weekday())
+                meeting_start = str(fields.Datetime.from_string(self.start_datetime).hour) + ':' + str(fields.Datetime.from_string(self.start_datetime).minute) + ':' + str(fields.Datetime.from_string(self.start_datetime).second)
+                meeting_stop = str(fields.Datetime.from_string(self.stop_datetime).hour) + ':' + str(fields.Datetime.from_string(self.stop_datetime).minute) + ':' + str(fields.Datetime.from_string(self.stop_datetime).second)
+                self.write({
+                    'start_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')) + ' ' + meeting_start,
+                    'stop_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')) + ' ' + meeting_stop,
+                })
 
     @api.model
     def weeks_list(self, present_ids, domain, **kwargs):

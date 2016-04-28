@@ -15,8 +15,7 @@
                         colspan="2"
                         icon=""
                         type="object"
-                        attrs="{'invisible': ['&amp;', ('start_datetime','=', False), ('start_date','=', False)]}"
-                        />
+                        attrs="{'invisible': ['&amp;', '&amp;', '&amp;', ('start_datetime', '=', False), ('start_date', '=', False), ('week_number', '=', 'Undefied')]}"/>
                 </field>
             </field>
         </record>
