@@ -43,13 +43,13 @@ class calendar_event(models.Model):
 
     # select attribut to week_number field
     WEEKS = [
-        ('Undefied', 'Undefied'),
-        (next_six_weeks()[0], next_six_weeks()[0]),
-        (next_six_weeks()[1], next_six_weeks()[1]),
-        (next_six_weeks()[2], next_six_weeks()[2]),
-        (next_six_weeks()[3], next_six_weeks()[3]),
-        (next_six_weeks()[4], next_six_weeks()[4]),
-        (next_six_weeks()[5], next_six_weeks()[5]),
+        ('Undefied', ''),
+        (next_six_weeks()[0], ''),
+        (next_six_weeks()[1], ''),
+        (next_six_weeks()[2], ''),
+        (next_six_weeks()[3], ''),
+        (next_six_weeks()[4], ''),
+        (next_six_weeks()[5], ''),
     ]
 
     # which week shows folded by default
@@ -60,7 +60,7 @@ class calendar_event(models.Model):
     ]
 
     color = fields.Integer(string='Color Index')
-    week_number = fields.Selection(WEEKS, string='Week number', inverse='reset_meeting_time', readonly=True, store=True)
+    week_number = fields.Char(string='Week number', inverse='reset_meeting_time', readonly=True, store=True)
     weekday = fields.Char(string='Weekday', readonly=True, store=True)
 
     def get_iso_week_day(self, iso_weekday_number):

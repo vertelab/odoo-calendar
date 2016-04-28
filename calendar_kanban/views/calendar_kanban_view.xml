@@ -25,21 +25,21 @@
             <field name="inherit_id" ref="calendar.view_calendar_event_search"/>
             <field name="arch" type="xml">
                 <filter string="Privacy" position="after">
-                    <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_number'}"/> 
-                    <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_number'}"/> 
-                    <filter string="Location" icon="terp-locked" domain="[]" context="{'group_by':'location'}"/> 
+                    <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_number'}"/>
+                    <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_number'}"/>
+                    <filter string="Location" icon="terp-locked" domain="[]" context="{'group_by':'location'}"/>
                 </filter>
             </field>
         </record>
 
-     
+
 
         <!-- Calendar Kanban -->
         <record id="view_calendar_event_kanban" model="ir.ui.view">
             <field name="name">Meetings Calendar</field>
             <field name="model">calendar.event</field>
             <field name="arch" type="xml">
-                <kanban class="oe_background_grey" default_group_by="location">
+                <kanban class="oe_background_grey" default_group_by="week_number">
                     <field name="color"/>
                     <field name="name" string="Subject"/>
                     <field name="allday" invisible="True"/>
