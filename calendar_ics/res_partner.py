@@ -55,12 +55,13 @@ class res_partner_icalendar(http.Controller):
             raise Warning()
             pass # Some error page
 
-    @http.route(['/partner/<model("res.partner"):partner>/calendar/public.ics'], type='http', auth="public", website=True)
-    def icalendar_public(self, partner=False, **post):
+#    @http.route(['/partner/<model("res.partner"):partner>/calendar/public.ics'], type='http', auth="public", website=True)
+    @http.route(['/partner/<int:partner>/calendar/public.ics'], type='http', auth="public", website=True)
+    def icalendar_public(self, partner=None, **post):
         if partner:
             #~ raise Warning("Public successfull %s" % partner.get_ics_calendar(type='public').to_ical())
             #~ return partner.sudo().get_ics_calendar(type='public')
-            document = partner.sudo().get_ics_calendar(type='public')
+            document = request.env['res.partner'].sudo().browse(partner).get_ics_calendar(type='public')
             return request.make_response(
                 document,
                 headers=[
