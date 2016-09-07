@@ -9,13 +9,6 @@
                 <field name="duration" position="after">
                     <field name="week_number"/>
                     <field name="weekday"/>
-                    <button
-                        string="Update week"
-                        name="get_week_number"
-                        colspan="2"
-                        icon=""
-                        type="object"
-                        attrs="{'invisible': ['&amp;', '&amp;', '&amp;', ('start_datetime', '=', False), ('start_date', '=', False), ('week_number', '=', 'Undefied')]}"/>
                 </field>
             </field>
         </record>

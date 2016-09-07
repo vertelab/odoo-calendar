@@ -60,7 +60,7 @@ class calendar_event(models.Model):
     ]
 
     color = fields.Integer(string='Color Index')
-    week_number = fields.Char(string='Week number', inverse='reset_meeting_time', readonly=True, store=True)
+    week_number = fields.Char(string='Week number', compute='get_week_number', inverse='reset_meeting_time', readonly=True, store=True)
     weekday = fields.Char(string='Weekday', readonly=True, store=True)
 
     def get_iso_week_day(self, iso_weekday_number):
@@ -81,21 +81,13 @@ class calendar_event(models.Model):
             return 'Saturday'
         elif weekday_number == 0:
             return 'Sunday'
-
+    
     @api.one
+    @api.depends('start')
     def get_week_number(self):
-        if self.allday:
-            week_day = self.get_iso_week_day(fields.Date.from_string(self.start_date).weekday())
-            self.write({
-                'week_number': str(fields.Date.from_string(self.start_date).isocalendar()[0]) + '-W' + str(fields.Date.from_string(self.start_date).isocalendar()[1]),
-                'weekday': self.get_week_day(week_day),
-            })
-        if not self.allday:
-            week_day = self.get_iso_week_day(fields.Date.from_string(self.start_datetime).weekday())
-            self.write({
-                'week_number': str(fields.Date.from_string(self.start_datetime).isocalendar()[0]) + '-W' + str(fields.Date.from_string(self.start_datetime).isocalendar()[1]),
-                'weekday': self.get_week_day(week_day),
-            })
+        week_day = self.get_iso_week_day(fields.Date.from_string(self.start).weekday())
+        self.week_number = str(fields.Date.from_string(self.start).isocalendar()[0]) + '-W' + str(fields.Date.from_string(self.start).isocalendar()[1])
+        self.weekday = self.get_week_day(week_day)
 
     @api.one
     def reset_meeting_time(self):
@@ -149,3 +141,4 @@ class calendar_event(models.Model):
             cr, uid, domain, groupby, remaining_groupbys, aggregated_fields,
             count_field, read_group_result, read_group_order, context
         )
+    
