@@ -32,6 +32,9 @@ Adds and updates calendar objects according to an ics-url
     'author': 'Vertel AB',
     'website': 'http://www.vertel.se',
     'depends': ['calendar',],
+    'external_dependencies': {
+        'python': ['icalendar', 'urllib2'],
+    },
     'data': [ 'res_partner_view.xml',
     #'security/ir.model.access.csv',
     'res_partner_data.xml'

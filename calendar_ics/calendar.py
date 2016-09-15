@@ -35,7 +35,7 @@ _logger = logging.getLogger(__name__)
 
 
 try:
-    from icalendar import Calendar, Event, vDatetime, FreeBusy
+    from icalendar import Calendar, Event, vDatetime, FreeBusy, Alarm
 except ImportError:
     raise Warning('icalendar library missing, pip install icalendar')
 
@@ -205,22 +205,21 @@ class calendar_event(models.Model):
             ics['rrule'] = event.rrule
             #~ ics.add('rrule', str(event.rrule), encode=0)
             #~ raise Warning(ics['rrule'])
-
+        
         if event.alarm_ids:
             for alarm in event.alarm_ids:
-                valarm = ics.add('valarm')
-                interval = alarm.interval
-                duration = alarm.duration
-                trigger = valarm.add('TRIGGER')
-                trigger.params['related'] = ["START"]
-                if interval == 'days':
-                    delta = timedelta(days=duration)
-                elif interval == 'hours':
-                    delta = timedelta(hours=duration)
-                elif interval == 'minutes':
-                    delta = timedelta(minutes=duration)
-                trigger.value = delta
-                valarm.add('DESCRIPTION').value = alarm.name or 'Odoo'
+                if alarm.type == 'notification':
+                    valarm = Alarm()
+                    valarm.add('ACTION', 'DISPLAY')
+                    if alarm.interval == 'days':
+                        delta = timedelta(days=alarm.duration)
+                    elif alarm.interval == 'hours':
+                        delta = timedelta(hours=alarm.duration)
+                    elif alarm.interval == 'minutes':
+                        delta = timedelta(minutes=alarm.duration)
+                    trigger = valarm.add('TRIGGER', -delta) #fields.Datetime.from_string(event.start) - 
+                    valarm.add('DESCRIPTION', event.name)
+                    ics.add_component(valarm)
         if event.attendee_ids:
             for attendee in event.attendee_ids:
                 attendee_add = ics.get('attendee')

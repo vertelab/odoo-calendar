@@ -43,7 +43,7 @@ class calendar_event(models.Model):
 
     # select attribut to week_number field
     WEEKS = [
-        ('Undefied', ''),
+        ('Undefined', ''),
         (next_six_weeks()[0], ''),
         (next_six_weeks()[1], ''),
         (next_six_weeks()[2], ''),
@@ -60,8 +60,8 @@ class calendar_event(models.Model):
     ]
 
     color = fields.Integer(string='Color Index')
-    week_number = fields.Char(string='Week number', compute='get_week_number', inverse='reset_meeting_time', readonly=True, store=True)
-    weekday = fields.Char(string='Weekday', readonly=True, store=True)
+    week_number = fields.Char(string='Week number', compute='get_week_number', inverse='set_week_number', readonly=True, store=True, default='Undefined')
+    weekday = fields.Char(string='Weekday', readonly=True, default='Undefined')
 
     def get_iso_week_day(self, iso_weekday_number):
         return iso_weekday_number + 1 if iso_weekday_number < 6 else 0
@@ -82,16 +82,45 @@ class calendar_event(models.Model):
         elif weekday_number == 0:
             return 'Sunday'
     
+    @api.model
+    def _change_week_and_weekday(self, start):
+        week_day = self.get_iso_week_day(fields.Date.from_string(start).weekday())
+        week_number = str(fields.Date.from_string(start).isocalendar()[0]) + '-W' + str(fields.Date.from_string(start).isocalendar()[1])
+        weekday = self.get_week_day(week_day)
+        return (week_number, weekday)
+    
+    @api.v7
+    def onchange_dates(self, cr, uid, ids, fromtype, start=False, end=False, checkallday=False, allday=False, context=None):
+        res = super(calendar_event, self).onchange_dates(cr, uid, ids, fromtype, start, end, checkallday, allday, context)
+        if not res:
+            res = {}
+        if not res.get('value'):
+            res['value'] = {}
+        start = res['value'].get('start') or start
+        if start:
+            res['value']['week_number'], res['value']['weekday'] = self._change_week_and_weekday(cr, uid, start, context)
+        return res
+        
+    @api.v7
+    def onchange_allday(self, cr, uid, ids, start=False, end=False, starttime=False, endtime=False, startdatetime=False, enddatetime=False, checkallday=False, context=None):
+        res = super(calendar_event, self).onchange_allday(cr, uid, ids, start, end, starttime, endtime, startdatetime, enddatetime, checkallday, context)
+        if not res:
+            res = {}
+        if not res.get('value'):
+            res['value'] = {}
+        start = res['value'].get('start') or start
+        if start:
+            res['value']['week_number'], res['value']['weekday'] = self._change_week_and_weekday(cr, uid, start, context)
+        return res
+    
     @api.one
-    @api.depends('start')
     def get_week_number(self):
-        week_day = self.get_iso_week_day(fields.Date.from_string(self.start).weekday())
-        self.week_number = str(fields.Date.from_string(self.start).isocalendar()[0]) + '-W' + str(fields.Date.from_string(self.start).isocalendar()[1])
-        self.weekday = self.get_week_day(week_day)
+        if self.start:
+            self.week_number, self.weekday = self._change_week_and_weekday(self.start)
 
     @api.one
-    def reset_meeting_time(self):
-        if self.week_number == 'Undefied':
+    def set_week_number(self):
+        if self.week_number == 'Undefined':
             self.write({
                 'start_datetime': '2010-01-01 00:00:00',
                 'stop_datetime': '2010-01-01 00:00:00',
