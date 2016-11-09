@@ -60,27 +60,27 @@ class calendar_event(models.Model):
     ]
 
     color = fields.Integer(string='Color Index')
-    week_number = fields.Char(string='Week number', compute='get_week_number', inverse='set_week_number', readonly=True, store=True, default='Undefined')
-    weekday = fields.Char(string='Weekday', readonly=True, default='Undefined')
+    week_number = fields.Char(string='Week number', compute='get_week_number', inverse='set_week_number', store=True, default='Undefined')
+    weekday = fields.Selection(string='Weekday', selection=[('undefined', 'Undefined'), ('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunnday', 'Sunday'),], default='Undefined')
 
     def get_iso_week_day(self, iso_weekday_number):
         return iso_weekday_number + 1 if iso_weekday_number < 6 else 0
 
     def get_week_day(self, weekday_number):
         if weekday_number == 1:
-            return 'Monday'
+            return 'monday'
         elif weekday_number == 2:
-            return 'Tuesday'
+            return 'tuesday'
         elif weekday_number == 3:
-            return 'Wednesday'
+            return 'wednesday'
         elif weekday_number == 4:
-            return 'Thursday'
+            return 'thursday'
         elif weekday_number == 5:
-            return 'Friday'
+            return 'friday'
         elif weekday_number == 6:
-            return 'Saturday'
+            return 'saturday'
         elif weekday_number == 0:
-            return 'Sunday'
+            return 'sunday'
     
     @api.model
     def _change_week_and_weekday(self, start):
