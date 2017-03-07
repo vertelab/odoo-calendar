@@ -94,10 +94,11 @@ class res_partner(models.Model):
 
     @api.v7
     def ics_cron_job(self, cr, uid, context=None):
+        _logger.debug('ics_cron_job')
         for ics in self.pool.get('res.partner').browse(cr, uid, self.pool.get('res.partner').search(cr, uid, [('ics_active','=',True)])):
-            if (datetime.fromtimestamp(mktime(strptime(ics.ics_nextdate, DEFAULT_SERVER_DATETIME_FORMAT))) < datetime.today()):
+            if not ics.ics_nextdate or (ics.ics_nextdate < fields.Datetime.today()):
                 ics.get_ics_events()
-                ics.ics_nextdate = datetime.fromtimestamp(mktime(strptime(ics.ics_nextdate, DEFAULT_SERVER_DATETIME_FORMAT))) + timedelta(minutes=int(ics.ics_frequency))
+                ics.ics_nextdate = fields.Datetime.to_string(fields.Datetime.from_string(ics.ics_nextdate or fields.Datetime.now()) + timedelta(minutes=int(ics.ics_frequency)))
                 _logger.info('Cron job for %s done' % ics.name)
 
     @api.one
@@ -115,7 +116,7 @@ class res_partner(models.Model):
             except urllib2.URLError as e:
                 _logger.error('ICS c %s %s' % (e.code, e.reason))
                 return False
-            _logger.error('ICS %s' % res)
+            _logger.debug('ICS %s' % res)
 
             self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_subscription','=',True)]).unlink()
             #~ for event in self.env['calendar.event'].search([('ics_id','=',self.id)]):
@@ -134,7 +135,7 @@ class res_partner(models.Model):
                 event_attendee_list = [event_attendee_list]
             
             for vAttendee in event_attendee_list:
-                _logger.error('Attendee found %s' % vAttendee)
+                _logger.debug('Attendee found %s' % vAttendee)
                 attendee_mailto = re.search('(:MAILTO:)([a-zA-Z0-9_@.\-]*)', vAttendee)
                 attendee_cn = re.search('(CN=)([^:]*)', vAttendee)
                 if attendee_mailto:
@@ -143,7 +144,7 @@ class res_partner(models.Model):
                     attendee_cn = attendee_cn.group(2)
                 elif not attendee_mailto and not attendee_cn:
                     attendee_cn = vAttendee
-                _logger.error('Attendee found %s' % attendee_cn)
+                _logger.debug('Attendee found %s' % attendee_cn)
                 
                 #~ raise Warning('%s %s' % (vAttendee, attendee_cn))
                 if attendee_mailto:
