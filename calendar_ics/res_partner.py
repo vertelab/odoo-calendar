@@ -96,7 +96,7 @@ class res_partner(models.Model):
     def ics_cron_job(self, cr, uid, context=None):
         _logger.debug('ics_cron_job')
         for ics in self.pool.get('res.partner').browse(cr, uid, self.pool.get('res.partner').search(cr, uid, [('ics_active','=',True)])):
-            if not ics.ics_nextdate or (ics.ics_nextdate < fields.Datetime.today()):
+            if not ics.ics_nextdate or (ics.ics_nextdate < fields.Datetime.now()):
                 ics.get_ics_events()
                 ics.ics_nextdate = fields.Datetime.to_string(fields.Datetime.from_string(ics.ics_nextdate or fields.Datetime.now()) + timedelta(minutes=int(ics.ics_frequency)))
                 _logger.info('Cron job for %s done' % ics.name)
