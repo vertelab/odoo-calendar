@@ -8,17 +8,17 @@
 
     Adds swedish holidays to the calendar
     Adds important tax declaration dates
-    
-    
+
+
     Todo:
     - install the actual calendar at install-time (now you have to "check" the url or wait for the cron job)
     - The tax declarations dates varies by type of company, add a logic to choose correct url
     - Add a nice icon for the module
 
-        
+
         Swedish holidays thanks to Mozilla
         Skatterverks-dates thanks to Compiled AB and http://www.skatteverketkalender.se/
-        
+
     """,
 
     'author': "Vertel AB",
@@ -31,12 +31,13 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['calendar_ics'],
+    'depends': ['calendar_ics', 'account'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
         'res_partner_data.xml',
+        'res_config_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

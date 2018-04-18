@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-  <data>
-    <record id="view_general_configuration" model="ir.ui.view">
-      <field name="name">base.config.settings.skv_kalender</field>
-      <field name="model">base.config.settings</field>
-      <field name="inherit_id" ref="base.view_general_configuration" />
-      <field name="arch" type="xml">
-        <form position="inside">
-          <separator string="Skatteverkets kalender" />
-          <group name="skv_kalender">
-            <field name="tax_recurrency" />
-            <field name="revenue" />
-            <field name="periodic_compilation" />
-            <field name="rot_rut" />
-            <field name="fiscalyear" />
-            <field name="kalender_url" />
-          </group>
-        </form>
-      </field>
-    </record>
-  </data>
+    <data>
+        <record id="view_account_config_settings" model="ir.ui.view">
+            <field name="name">account.config.settings.skv_kalender</field>
+            <field name="model">account.config.settings</field>
+            <field name="inherit_id" ref="account.view_account_config_settings" />
+            <field name="arch" type="xml">
+                <form position="inside">
+                    <separator string="Skatteverkets kalender" />
+                    <group name="skv_kalender">
+                        <field name="tax_recurrency" />
+                        <field name="revenue" />
+                        <field name="periodic_compilation" />
+                        <field name="rot_rut" />
+                        <field name="fiscalyear" />
+                        <field name="kalender_url" />
+                    </group>
+                </form>
+            </field>
+        </record>
+    </data>
 </openerp>
