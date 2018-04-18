@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution, third party addon
-#    Copyright (C) 2004-2016 Vertel AB (<http://vertel.se>).
+#    Odoo, Open Source Enterprise Management Solution, third party addon
+#    Copyright (C) 2004-2018 Vertel AB (<http://vertel.se>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,15 +18,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from openerp import models, fields, api, _
+from odoo import models, fields, api, _
 import time
 import datetime
 from datetime import date, timedelta
+from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 import logging
-
 _logger = logging.getLogger(__name__)
 
-class calendar_event(models.Model):
+
+class Meeting(models.Model):
     _inherit = 'calendar.event'
 
     # return a list of next six weeks from now include this week
@@ -60,7 +61,7 @@ class calendar_event(models.Model):
     ]
 
     color = fields.Integer(string='Color Index')
-    week_number = fields.Char(string='Week number', compute='get_week_number', inverse='set_week_number', store=True, default='Undefined')
+    week_number = fields.Char(string='Week number', compute='get_week_number', inverse='set_week_number', store=True, default='Undefined', group_expand=lambda self: self.WEEKS)
     weekday = fields.Selection(string='Weekday', selection=[('undefined', 'Undefined'), ('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunnday', 'Sunday'),], default='undefined')
 
     def get_iso_week_day(self, iso_weekday_number):
@@ -81,38 +82,88 @@ class calendar_event(models.Model):
             return 'saturday'
         elif weekday_number == 0:
             return 'sunday'
-    
+
     @api.model
     def _change_week_and_weekday(self, start):
         week_day = self.get_iso_week_day(fields.Date.from_string(start).weekday())
         week_number = str(fields.Date.from_string(start).isocalendar()[0]) + '-W' + str(fields.Date.from_string(start).isocalendar()[1])
         weekday = self.get_week_day(week_day)
         return (week_number, weekday)
-    
-    @api.v7
-    def onchange_dates(self, cr, uid, ids, fromtype, start=False, end=False, checkallday=False, allday=False, context=None):
-        res = super(calendar_event, self).onchange_dates(cr, uid, ids, fromtype, start, end, checkallday, allday, context)
-        if not res:
-            res = {}
-        if not res.get('value'):
-            res['value'] = {}
-        start = res['value'].get('start') or start
+
+    @api.multi
+    def onchange_dates(self, fromtype, start=False, end=False, checkallday=False, allday=False):
+        value = {}
+        if checkallday != allday:
+            return value
+        value['allday'] = checkallday  # Force to be rewrited
+        if allday:
+            if fromtype == 'start' and start:
+                start = datetime.strptime(start, DEFAULT_SERVER_DATE_FORMAT)
+                value['start_datetime'] = datetime.strftime(start, DEFAULT_SERVER_DATETIME_FORMAT)
+                value['start'] = datetime.strftime(start, DEFAULT_SERVER_DATETIME_FORMAT)
+
+            if fromtype == 'stop' and end:
+                end = datetime.strptime(end, DEFAULT_SERVER_DATE_FORMAT)
+                value['stop_datetime'] = datetime.strftime(end, DEFAULT_SERVER_DATETIME_FORMAT)
+                value['stop'] = datetime.strftime(end, DEFAULT_SERVER_DATETIME_FORMAT)
+        else:
+            if fromtype == 'start' and start:
+                start = datetime.strptime(start, DEFAULT_SERVER_DATETIME_FORMAT)
+                value['start_date'] = datetime.strftime(start, DEFAULT_SERVER_DATE_FORMAT)
+                value['start'] = datetime.strftime(start, DEFAULT_SERVER_DATETIME_FORMAT)
+            if fromtype == 'stop' and end:
+                end = datetime.strptime(end, DEFAULT_SERVER_DATETIME_FORMAT)
+                value['stop_date'] = datetime.strftime(end, DEFAULT_SERVER_DATE_FORMAT)
+                value['stop'] = datetime.strftime(end, DEFAULT_SERVER_DATETIME_FORMAT)
+        if not value.get('value'):
+            value['value'] = {}
+        start = value['value'].get('start') or start
         if start:
-            res['value']['week_number'], res['value']['weekday'] = self._change_week_and_weekday(cr, uid, start, context)
-        return res
-        
-    @api.v7
-    def onchange_allday(self, cr, uid, ids, start=False, end=False, starttime=False, endtime=False, startdatetime=False, enddatetime=False, checkallday=False, context=None):
-        res = super(calendar_event, self).onchange_allday(cr, uid, ids, start, end, starttime, endtime, startdatetime, enddatetime, checkallday, context)
-        if not res:
-            res = {}
-        if not res.get('value'):
-            res['value'] = {}
-        start = res['value'].get('start') or start
+            value['value']['week_number'], value['value']['weekday'] = self._change_week_and_weekday(start)
+        return {'value': value}
+
+    @api.multi
+    def onchange_allday(self, start=False, end=False, starttime=False, endtime=False, startdatetime=False, enddatetime=False, checkallday=False):
+        value = {}
+        if not ((starttime and endtime) or (start and end)):  # At first intialize, we have not datetime
+            return value
+        if checkallday:  # from datetime to date
+            startdatetime = startdatetime or start
+            if startdatetime:
+                start = datetime.strptime(startdatetime, DEFAULT_SERVER_DATETIME_FORMAT)
+                value['start_date'] = fields.Date.context_today(timestamp=start)
+
+            enddatetime = enddatetime or end
+            if enddatetime:
+                end = datetime.strptime(enddatetime, DEFAULT_SERVER_DATETIME_FORMAT)
+                value['stop_date'] = fields.date.context_today(timestamp=end)
+        else:  # from date to datetime
+            user = self.env.user
+            tz = pytz.timezone(user.tz) if user.tz else pytz.utc
+
+            if starttime:
+                start = openerp.fields.Datetime.from_string(starttime)
+                startdate = tz.localize(start)  # Add "+hh:mm" timezone
+                startdate = startdate.replace(hour=8)  # Set 8 AM in localtime
+                startdate = startdate.astimezone(pytz.utc)  # Convert to UTC
+                value['start_datetime'] = datetime.strftime(startdate, DEFAULT_SERVER_DATETIME_FORMAT)
+            elif start:
+                value['start_datetime'] = start
+
+            if endtime:
+                end = datetime.strptime(endtime.split(' ')[0], DEFAULT_SERVER_DATE_FORMAT)
+                enddate = tz.localize(end).replace(hour=18).astimezone(pytz.utc)
+
+                value['stop_datetime'] = datetime.strftime(enddate, DEFAULT_SERVER_DATETIME_FORMAT)
+            elif end:
+                value['stop_datetime'] = end
+        if not value.get('value'):
+            value['value'] = {}
+        start = value['value'].get('start') or start
         if start:
-            res['value']['week_number'], res['value']['weekday'] = self._change_week_and_weekday(cr, uid, start, context)
-        return res
-    
+            value['value']['week_number'], value['value']['weekday'] = self._change_week_and_weekday(start)
+        return {'value': value}
+
     @api.one
     def get_week_number(self):
         if self.start:
@@ -141,33 +192,31 @@ class calendar_event(models.Model):
                     'stop_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')) + ' ' + meeting_stop,
                 })
 
-    @api.model
-    def weeks_list(self, present_ids, domain, **kwargs):
-        folded = {key: (key in self.FOLDED_WEEK) for key, _ in self.WEEKS}
-        return self.WEEKS[:], folded
+    #~ @api.model
+    #~ def weeks_list(self, present_ids, domain, **kwargs):
+        #~ folded = {key: (key in self.FOLDED_WEEK) for key, _ in self.WEEKS}
+        #~ return self.WEEKS[:], folded
 
-    # group list for kanban view
-    _group_by_full = {
-        'week_number': weeks_list,
-    }
+    #~ _group_by_full = {
+        #~ 'week_number': weeks_list,
+    #~ }
 
-    def _read_group_fill_results(self, cr, uid, domain, groupby,
-                                 remaining_groupbys, aggregated_fields,
-                                 count_field, read_group_result,
-                                 read_group_order=None, context=None):
-        """
-        The method seems to support grouping using m2o fields only,
-        while we want to group by a week_number field.
-        Hence the code below - it replaces simple week_number values
-        with (value, name) tuples.
-        """
-        if groupby == 'week_number':
-            WEEK_DICT = dict(self.WEEKS)
-            for result in read_group_result:
-                week = result['week_number']
-                result['week_number'] = (week, WEEK_DICT.get(week))
-        return super(calendar_event, self)._read_group_fill_results(
-            cr, uid, domain, groupby, remaining_groupbys, aggregated_fields,
-            count_field, read_group_result, read_group_order, context
-        )
-    
+    #~ def _read_group_fill_results(self, cr, uid, domain, groupby,
+                                 #~ remaining_groupbys, aggregated_fields,
+                                 #~ count_field, read_group_result,
+                                 #~ read_group_order=None, context=None):
+        #~ """
+        #~ The method seems to support grouping using m2o fields only,
+        #~ while we want to group by a week_number field.
+        #~ Hence the code below - it replaces simple week_number values
+        #~ with (value, name) tuples.
+        #~ """
+        #~ if groupby == 'week_number':
+            #~ WEEK_DICT = dict(self.WEEKS)
+            #~ for result in read_group_result:
+                #~ week = result['week_number']
+                #~ result['week_number'] = (week, WEEK_DICT.get(week))
+        #~ return super(calendar_event, self)._read_group_fill_results(
+            #~ cr, uid, domain, groupby, remaining_groupbys, aggregated_fields,
+            #~ count_field, read_group_result, read_group_order, context
+        #~ )
