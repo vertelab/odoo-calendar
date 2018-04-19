@@ -21,176 +21,253 @@
 from odoo import models, fields, api, _
 import time
 import datetime
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 import logging
 _logger = logging.getLogger(__name__)
 
 
+class CalendarYear(models.Model):
+    _name = 'calendar.year'
+
+    name = fields.Integer(string='Name')
+    week_ids = fields.One2many(string='Week', comodel_name='calendar.week', inverse_name='year_id')
+
+    @api.multi
+    def create_weeks(self):
+        begin = datetime.strptime('%s-01-01' %self.name, '%Y-%m-%d').date()
+        end = datetime.strptime('%s-12-31' %self.name, '%Y-%m-%d').date()
+        days = [begin]
+        date = begin
+        while (date < end):
+            date += timedelta(days=1)
+            days.append(date)
+        weeks = []
+        for day in days:
+            if day.isocalendar()[0] == self.name:
+                week = '%s-W%s' %(day.isocalendar()[0], day.isocalendar()[1])
+                if week not in weeks:
+                    weeks.append(week)
+                    date_start = fields.Date.to_string(self.env['calendar.week'].find_week_begin(day))
+                    date_end = fields.Date.to_string(self.env['calendar.week'].find_week_end(day))
+                    w = self.env['calendar.week'].search(['|', ('name', '=', week), '|', ('date_start', '=', date_start), ('date_end', '=', date_end)])
+                    if w:
+                        w.write({
+                            'name': week,
+                            'year_id': self.id,
+                            'week_number': day.isocalendar()[1],
+                            'date_start': date_start,
+                            'date_end': date_end,
+                        })
+                    else:
+                        self.env['calendar.week'].create({
+                            'name': week,
+                            'year_id': self.id,
+                            'week_number': day.isocalendar()[1],
+                            'date_start': date_start,
+                            'date_end': date_end,
+                        })
+
+
+class CalendarWeek(models.Model):
+    _name = 'calendar.week'
+
+    name = fields.Char(string='Name')
+    year_id = fields.Many2one(string='Year', comodel_name='calendar.year')
+    week_number = fields.Integer(string='Week Number')
+    date_start = fields.Date(string='Date Start')
+    date_end = fields.Date(string='Date End')
+
+    @api.model
+    def find_week_begin(self, date):
+        return date + timedelta(days=-date.weekday(), weeks=0)
+
+    @api.model
+    def find_week_end(self, date):
+        return date + timedelta(days=-date.weekday()-1, weeks=1)
+
+
 class Meeting(models.Model):
     _inherit = 'calendar.event'
 
-    # return a list of next six weeks from now include this week
-    def next_six_weeks():
-        now = datetime.date.today()
-        return[
-            str(now.isocalendar()[0]) + '-W' + str(now.isocalendar()[1]),
-            str((now + datetime.timedelta(weeks=1)).isocalendar()[0]) + '-W' + str((now + datetime.timedelta(weeks=1)).isocalendar()[1]),
-            str((now + datetime.timedelta(weeks=2)).isocalendar()[0]) + '-W' + str((now + datetime.timedelta(weeks=2)).isocalendar()[1]),
-            str((now + datetime.timedelta(weeks=3)).isocalendar()[0]) + '-W' + str((now + datetime.timedelta(weeks=3)).isocalendar()[1]),
-            str((now + datetime.timedelta(weeks=4)).isocalendar()[0]) + '-W' + str((now + datetime.timedelta(weeks=4)).isocalendar()[1]),
-            str((now + datetime.timedelta(weeks=5)).isocalendar()[0]) + '-W' + str((now + datetime.timedelta(weeks=5)).isocalendar()[1]),
-        ]
-
-    # select attribut to week_number field
-    WEEKS = [
-        ('Undefined', ''),
-        (next_six_weeks()[0], ''),
-        (next_six_weeks()[1], ''),
-        (next_six_weeks()[2], ''),
-        (next_six_weeks()[3], ''),
-        (next_six_weeks()[4], ''),
-        (next_six_weeks()[5], ''),
-    ]
-
-    # which week shows folded by default
-    FOLDED_WEEK = [
-        next_six_weeks()[3],
-        next_six_weeks()[4],
-        next_six_weeks()[5],
-    ]
+    @api.model
+    def _read_group_weeks(self, weeks, domain, order):
+        if self.week_id:
+            weeks_ids = self.env['calendar.week'].browse()
+            for idx in range(0, 6):
+                monday = fields.Date.from_string(self.week_id.date_start) + timedelta(weeks=idx)
+                weeks_ids |= self.env['calendar.week'].search([('date_start', '=', fields.Date.to_string(monday))])
+            return weeks_ids
 
     color = fields.Integer(string='Color Index')
-    week_number = fields.Char(string='Week number', compute='get_week_number', inverse='set_week_number', store=True, default='Undefined', group_expand=lambda self: self.WEEKS)
-    weekday = fields.Selection(string='Weekday', selection=[('undefined', 'Undefined'), ('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunnday', 'Sunday'),], default='undefined')
+    week_id = fields.Many2one(string='Week', comodel_name='calendar.week', group_expand='_read_group_weeks', store=True)
+    week_number = fields.Char(string='Week number', compute='get_week_number', store=True)
+    weekday = fields.Selection(string='Weekday', selection=[('undefined', 'Undefined'), ('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunday', 'Sunday'),], default='undefined', store=True)
 
-    def get_iso_week_day(self, iso_weekday_number):
-        return iso_weekday_number + 1 if iso_weekday_number < 6 else 0
+    @api.onchange('start_date', 'start_datetime')
+    @api.depends('start_date', 'start_datetime')
+    def get_week_number(self):
+        date = None
+        if self.allday:
+            date = fields.Date.from_string(self.start_date)
+        else:
+            date = fields.Date.from_string(self.start_datetime)[:10]
+        if date:
+            self.weekday = self.get_week_day(date.weekday())
+            mondy = self.env['calendar.week'].find_week_begin(date)
+            week = self.env['calendar.week'].search([('date_start', '=', fields.Date.to_string(mondy))])
+            if not week:
+                raise Warning(_('Please generate weeks'))
+            else:
+                self.week_id = week
+                self.week_number = week.name
 
     def get_week_day(self, weekday_number):
-        if weekday_number == 1:
+        if weekday_number == 0:
             return 'monday'
-        elif weekday_number == 2:
+        elif weekday_number == 1:
             return 'tuesday'
-        elif weekday_number == 3:
+        elif weekday_number == 2:
             return 'wednesday'
-        elif weekday_number == 4:
+        elif weekday_number == 3:
             return 'thursday'
-        elif weekday_number == 5:
+        elif weekday_number == 4:
             return 'friday'
-        elif weekday_number == 6:
+        elif weekday_number == 5:
             return 'saturday'
-        elif weekday_number == 0:
+        elif weekday_number == 6:
             return 'sunday'
 
-    @api.model
-    def _change_week_and_weekday(self, start):
-        week_day = self.get_iso_week_day(fields.Date.from_string(start).weekday())
-        week_number = str(fields.Date.from_string(start).isocalendar()[0]) + '-W' + str(fields.Date.from_string(start).isocalendar()[1])
-        weekday = self.get_week_day(week_day)
-        return (week_number, weekday)
+    #~ week_number = fields.Char(string='Week number', compute='get_week_number', inverse='set_week_number', store=True, default='Undefined')
+    #~ weekday = fields.Selection(string='Weekday', selection=[('undefined', 'Undefined'), ('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunnday', 'Sunday'),], default='undefined')
 
-    @api.multi
-    def onchange_dates(self, fromtype, start=False, end=False, checkallday=False, allday=False):
-        value = {}
-        if checkallday != allday:
-            return value
-        value['allday'] = checkallday  # Force to be rewrited
-        if allday:
-            if fromtype == 'start' and start:
-                start = datetime.strptime(start, DEFAULT_SERVER_DATE_FORMAT)
-                value['start_datetime'] = datetime.strftime(start, DEFAULT_SERVER_DATETIME_FORMAT)
-                value['start'] = datetime.strftime(start, DEFAULT_SERVER_DATETIME_FORMAT)
+    #~ def get_iso_week_day(self, iso_weekday_number):
+        #~ return iso_weekday_number + 1 if iso_weekday_number < 6 else 0
 
-            if fromtype == 'stop' and end:
-                end = datetime.strptime(end, DEFAULT_SERVER_DATE_FORMAT)
-                value['stop_datetime'] = datetime.strftime(end, DEFAULT_SERVER_DATETIME_FORMAT)
-                value['stop'] = datetime.strftime(end, DEFAULT_SERVER_DATETIME_FORMAT)
-        else:
-            if fromtype == 'start' and start:
-                start = datetime.strptime(start, DEFAULT_SERVER_DATETIME_FORMAT)
-                value['start_date'] = datetime.strftime(start, DEFAULT_SERVER_DATE_FORMAT)
-                value['start'] = datetime.strftime(start, DEFAULT_SERVER_DATETIME_FORMAT)
-            if fromtype == 'stop' and end:
-                end = datetime.strptime(end, DEFAULT_SERVER_DATETIME_FORMAT)
-                value['stop_date'] = datetime.strftime(end, DEFAULT_SERVER_DATE_FORMAT)
-                value['stop'] = datetime.strftime(end, DEFAULT_SERVER_DATETIME_FORMAT)
-        if not value.get('value'):
-            value['value'] = {}
-        start = value['value'].get('start') or start
-        if start:
-            value['value']['week_number'], value['value']['weekday'] = self._change_week_and_weekday(start)
-        return {'value': value}
+    #~ def get_week_day(self, weekday_number):
+        #~ if weekday_number == 1:
+            #~ return 'monday'
+        #~ elif weekday_number == 2:
+            #~ return 'tuesday'
+        #~ elif weekday_number == 3:
+            #~ return 'wednesday'
+        #~ elif weekday_number == 4:
+            #~ return 'thursday'
+        #~ elif weekday_number == 5:
+            #~ return 'friday'
+        #~ elif weekday_number == 6:
+            #~ return 'saturday'
+        #~ elif weekday_number == 0:
+            #~ return 'sunday'
 
-    @api.multi
-    def onchange_allday(self, start=False, end=False, starttime=False, endtime=False, startdatetime=False, enddatetime=False, checkallday=False):
-        value = {}
-        if not ((starttime and endtime) or (start and end)):  # At first intialize, we have not datetime
-            return value
-        if checkallday:  # from datetime to date
-            startdatetime = startdatetime or start
-            if startdatetime:
-                start = datetime.strptime(startdatetime, DEFAULT_SERVER_DATETIME_FORMAT)
-                value['start_date'] = fields.Date.context_today(timestamp=start)
+    #~ @api.model
+    #~ def _change_week_and_weekday(self, start):
+        #~ week_day = self.get_iso_week_day(fields.Date.from_string(start).weekday())
+        #~ week_number = str(fields.Date.from_string(start).isocalendar()[0]) + '-W' + str(fields.Date.from_string(start).isocalendar()[1])
+        #~ weekday = self.get_week_day(week_day)
+        #~ return (week_number, weekday)
 
-            enddatetime = enddatetime or end
-            if enddatetime:
-                end = datetime.strptime(enddatetime, DEFAULT_SERVER_DATETIME_FORMAT)
-                value['stop_date'] = fields.date.context_today(timestamp=end)
-        else:  # from date to datetime
-            user = self.env.user
-            tz = pytz.timezone(user.tz) if user.tz else pytz.utc
+    #~ @api.multi
+    #~ def onchange_dates(self, fromtype, start=False, end=False, checkallday=False, allday=False):
+        #~ value = {}
+        #~ if checkallday != allday:
+            #~ return value
+        #~ value['allday'] = checkallday  # Force to be rewrited
+        #~ if allday:
+            #~ if fromtype == 'start' and start:
+                #~ start = datetime.strptime(start, DEFAULT_SERVER_DATE_FORMAT)
+                #~ value['start_datetime'] = datetime.strftime(start, DEFAULT_SERVER_DATETIME_FORMAT)
+                #~ value['start'] = datetime.strftime(start, DEFAULT_SERVER_DATETIME_FORMAT)
 
-            if starttime:
-                start = openerp.fields.Datetime.from_string(starttime)
-                startdate = tz.localize(start)  # Add "+hh:mm" timezone
-                startdate = startdate.replace(hour=8)  # Set 8 AM in localtime
-                startdate = startdate.astimezone(pytz.utc)  # Convert to UTC
-                value['start_datetime'] = datetime.strftime(startdate, DEFAULT_SERVER_DATETIME_FORMAT)
-            elif start:
-                value['start_datetime'] = start
+            #~ if fromtype == 'stop' and end:
+                #~ end = datetime.strptime(end, DEFAULT_SERVER_DATE_FORMAT)
+                #~ value['stop_datetime'] = datetime.strftime(end, DEFAULT_SERVER_DATETIME_FORMAT)
+                #~ value['stop'] = datetime.strftime(end, DEFAULT_SERVER_DATETIME_FORMAT)
+        #~ else:
+            #~ if fromtype == 'start' and start:
+                #~ start = datetime.strptime(start, DEFAULT_SERVER_DATETIME_FORMAT)
+                #~ value['start_date'] = datetime.strftime(start, DEFAULT_SERVER_DATE_FORMAT)
+                #~ value['start'] = datetime.strftime(start, DEFAULT_SERVER_DATETIME_FORMAT)
+            #~ if fromtype == 'stop' and end:
+                #~ end = datetime.strptime(end, DEFAULT_SERVER_DATETIME_FORMAT)
+                #~ value['stop_date'] = datetime.strftime(end, DEFAULT_SERVER_DATE_FORMAT)
+                #~ value['stop'] = datetime.strftime(end, DEFAULT_SERVER_DATETIME_FORMAT)
+        #~ if not value.get('value'):
+            #~ value['value'] = {}
+        #~ start = value['value'].get('start') or start
+        #~ if start:
+            #~ value['value']['week_number'], value['value']['weekday'] = self._change_week_and_weekday(start)
+        #~ return {'value': value}
 
-            if endtime:
-                end = datetime.strptime(endtime.split(' ')[0], DEFAULT_SERVER_DATE_FORMAT)
-                enddate = tz.localize(end).replace(hour=18).astimezone(pytz.utc)
+    #~ @api.multi
+    #~ def onchange_allday(self, start=False, end=False, starttime=False, endtime=False, startdatetime=False, enddatetime=False, checkallday=False):
+        #~ value = {}
+        #~ if not ((starttime and endtime) or (start and end)):  # At first intialize, we have not datetime
+            #~ return value
+        #~ if checkallday:  # from datetime to date
+            #~ startdatetime = startdatetime or start
+            #~ if startdatetime:
+                #~ start = datetime.strptime(startdatetime, DEFAULT_SERVER_DATETIME_FORMAT)
+                #~ value['start_date'] = fields.Date.context_today(timestamp=start)
 
-                value['stop_datetime'] = datetime.strftime(enddate, DEFAULT_SERVER_DATETIME_FORMAT)
-            elif end:
-                value['stop_datetime'] = end
-        if not value.get('value'):
-            value['value'] = {}
-        start = value['value'].get('start') or start
-        if start:
-            value['value']['week_number'], value['value']['weekday'] = self._change_week_and_weekday(start)
-        return {'value': value}
+            #~ enddatetime = enddatetime or end
+            #~ if enddatetime:
+                #~ end = datetime.strptime(enddatetime, DEFAULT_SERVER_DATETIME_FORMAT)
+                #~ value['stop_date'] = fields.date.context_today(timestamp=end)
+        #~ else:  # from date to datetime
+            #~ user = self.env.user
+            #~ tz = pytz.timezone(user.tz) if user.tz else pytz.utc
 
-    @api.one
-    def get_week_number(self):
-        if self.start:
-            self.week_number, self.weekday = self._change_week_and_weekday(self.start)
+            #~ if starttime:
+                #~ start = openerp.fields.Datetime.from_string(starttime)
+                #~ startdate = tz.localize(start)  # Add "+hh:mm" timezone
+                #~ startdate = startdate.replace(hour=8)  # Set 8 AM in localtime
+                #~ startdate = startdate.astimezone(pytz.utc)  # Convert to UTC
+                #~ value['start_datetime'] = datetime.strftime(startdate, DEFAULT_SERVER_DATETIME_FORMAT)
+            #~ elif start:
+                #~ value['start_datetime'] = start
 
-    @api.one
-    def set_week_number(self):
-        if self.week_number == 'Undefined':
-            self.write({
-                'start_datetime': '2010-01-01 00:00:00',
-                'stop_datetime': '2010-01-01 00:00:00',
-            })
-        else:
-            if self.allday:
-                week_day = self.get_iso_week_day(fields.Date.from_string(self.start_date).weekday())
-                self.write({
-                    'start_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')),
-                    'stop_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')),
-                })
-            if not self.allday:
-                week_day = self.get_iso_week_day(fields.Date.from_string(self.start_datetime).weekday())
-                meeting_start = str(fields.Datetime.from_string(self.start_datetime).hour) + ':' + str(fields.Datetime.from_string(self.start_datetime).minute) + ':' + str(fields.Datetime.from_string(self.start_datetime).second)
-                meeting_stop = str(fields.Datetime.from_string(self.stop_datetime).hour) + ':' + str(fields.Datetime.from_string(self.stop_datetime).minute) + ':' + str(fields.Datetime.from_string(self.stop_datetime).second)
-                self.write({
-                    'start_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')) + ' ' + meeting_start,
-                    'stop_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')) + ' ' + meeting_stop,
-                })
+            #~ if endtime:
+                #~ end = datetime.strptime(endtime.split(' ')[0], DEFAULT_SERVER_DATE_FORMAT)
+                #~ enddate = tz.localize(end).replace(hour=18).astimezone(pytz.utc)
+
+                #~ value['stop_datetime'] = datetime.strftime(enddate, DEFAULT_SERVER_DATETIME_FORMAT)
+            #~ elif end:
+                #~ value['stop_datetime'] = end
+        #~ if not value.get('value'):
+            #~ value['value'] = {}
+        #~ start = value['value'].get('start') or start
+        #~ if start:
+            #~ value['value']['week_number'], value['value']['weekday'] = self._change_week_and_weekday(start)
+        #~ return {'value': value}
+
+    #~ @api.one
+    #~ def get_week_number(self):
+        #~ if self.start:
+            #~ self.week_number, self.weekday = self._change_week_and_weekday(self.start)
+
+    #~ @api.one
+    #~ def set_week_number(self):
+        #~ if self.week_number == 'Undefined':
+            #~ self.write({
+                #~ 'start_datetime': '2010-01-01 00:00:00',
+                #~ 'stop_datetime': '2010-01-01 00:00:00',
+            #~ })
+        #~ else:
+            #~ if self.allday:
+                #~ week_day = self.get_iso_week_day(fields.Date.from_string(self.start_date).weekday())
+                #~ self.write({
+                    #~ 'start_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')),
+                    #~ 'stop_date': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')),
+                #~ })
+            #~ if not self.allday:
+                #~ week_day = self.get_iso_week_day(fields.Date.from_string(self.start_datetime).weekday())
+                #~ meeting_start = str(fields.Datetime.from_string(self.start_datetime).hour) + ':' + str(fields.Datetime.from_string(self.start_datetime).minute) + ':' + str(fields.Datetime.from_string(self.start_datetime).second)
+                #~ meeting_stop = str(fields.Datetime.from_string(self.stop_datetime).hour) + ':' + str(fields.Datetime.from_string(self.stop_datetime).minute) + ':' + str(fields.Datetime.from_string(self.stop_datetime).second)
+                #~ self.write({
+                    #~ 'start_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')) + ' ' + meeting_start,
+                    #~ 'stop_datetime': fields.Date.to_string(datetime.datetime.strptime(self.week_number + '-' + str(week_day), '%Y-W%W-%w')) + ' ' + meeting_stop,
+                #~ })
 
     #~ @api.model
     #~ def weeks_list(self, present_ids, domain, **kwargs):

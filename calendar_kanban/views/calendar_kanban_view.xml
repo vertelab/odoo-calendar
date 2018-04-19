@@ -29,7 +29,7 @@
             <field name="name">Meetings Calendar</field>
             <field name="model">calendar.event</field>
             <field name="arch" type="xml">
-                <kanban class="oe_background_grey" default_group_by="week_number">
+                <kanban class="oe_background_grey" default_group_by="week_number" default_order="weekday">
                     <field name="color"/>
                     <field name="name" string="Subject"/>
                     <field name="allday" invisible="True"/>
@@ -91,6 +91,93 @@
             <field name="view_mode">kanban</field>
             <field name="view_id" ref="view_calendar_event_kanban"/>
         </record>
+
+        <!-- Calendar Week : -->
+        <record id="view_calendar_week_tree" model="ir.ui.view">
+            <field name="name">calendar.week.tree</field>
+            <field name="model">calendar.week</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Calendar Week" editable="bottom">
+                    <field name="name"/>
+                    <field name="week_number"/>
+                    <field name="year_id"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Calendar Year : -->
+        <record id="view_calendar_year_form" model="ir.ui.view">
+            <field name="name">calendar.year.form</field>
+            <field name="model">calendar.year</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Calendar Year">
+                    <header>
+                        <button name="create_weeks" string="Create Weeks" type="object" class="oe_highlight"/>
+                    </header>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Weeks">
+                            <field name="week_ids">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="week_number"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_calendar_year_tree" model="ir.ui.view">
+            <field name="name">calendar.year.tree</field>
+            <field name="model">calendar.year</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Calendar Year">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_calendar_week" model="ir.actions.act_window">
+            <field name="name">Calendar Week</field>
+            <field name="res_model">calendar.week</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="view_calendar_week_tree"/>
+        </record>
+
+        <record id="action_calendar_year" model="ir.actions.act_window">
+            <field name="name">Calendar Year</field>
+            <field name="res_model">calendar.year</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_calendar_year_tree"/>
+        </record>
+
+        <menuitem
+            id="menu_calendar_week"
+            parent="calendar.menu_calendar_configuration"
+            action="action_calendar_week"
+            sequence="50"
+            groups="base.group_no_one"/>
+
+        <menuitem
+            id="menu_calendar_year"
+            parent="calendar.menu_calendar_configuration"
+            action="action_calendar_year"
+            sequence="70"
+            groups="base.group_no_one"/>
 
     </data>
 </odoo>
