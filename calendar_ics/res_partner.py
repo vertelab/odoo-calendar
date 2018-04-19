@@ -182,7 +182,7 @@ class res_partner(models.Model):
         calendar = Calendar()
         if type == 'private':
             for event in self.env['calendar.event'].search([('partner_ids','in',self.id)]):
-                calendar.add_component(event.get_ics_file())
+                calendar.add_component(event._get_ics_file([], self))
         elif type == 'freebusy':
             fc = FreeBusy()
 
@@ -199,7 +199,7 @@ class res_partner(models.Model):
         elif type == 'public':
             exported_ics = []
             for event in reversed(self.env['calendar.event'].search([('partner_ids','in',self.id)])):
-                temporary_ics = event.get_ics_file(exported_ics, self)
+                temporary_ics = event._get_ics_file(exported_ics, self)
                 if temporary_ics:
                     exported_ics.append(temporary_ics[1])
                     calendar.add_component(temporary_ics[0])

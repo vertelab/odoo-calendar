@@ -6,7 +6,7 @@
             <field name="model">calendar.event</field>
             <field name="inherit_id" ref="calendar.view_calendar_event_form"/>
             <field name="arch" type="xml">
-                <field name="duration" position="after">
+                <field name="allday" position="after">
                     <field name="week_number"/>
                     <field name="weekday"/>
                 </field>

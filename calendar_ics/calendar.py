@@ -117,7 +117,7 @@ class calendar_event(models.Model):
 
 
     @api.multi
-    def get_ics_file(self, events_exported, partner):
+    def _get_ics_file(self, events_exported, partner):
         """
         Returns iCalendar file for the event invitation.
         @param event: event object (browse record)
