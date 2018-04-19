@@ -61,7 +61,7 @@ class calendar_event(models.Model):
 
     color = fields.Integer(string='Color Index')
     week_number = fields.Char(string='Week number', compute='get_week_number', inverse='set_week_number', store=True, default='Undefined')
-    weekday = fields.Selection(string='Weekday', selection=[('undefined', 'Undefined'), ('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunday', 'Sunday'),], default='undefined', readonly=True)
+    weekday = fields.Selection(string='Weekday', selection=[('undefined', 'Undefined'), ('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunday', 'Sunday'),], default='undefined')
 
     def get_iso_week_day(self, iso_weekday_number):
         return iso_weekday_number + 1 if iso_weekday_number < 6 else 0
