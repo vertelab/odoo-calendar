@@ -19,7 +19,6 @@
             <field name="arch" type="xml">
                 <filter string="Privacy" position="after">
                     <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_number'}"/>
-                    <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_number'}"/>
                     <filter string="Location" icon="terp-locked" domain="[]" context="{'group_by':'location'}"/>
                 </filter>
             </field>

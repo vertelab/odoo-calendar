@@ -76,7 +76,7 @@ class res_partner_icalendar(http.Controller):
 
 class res_partner(models.Model):
     _inherit = "res.partner"
-    
+
     ics_url  = fields.Char(string='Url',required=False)
     ics_active = fields.Boolean(string='Active',default=False)
     ics_nextdate = fields.Datetime(string="Next")
@@ -121,7 +121,7 @@ class res_partner(models.Model):
             self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_subscription','=',True)]).unlink()
             #~ for event in self.env['calendar.event'].search([('ics_id','=',self.id)]):
                 #~ event.unlink()
-                
+
             self.env['calendar.event'].set_ics_event(res, self)
 
     @api.multi
@@ -133,7 +133,7 @@ class res_partner(models.Model):
         if event_attendee_list:
             if not (type(event_attendee_list) is list):
                 event_attendee_list = [event_attendee_list]
-            
+
             for vAttendee in event_attendee_list:
                 _logger.debug('Attendee found %s' % vAttendee)
                 attendee_mailto = re.search('(:MAILTO:)([a-zA-Z0-9_@.\-]*)', vAttendee)
@@ -145,11 +145,11 @@ class res_partner(models.Model):
                 elif not attendee_mailto and not attendee_cn:
                     attendee_cn = vAttendee
                 _logger.debug('Attendee found %s' % attendee_cn)
-                
+
                 #~ raise Warning('%s %s' % (vAttendee, attendee_cn))
                 if attendee_mailto:
                     partner_result = self.env['res.partner'].search([('email','=',attendee_mailto)])
-                    
+
                     if not partner_result:
                         partner_id = self.env['res.partner'].create({
                             'email': attendee_mailto,
@@ -159,26 +159,26 @@ class res_partner(models.Model):
                         partner_id = partner_result[0]
                 elif attendee_cn:
                     partner_result = self.env['res.partner'].search([('name','=',attendee_cn)])
-                    
+
                     if not partner_result:
                         partner_id = self.env['res.partner'].create({
                             'name': attendee_cn or attendee_mailto,
                             })
                     else:
                         partner_id = partner_result[0]
-                
+
                 #~ self.env['calendar.attendee'].create({
                     #~ 'event_id': event_id.id,
                     #~ 'partner_id': partner_id.id or None,
                     #~ 'email': attendee_mailto or '',
                     #~ })
-                        
+
                 partner_ids.append(partner_id.id or None)
                 #~ attendee_mails.append(attendee_mailto or '')
-                
+
             return partner_ids
             #~ return [partner_ids, attendee_mails]
-            
+
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
         if type == 'private':
@@ -186,7 +186,7 @@ class res_partner(models.Model):
                 calendar.add_component(event.get_ics_file())
         elif type == 'freebusy':
             fc = FreeBusy()
-            
+
             organizer_add = self.name and ('CN=' + self.name) or ''
             if self.name and self.email:
                 organizer_add += ':'
@@ -207,27 +207,27 @@ class res_partner(models.Model):
                     #~ temporary_ics[0].add('url', self.ics_url_field, encode=0)
                     calendar.add_component(temporary_ics[0])
                     #~ calendar.add('vevent', temporary_ics[0], encode=0)
-            
+
                 #~ for attendees in event.attendee_ids:
                     #~ calendar.add('attendee', event.get_event_attendees(attendees), encode=0)
-                    
+
         tmpCalendar = calendar.to_ical()
         tmpSearch = re.findall('RRULE:[^\n]*\\;[^\n]*', tmpCalendar)
-        
+
         for counter in range(len(tmpSearch)):
             tmpCalendar = tmpCalendar.replace(tmpSearch[counter], tmpSearch[counter].replace('\\;', ';', tmpSearch[counter].count('\\;')))
-        
+
         #~ raise Warning(tmpCalendar)
-        
+
         return tmpCalendar
-        
+
     @api.multi
     def ics_mail(self,context=None):
     #raise Warning('%s | %s' % (ids,picking))
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
         #~ raise Warning("%s compose_form" % compose_form)
         mail= self.env['mail.compose.message'].create({
-            'template_id':self.env.ref('calendar_ics.email_ics_url').id, 
+            'template_id':self.env.ref('calendar_ics.email_ics_url').id,
             'model': 'res.partner',
             'res_id': self.id,
             })
@@ -248,8 +248,8 @@ class res_partner(models.Model):
                 }
 
         return {'value': {'partner_id': False}, 'warning': {'title': 'Hello', 'message': 'Hejsan'}}
- 
-        
+
+
         #~ ics['freebusy'] = '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
 
     # vtodo, vjournal, vfreebusy
