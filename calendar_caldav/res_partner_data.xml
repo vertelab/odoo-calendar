@@ -1,0 +1,29 @@
+<openerp>
+  <data noupdate="1">
+    <!--
+         Email Templates
+    -->
+    <record id="email_ics_url" model="email.template">
+      <field name="name">ics_url</field>
+      <field name="email_from">admin@example.com</field>
+      <field name="model_object_field" ref="calendar_ics.field_res_partner_ics_url_field" />
+      <field name="subject">Calendar ics url</field>
+      <field name="email_to">${(object.email or '')|safe}</field>
+      <field name="model_id" ref="base.model_res_partner" />
+      <field name="body_html">
+        <![CDATA[<p>Use this url for the ${object.name} calendar:</p>
+                 <p>${object.ics_url_field}</p>
+        ]]>
+      </field>
+    </record>
+    <record model="ir.cron" id="calendar_partner_cron_job">
+      <field name="name">Generate Recurring Calendar updates for Partners</field>
+      <field name="interval_number">15</field>
+      <field name="interval_type">minutes</field>
+      <field name="numbercall">-1</field>
+      <field name="model" eval="'res.partner'" />
+      <field name="function" eval="'ics_cron_job'" />
+      <field name="args" eval="'()'" />
+    </record>
+  </data>
+</openerp>
