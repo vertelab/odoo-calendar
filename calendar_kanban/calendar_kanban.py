@@ -97,12 +97,6 @@ class Meeting(models.Model):
         for idx in range(0, 6):
             week_ids |= self.env['calendar.week'].search([('date_start', '=', fields.Date.to_string(current_week_monday + timedelta(days=7*idx)))])
         return week_ids
-        #~ if self.week_id:
-            #~ week_ids = self.env['calendar.week'].browse()
-            #~ for idx in range(0, 6):
-                #~ monday = fields.Date.from_string(self.week_id.date_start) + timedelta(weeks=idx)
-                #~ week_ids |= self.env['calendar.week'].search([('date_start', '=', fields.Date.to_string(monday))])
-            #~ return week_ids
 
     color = fields.Integer(string='Color Index')
     week_id = fields.Many2one(string='Week', comodel_name='calendar.week', group_expand='_read_group_week_ids', store=True)
@@ -140,7 +134,8 @@ class Meeting(models.Model):
         if self.allday:
             self.start_date = date
         else:
-            self.start_datetime = '%s 00:00:00' %date
+            time = self.start_datetime[10:]
+            self.start_datetime = '%s%s' %(date, time)
 
     @api.one
     def compute_weekday_changed(self):
@@ -177,3 +172,10 @@ class Meeting(models.Model):
             return 5
         elif weekday == 'sunday':
             return 6
+
+    @api.multi
+    def write(self, vals):
+        res = super(Meeting, self).write(vals)
+        if 'week_id' in vals:
+            self.onchange_week_id_weekday()
+        return res

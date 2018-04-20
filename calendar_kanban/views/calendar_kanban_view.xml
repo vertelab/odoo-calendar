@@ -30,12 +30,12 @@
             <field name="model">calendar.event</field>
             <field name="type">kanban</field>
             <field name="arch" type="xml">
-                <kanban class="oe_background_grey" default_group_by="week_id" default_order="weekday">
+                <kanban class="oe_background_grey" default_group_by="week_id">
                     <field name="color"/>
-                    <field name="name" string="Subject"/>
-                    <field name="allday" invisible="True"/>
-                    <field name="start_date" string="Date"/>
-                    <field name="start_datetime" string="Date"/>
+                    <field name="name"/>
+                    <field name="allday"/>
+                    <field name="start_date"/>
+                    <field name="start_datetime"/>
                     <field name="user_id"/>
                     <field name="location"/>
                     <field name="show_as"/>
@@ -68,12 +68,12 @@
                                         <br/>
                                         Weekday:
                                         <field name="weekday"/>
-                                        <div t-if="allday == True">
-                                            Start Date:
+                                        <div t-if="record.allday.raw_value">
+                                            Start:
                                             <field name="start_date"/>
                                         </div>
-                                        <div t-if="allday == False">
-                                            Start Datetime:
+                                        <div t-if="!record.allday.raw_value">
+                                            Start:
                                             <field name="start_datetime"/>
                                         </div>
                                     </div>
