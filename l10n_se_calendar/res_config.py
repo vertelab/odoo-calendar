@@ -24,22 +24,22 @@ _logger = logging.getLogger(__name__)
 
 
 class calendar_configuration(models.TransientModel):
-    _inherit = 'base.config.settings'
+    _inherit = 'account.config.settings'
 
-    tax_recurrency = fields.Select(string="Redovisar moms",[('manadsmoms',u'Månatligen'),('tremandersmoms','Kvartalsvis'),('arsmomsenskild','Årsmoms Enskild näringsidkare'),('arsmomsjuridiskelektroniskt','Årsmoms juridisk person, elektroniskt'),('arsmomsjuridiskpapper','Årsmoms juridisk person papper'),('arsmomshuvudregel','Årsmoms huvudregeln')])
-    revenue =  fields.Select(string="Omsättning",[('maxfyrtiomiljoner',u'Upp till 40 milj'),('plusfyrtiomiljoner','40 miljoner eller mer')])
-    periodic_compilation = fields.Select(string="Periodisk sammanställning",[('ingenperiodisk',u'Nej'),('pappersperiodisk','På papper månatligen'),('elektroniskperiodisk','Elektroniskt månatligen'),('pappersperiodiskkvartal','På papper kvartalsvis'),('elektroniskperiodiskkvartal','Elektroniskt kvartalsvis')])
-    rot_rut = fields.Select(string="ROT / RUT",[('ingenrotrut',u'Nej'),('rotrut','Ja')])
-    fiscalyear = fields.Select(string="ROT / RUT",[('verk1',u'januari - december'),('verk2','februari - januari'),('verk3','mars - februari'),('verk4','april - mars'),('verk5','maj - april'),('verk6','juni - maj'),('verk7','juli - juni'),('verk8','augusti - juli'),('verk9','september - augusti'),('verk10','oktober - augusti'),('verk11','november - oktober'),('verk12','december - november'),])   
+    tax_recurrency = fields.Selection(string="Redovisar moms", selection=[('manadsmoms',u'Månatligen'),('tremandersmoms','Kvartalsvis'),('arsmomsenskild','Årsmoms Enskild näringsidkare'),('arsmomsjuridiskelektroniskt','Årsmoms juridisk person, elektroniskt'),('arsmomsjuridiskpapper','Årsmoms juridisk person papper'),('arsmomshuvudregel','Årsmoms huvudregeln')])
+    revenue =  fields.Selection(string="Omsättning", selection=[('maxfyrtiomiljoner',u'Upp till 40 milj'),('plusfyrtiomiljoner','40 miljoner eller mer')])
+    periodic_compilation = fields.Selection(string="Periodisk sammanställning", selection=[('ingenperiodisk',u'Nej'),('pappersperiodisk','På papper månatligen'),('elektroniskperiodisk','Elektroniskt månatligen'),('pappersperiodiskkvartal','På papper kvartalsvis'),('elektroniskperiodiskkvartal','Elektroniskt kvartalsvis')])
+    rot_rut = fields.Selection(string="ROT / RUT", selection=[('ingenrotrut',u'Nej'),('rotrut','Ja')])
+    fiscalyear = fields.Selection(string="Fiscal year", selection=[('verk1',u'januari - december'),('verk2','februari - januari'),('verk3','mars - februari'),('verk4','april - mars'),('verk5','maj - april'),('verk6','juni - maj'),('verk7','juli - juni'),('verk8','augusti - juli'),('verk9','september - augusti'),('verk10','oktober - augusti'),('verk11','november - oktober'),('verk12','december - november'),])
     kalender_url = fields.Char(string='Url')
-    
+
     @api.onchange('tax_recurrency','revenue','periodic_compilation','rot_rut','fiscalyear')
     def _kalender_url(self):
-        self.kalender_url = 'http://www.skatteverketkalender.se/skvcal-%s-%s-%s-%s-%s.ics' % (tax_recurrency,revenue,periodic_compilation,rot_rut,fiscalyear)
+        self.kalender_url = 'http://www.skatteverketkalender.se/skvcal-%s-%s-%s-%s-%s.ics' % (self.tax_recurrency, self.revenue, self.periodic_compilation, self.rot_rut, self.fiscalyear)
 #                            http://www.skatteverketkalender.se/skvcal-tremanadersmoms-maxfyrtiomiljoner-ingenperiodisk-ingenrotrut-verk1.ics
 
     @api.model
-    def get_skvkalender_values(self, fields):
+    def get_default_skvkalender_values(self, fields):
         return {
             'tax_recurrency': self.env['ir.config_parameter'].get_param('skvkalender.tax_recurrency'),
             'revenue': self.env['ir.config_parameter'].get_param('skvkalender.revenue'),
@@ -59,4 +59,4 @@ class calendar_configuration(models.TransientModel):
             self.env['ir.config_parameter'].set_param(key="skvkalender.fiscalyear", value=record.fiscalyear)
             self.env['ir.config_parameter'].set_param(key="skvkalender.kalender_url", value=record.kalender_url)
             self.env.ref('l10n_se_calendar.svenska_skatteverket').ics_url = record.kalender_url
-     
+

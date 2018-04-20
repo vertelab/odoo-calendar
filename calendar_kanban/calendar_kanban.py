@@ -61,7 +61,7 @@ class calendar_event(models.Model):
 
     color = fields.Integer(string='Color Index')
     week_number = fields.Char(string='Week number', compute='get_week_number', inverse='set_week_number', store=True, default='Undefined')
-    weekday = fields.Selection(string='Weekday', selection=[('undefined', 'Undefined'), ('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunnday', 'Sunday'),], default='undefined')
+    weekday = fields.Selection(string='Weekday', selection=[('undefined', 'Undefined'), ('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunday', 'Sunday'),], default='undefined')
 
     def get_iso_week_day(self, iso_weekday_number):
         return iso_weekday_number + 1 if iso_weekday_number < 6 else 0
@@ -81,14 +81,14 @@ class calendar_event(models.Model):
             return 'saturday'
         elif weekday_number == 0:
             return 'sunday'
-    
+
     @api.model
     def _change_week_and_weekday(self, start):
         week_day = self.get_iso_week_day(fields.Date.from_string(start).weekday())
         week_number = str(fields.Date.from_string(start).isocalendar()[0]) + '-W' + str(fields.Date.from_string(start).isocalendar()[1])
         weekday = self.get_week_day(week_day)
         return (week_number, weekday)
-    
+
     @api.v7
     def onchange_dates(self, cr, uid, ids, fromtype, start=False, end=False, checkallday=False, allday=False, context=None):
         res = super(calendar_event, self).onchange_dates(cr, uid, ids, fromtype, start, end, checkallday, allday, context)
@@ -100,7 +100,7 @@ class calendar_event(models.Model):
         if start:
             res['value']['week_number'], res['value']['weekday'] = self._change_week_and_weekday(cr, uid, start, context)
         return res
-        
+
     @api.v7
     def onchange_allday(self, cr, uid, ids, start=False, end=False, starttime=False, endtime=False, startdatetime=False, enddatetime=False, checkallday=False, context=None):
         res = super(calendar_event, self).onchange_allday(cr, uid, ids, start, end, starttime, endtime, startdatetime, enddatetime, checkallday, context)
@@ -112,7 +112,7 @@ class calendar_event(models.Model):
         if start:
             res['value']['week_number'], res['value']['weekday'] = self._change_week_and_weekday(cr, uid, start, context)
         return res
-    
+
     @api.one
     def get_week_number(self):
         if self.start:
@@ -170,4 +170,4 @@ class calendar_event(models.Model):
             cr, uid, domain, groupby, remaining_groupbys, aggregated_fields,
             count_field, read_group_result, read_group_order, context
         )
-    
+
