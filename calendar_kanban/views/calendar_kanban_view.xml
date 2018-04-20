@@ -19,6 +19,7 @@
             <field name="arch" type="xml">
                 <group position="inside">
                     <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_id'}"/>
+                    <filter string="Month" icon="terp-locked" domain="[]" context="{'group_by':'month_id'}"/>
                     <filter string="Location" icon="terp-locked" domain="[]" context="{'group_by':'location'}"/>
                 </group>
             </field>
@@ -42,6 +43,7 @@
                     <field name="duration"/>
                     <field name="week_id"/>
                     <field name="weekday"/>
+                    <field name="month_id"/>
                     <templates>
                         <t t-name="kanban-box">
                             <div t-attf-class="oe_kanban_color_{{record.color.raw_value}} oe_kanban_global_click_edit oe_semantic_html_override oe_kanban_card {{record.group_fancy==1 ? 'oe_kanban_card_fancy' : ''}}">
@@ -76,6 +78,8 @@
                                             Start:
                                             <field name="start_datetime"/>
                                         </div>
+                                        Month:
+                                        <field name="month_id"/>
                                     </div>
                                 </div>
                                 <div class="oe_clear"></div>
@@ -98,6 +102,24 @@
         </record>
 
         <!-- Calendar Week : -->
+        <record id="view_calendar_week_form" model="ir.ui.view">
+            <field name="name">calendar.week.form</field>
+            <field name="model">calendar.week</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Calendar Week">
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="year_id"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
         <record id="view_calendar_week_tree" model="ir.ui.view">
             <field name="name">calendar.week.tree</field>
             <field name="model">calendar.week</field>
@@ -105,10 +127,42 @@
             <field name="arch" type="xml">
                 <tree string="Calendar Week" editable="bottom">
                     <field name="name"/>
-                    <field name="week_number"/>
-                    <field name="year_id"/>
                     <field name="date_start"/>
                     <field name="date_end"/>
+                    <field name="year_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Calendar Month : -->
+        <record id="view_calendar_month_form" model="ir.ui.view">
+            <field name="name">calendar.month.form</field>
+            <field name="model">calendar.month</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="Calendar Month">
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="year_id"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_calendar_month_tree" model="ir.ui.view">
+            <field name="name">calendar.month.tree</field>
+            <field name="model">calendar.month</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="Calendar Month" editable="bottom">
+                    <field name="name"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="year_id"/>
                 </tree>
             </field>
         </record>
@@ -122,6 +176,7 @@
                 <form string="Calendar Year">
                     <header>
                         <button name="create_weeks" string="Create Weeks" type="object" class="oe_highlight"/>
+                        <button name="create_months" string="Create Months" type="object" class="oe_highlight"/>
                     </header>
                     <group>
                         <group>
@@ -133,7 +188,15 @@
                             <field name="week_ids">
                                 <tree>
                                     <field name="name"/>
-                                    <field name="week_number"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Month">
+                            <field name="month_ids">
+                                <tree>
+                                    <field name="name"/>
                                     <field name="date_start"/>
                                     <field name="date_end"/>
                                 </tree>
@@ -159,7 +222,16 @@
             <field name="name">Calendar Week</field>
             <field name="res_model">calendar.week</field>
             <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_calendar_week_tree"/>
+        </record>
+
+        <record id="action_calendar_month" model="ir.actions.act_window">
+            <field name="name">Calendar Month</field>
+            <field name="res_model">calendar.month</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_calendar_month_tree"/>
         </record>
 
         <record id="action_calendar_year" model="ir.actions.act_window">
@@ -175,6 +247,13 @@
             parent="calendar.menu_calendar_configuration"
             action="action_calendar_week"
             sequence="50"
+            groups="base.group_no_one"/>
+
+        <menuitem
+            id="menu_calendar_month"
+            parent="calendar.menu_calendar_configuration"
+            action="action_calendar_month"
+            sequence="60"
             groups="base.group_no_one"/>
 
         <menuitem

@@ -5,3 +5,6 @@ access_calendar_year_partner_manager,calendar.year_partner_manager,model_calenda
 access_calendar_week_all_user,calendar.week_all_user,model_calendar_week,base.group_portal,1,0,0,0
 access_calendar_week_all_employee,calendar.week_all_employee,model_calendar_week,base.group_user,1,1,1,1
 access_calendar_week_partner_manager,calendar.week_partner_manager,model_calendar_week,base.group_partner_manager,1,1,1,1
+access_calendar_month_all_user,calendar.month_all_user,model_calendar_month,base.group_portal,1,0,0,0
+access_calendar_month_all_employee,calendar.month_all_employee,model_calendar_month,base.group_user,1,1,1,1
+access_calendar_month_partner_manager,calendar.month_partner_manager,model_calendar_month,base.group_partner_manager,1,1,1,1

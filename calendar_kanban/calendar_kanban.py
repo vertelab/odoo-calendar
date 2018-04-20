@@ -22,6 +22,7 @@ from odoo import models, fields, api, _
 import time
 import datetime
 from datetime import date, datetime, timedelta
+import calendar
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
 import logging
 _logger = logging.getLogger(__name__)
@@ -32,6 +33,22 @@ class CalendarYear(models.Model):
 
     name = fields.Integer(string='Name')
     week_ids = fields.One2many(string='Week', comodel_name='calendar.week', inverse_name='year_id')
+    month_ids = fields.One2many(string='Month', comodel_name='calendar.month', inverse_name='year_id')
+
+    months = {
+        1: _('January'),
+        2: _('February'),
+        3: _('Mars'),
+        4: _('April'),
+        5: _('May'),
+        6: _('June'),
+        7: _('July'),
+        8: _('August'),
+        9: _('September'),
+        10: _('Oktober'),
+        11: _('November'),
+        12: _('December'),
+    }
 
     @api.multi
     def create_weeks(self):
@@ -68,6 +85,30 @@ class CalendarYear(models.Model):
                             'date_end': date_end,
                         })
 
+    @api.multi
+    def create_months(self):
+        for month in range(1, 13):
+            name = '%s-%s' %(self.name, self.months.get(month))
+            begin = '%s-%s-01' %(self.name, '%02d' %month)
+            end = '%s-%s-%s' %(self.name, '%02d' %month, calendar.monthrange(self.name, month)[1])
+            m = self.env['calendar.month'].search(['|', ('name', '=', month), '|', ('date_start', '=', begin), ('date_end', '=', end)])
+            if m:
+                m.write({
+                    'name': name,
+                    'year_id': self.id,
+                    'month_number': month,
+                    'date_start': begin,
+                    'date_end': end,
+                })
+            else:
+                self.env['calendar.month'].create({
+                    'name': name,
+                    'year_id': self.id,
+                    'month_number': month,
+                    'date_start': begin,
+                    'date_end': end,
+                })
+
 
 class CalendarWeek(models.Model):
     _name = 'calendar.week'
@@ -87,6 +128,16 @@ class CalendarWeek(models.Model):
         return date + timedelta(days=-date.weekday()-1, weeks=1)
 
 
+class CalendarMonth(models.Model):
+    _name = 'calendar.month'
+
+    name = fields.Char(string='Name')
+    year_id = fields.Many2one(string='Year', comodel_name='calendar.year')
+    month_number = fields.Integer(string='Month Number')
+    date_start = fields.Date(string='Date Start')
+    date_end = fields.Date(string='Date End')
+
+
 class Meeting(models.Model):
     _inherit = 'calendar.event'
 
@@ -102,6 +153,7 @@ class Meeting(models.Model):
     week_id = fields.Many2one(string='Week', comodel_name='calendar.week', group_expand='_read_group_week_ids', store=True)
     weekday = fields.Selection(string='Weekday', selection=[('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunday', 'Sunday'),], default='monday', store=True)
     weekday_changed = fields.Boolean(compute='compute_weekday_changed')
+    month_id = fields.Many2one(string='Month', comodel_name='calendar.month', store=True)
 
     @api.onchange('start_date', 'start_datetime')
     def onchange_start_date_datetime(self):
@@ -120,9 +172,14 @@ class Meeting(models.Model):
                 mondy = self.env['calendar.week'].find_week_begin(date)
                 week = self.env['calendar.week'].search([('date_start', '=', fields.Date.to_string(mondy))])
                 if not week:
-                    raise Warning(_('Please generate weeks'))
+                    raise Warning(_('Please generate weeks for year %s' %fields.Date.to_string(date)[:4]))
                 else:
-                    self.week_id = week
+                    self.week_id = week.id
+                    month = self.env['calendar.month'].search([('year_id', '=', self.env['calendar.year'].search([('name', '=', date.year)]).id), ('month_number', '=', int(fields.Date.to_string(date)[5:7]))])
+                    if not month:
+                        raise Warning(_('Please generate month for year %s' %fields.Date.to_string(date)[:4]))
+                    else:
+                        self.month_id = month.id
 
     @api.onchange('week_id', 'weekday')
     def onchange_week_id_weekday(self):
@@ -130,12 +187,35 @@ class Meeting(models.Model):
             self.weekday_changed = False
             return
         self.weekday_changed = True
-        date = fields.Date.to_string(fields.Date.from_string(self.week_id.date_start) + timedelta(days=self.get_week_day_int(self.weekday)))
+        if self.start_date or self.start_datetime:
+            date = fields.Date.to_string(fields.Date.from_string(self.week_id.date_start) + timedelta(days=self.get_week_day_int(self.weekday)))
+            if self.allday:
+                self.start_date = date
+            else:
+                time = self.start_datetime[10:]
+                self.start_datetime = '%s%s' %(date, time)
+            month = self.env['calendar.month'].search([('year_id', '=', self.env['calendar.year'].search([('name', '=', fields.Date.from_string(date).year)]).id), ('month_number', '=', int(date[5:7]))])
+            self.month_id = month.id
+
+    @api.onchange('month_id')
+    def onchange_month_id(self):
+        if self.weekday_changed:
+            self.weekday_changed = False
+            return
+        self.weekday_changed = True
+        # TODO: if date is out of range, use last_date_in_month to get last day of month
         if self.allday:
+            date = self.start_date.replace(self.start_date[:7], self.month_id.date_start[:7])
+            if date >= self.stop_date:
+                self.stop_date = date
             self.start_date = date
         else:
-            time = self.start_datetime[10:]
+            date = self.start_datetime.replace(self.start_datetime[:7], self.month_id.date_start[:7])
+            if date >= self.stop_datetime:
+                stop_time = self.stop_datetime[10:]
+            start_time = self.start_datetime[10:]
             self.start_datetime = '%s%s' %(date, time)
+        self.onchange_start_date_datetime()
 
     @api.one
     def compute_weekday_changed(self):
@@ -173,9 +253,14 @@ class Meeting(models.Model):
         elif weekday == 'sunday':
             return 6
 
+    def last_date_in_month(self, year, month):
+        return calendar.monthrange(year, month)
+
     @api.multi
     def write(self, vals):
         res = super(Meeting, self).write(vals)
         if 'week_id' in vals:
             self.onchange_week_id_weekday()
+        if 'month_id' in vals:
+            self.onchange_month_id()
         return res
