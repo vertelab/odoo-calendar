@@ -32,6 +32,7 @@ Kanban view for calendar
     'website': 'http://www.vertel.se',
     'depends': ['calendar',],
     'data': [
+        'security/ir.model.access.csv',
         'views/calendar_kanban_view.xml',
     ],
     'application': False,
