@@ -7,7 +7,7 @@
             <field name="inherit_id" ref="calendar.view_calendar_event_form"/>
             <field name="arch" type="xml">
                 <field name="allday" position="after">
-                    <field name="week_number"/>
+                    <field name="week_id"/>
                     <field name="weekday"/>
                 </field>
             </field>
@@ -18,7 +18,7 @@
             <field name="inherit_id" ref="calendar.view_calendar_event_search"/>
             <field name="arch" type="xml">
                 <group position="inside">
-                    <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_number'}"/>
+                    <filter string="Week" icon="terp-locked" domain="[]" context="{'group_by':'week_id'}"/>
                     <filter string="Location" icon="terp-locked" domain="[]" context="{'group_by':'location'}"/>
                 </group>
             </field>
@@ -28,8 +28,9 @@
         <record id="view_calendar_event_kanban" model="ir.ui.view">
             <field name="name">Meetings Calendar</field>
             <field name="model">calendar.event</field>
+            <field name="type">kanban</field>
             <field name="arch" type="xml">
-                <kanban class="oe_background_grey" default_group_by="week_number" default_order="weekday">
+                <kanban class="oe_background_grey" default_group_by="week_id" default_order="weekday">
                     <field name="color"/>
                     <field name="name" string="Subject"/>
                     <field name="allday" invisible="True"/>
@@ -39,38 +40,42 @@
                     <field name="location"/>
                     <field name="show_as"/>
                     <field name="duration"/>
-                    <field name="week_number"/>
+                    <field name="week_id"/>
                     <field name="weekday"/>
                     <templates>
                         <t t-name="kanban-box">
-                            <div t-attf-class="oe_kanban_color_#{kanban_getcolor(record.color.raw_value)} oe_kanban_card oe_kanban_project oe_kanban_global_click">
-                                <div class="oe_dropdown_toggle oe_dropdown_kanban" groups="base.group_user">
-                                    <span class="oe_e">í</span>
-                                    <ul class="oe_dropdown_menu">
-                                        <t t-if="widget.view.is_action_enabled('edit')"><li><a type="edit">Event Settings</a></li></t>
-                                        <t t-if="widget.view.is_action_enabled('delete')"><li><a type="delete">Delete</a></li></t>
-                                        <li><ul class="oe_kanban_colorpicker" data-field="color"/></li>
-                                    </ul>
-                                </div>
-                                <div class="oe_kanban_content">
-                                    <h4 class="text-center"><strong><field name="name"/></strong></h4>
-                                    <div class="oe_kanban_alias" style="min-height: 50px;">
-                                        <field name="description"/>
+                            <div t-attf-class="oe_kanban_color_{{record.color.raw_value}} oe_kanban_global_click_edit oe_semantic_html_override oe_kanban_card {{record.group_fancy==1 ? 'oe_kanban_card_fancy' : ''}}">
+                                <div class="oe_dropdown_kanban">
+                                    <div class="oe_dropdown_toggle pull-right">
+                                        <i class="fa fa-bars fa-lg"/>
+                                        <ul class="oe_dropdown_menu">
+                                            <li>
+                                                <a type="delete">Delete</a>
+                                            </li>
+                                            <li>
+                                                <ul class="oe_kanban_colorpicker"
+                                                    data-field="color"/>
+                                            </li>
+                                        </ul>
                                     </div>
+                                    <div class="oe_clear"></div>
+                                </div>
+                                <div t-attf-class="oe_kanban_content">
+                                    <h4><strong><field name="name"/></strong></h4>
                                     <div class="oe_kanban_footer_left" style="margin-bottom: 0px;">
-                                        <span style="color: #309;"><field name="weekday"/></span>
-                                        <p t-if="allday == True" style="margin-bottom: 0px;">
-                                            <strong><field name="start_date"/></strong>
-                                        </p>
-                                        <p t-if="allday == True" style="margin-bottom: 0px;">
-                                            <strong><field name="stop_date"/></strong>
-                                        </p>
-                                        <p t-if="allday == False" style="margin-bottom: 0px;">
-                                            <strong><field name="start_datetime"/></strong>
-                                        </p>
-                                        <p t-if="allday == False" style="margin-bottom: 0px;">
-                                            <strong><field name="stop_datetime"/></strong>
-                                        </p>
+                                        Week Number:
+                                        <field name="week_id"/>
+                                        <br/>
+                                        Weekday:
+                                        <field name="weekday"/>
+                                        <div t-if="allday == True">
+                                            Start Date:
+                                            <field name="start_date"/>
+                                        </div>
+                                        <div t-if="allday == False">
+                                            Start Datetime:
+                                            <field name="start_datetime"/>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="oe_clear"></div>
