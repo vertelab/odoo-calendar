@@ -34,6 +34,8 @@ from xml.parsers.expat import ExpatError
 
 from pywebdav import lib
 from pywebdav.lib.errors import DAV_Error, DAV_NotFound, DAV_Secret
+from pywebdav.lib.constants import COLLECTION, OBJECT, DAV_PROPS, RT_ALLPROP, RT_PROPNAME, RT_PROP
+from pywebdav.lib import iface
 
 import urlparse
 
@@ -69,18 +71,20 @@ except ImportError:
 class calendar_event(models.Model):
     _inherit = 'calendar.event'
     
-    ics_subscription = fields.Boolean(default=False) # partner_ids + ics_subscription -> its ok to delete
+    #~ ics_subscription = fields.Boolean(default=False) # partner_ids + ics_subscription -> its ok to delete
 
 class res_users(models.Model):
     _inherit = 'res.users'
     
 
-    def allowed_cal_items(self):
+    def allowed_cal_items(self,user):
         """Get items from request that user is allowed to access."""
         read_last_collection_allowed = None
         write_last_collection_allowed = None
         read_allowed_items = []
         write_allowed_items = []
+        _logger.error('%s %s' % (user,self.env.user))
+        return [self.env['calendar.event'].sudo(user=user.id).search([('partner_ids','in',self.partner_id.id)]),self.env['calendar.event'].sudo(user=user.id).search([('user_id','=',self.id)])]
 
         return [ical.Collection('dav.ics')],[ical.Collection('dav.ics')]
 
@@ -172,8 +176,8 @@ class caldav(http.Controller):
 
         # Ask authentication backend to check rights
         try:
-            user, password = request.httprequest.environ.get('HTTP_AUTHORIZATION','').lstrip("Basic").strip().decode('base64').split(":")
-            _logger.error('user %s password %s ' % (user,password))
+            login, password = request.httprequest.environ.get('HTTP_AUTHORIZATION','').lstrip("Basic").strip().decode('base64').split(":")
+            _logger.error('user %s password %s ' % (login,password))
         except Exception as e:
             _logger.error('HTTP_AUTH error %s ' % (e))
             return werkzeug.wrappers.Response(status=401,headers=[
@@ -181,19 +185,24 @@ class caldav(http.Controller):
                         ('Server','Odoo %s ' % (common.exp_version().get('server_version'))),
                         ])
         
-        user = request.env['res.users'].search([('login','=',user)],limit=1)
-        if not user and user.check_credentials(password):
-            _logger.error('Check Credentials %s ' % (user.login))
-            return werkzeug.wrappers.Response(status=403,headers=[
-                        ('WWW-Authenticate','Basic realm="Kalender"'),
-                        ('Server','Odoo %s ' % (common.exp_version().get('server_version'))),
-                        ])
-        content = ''
-        status, headers, content = getattr(self, "do_%s" % request.httprequest.environ["REQUEST_METHOD"].upper())(post,user)
-        headers.append(('Server','Odoo %s ' % (common.exp_version().get('server_version'))))
-        raise Warning(status,headers,content)
-        return werkzeug.wrappers.Response(status=status,headers=headers,)
-
+        user = request.env['res.users'].sudo().search([('login','=',login)],limit=1)
+        if user:
+            try:
+                user.check_credentials(password)
+            except:
+                _logger.error('Check Credentials %s ' % (login))
+                return werkzeug.wrappers.Response(status=403,headers=[
+                            ('WWW-Authenticate','Basic realm="Kalender"'),
+                            ('Server','Odoo %s ' % (common.exp_version().get('server_version'))),
+                            ])
+            _logger.error('User OK %s ' % (user))
+            content = ''
+            status, headers, content = getattr(self, "do_%s" % request.httprequest.environ["REQUEST_METHOD"].upper())(post,user)
+            headers.append(('Server','Odoo %s ' % (common.exp_version().get('server_version'))))
+            #~ raise Warning(status,headers,content)
+            return werkzeug.wrappers.Response(status=status,headers=headers,)
+        else:
+            raise Warning('Pelle')
         
         
         
@@ -383,6 +392,10 @@ class caldav(http.Controller):
         """Manage OPTIONS request."""
         _logger.info('do_OPTIONS %s %s' % (content,user))
 
+        return 200, [
+            ("Allow",("DELETE, HEAD, GET, MKCALENDAR, MKCOL, MOVE,OPTIONS, PROPFIND, PROPPATCH, PUT, REPORT")),
+            ("DAV","1, 2, 3, calendar-access, addressbook, extended-mkcol")
+        ], None
 
         self.send_response(200)
         self.send_header("Content-Length", 0)
@@ -409,7 +422,7 @@ class caldav(http.Controller):
         """ Retrieve properties on defined resource. """
         _logger.info('do_PROPFIND %s %s' % (content,user))
 
-        dc = DAVInterface('http://localhost/caldav')
+        dc = DAVInterface('http://localhost/caldav',user)
 
         # read the body containing the xml request
         # iff there is no body then this is an ALLPROP request
@@ -434,7 +447,7 @@ class caldav(http.Controller):
 
         # work around MSIE DAV bug for creation and modified date
         # taken from Resource.py @ Zope webdav
-        if (self.headers.get('User-Agent') ==
+        if (request.httprequest.headers.get('User-Agent') ==
             'Microsoft Data Access Internet Publishing Provider DAV 1.1'):
             DATA = DATA.replace('<ns0:getlastmodified xmlns:ns0="DAV:">',
                                 '<ns0:getlastmodified xmlns:n="DAV:" '
@@ -446,6 +459,15 @@ class caldav(http.Controller):
                                 'xmlns:b="urn:uuid:'
                                 'c2f41010-65b3-11d1-a29f-00aa00c14882/" '
                                 'b:dt="dateTime.tz">')
+
+
+        return 200, [
+            ("Allow",("DELETE, HEAD, GET, MKCALENDAR, MKCOL, MOVE,OPTIONS, PROPFIND, PROPPATCH, PUT, REPORT")),
+            ("DAV","1, 2, 3, calendar-access, addressbook, extended-mkcol")
+        ], 'Hello'
+        headers = {
+            "DAV": "1, 2, 3, calendar-access, addressbook, extended-mkcol",
+            "Content-Type": "text/xml"}
 
         self.send_body_chunks_if_http11(DATA, 207, 'Multi-Status',
                                         'Multiple responses')
@@ -563,18 +585,23 @@ class caldav(http.Controller):
             pass # Some error page
     
     
-from pywebdav.lib import iface
+
 class DAVInterface(iface.dav_interface):
     """ 
     Model a Odoo for DAV
 
     """
 
-    def __init__(self, uri, verbose=False):
+    def __init__(self, uri, user,verbose=False):
 
         # should we be verbose?
         self.verbose = verbose
-        _logger.info('Initialized with %s ' % (uri))
+        self.user = user
+        if uri == '/':
+            self.parent = None
+        else:
+            self.parent = DAVInterface('/',user,verbose)
+        _logger.info('Initialized with %s %s' % (uri,user))
 
     def setDirectory(self, path):
         """ Sets the directory """
@@ -588,6 +615,9 @@ class DAVInterface(iface.dav_interface):
         """ Sets the base uri """
 
         self.baseuri = uri
+
+    def get_davpath(self):
+        pass
 
     def uri2local(self,uri):
         """ map uri in baseuri and local part """
@@ -676,11 +706,11 @@ class DAVInterface(iface.dav_interface):
 
     def _get_dav_resourcetype(self,uri):
         """ return type of object """
-        path=self.uri2local(uri)
-        if os.path.isfile(path):
+        #~ path=self.uri2local(uri)
+        if 'public.ics' in uri or 'private.ics' in uri:
             return OBJECT
 
-        elif os.path.isdir(path):
+        elif uri == '/caldav':
             return COLLECTION
 
         raise DAV_NotFound
@@ -701,6 +731,8 @@ class DAVInterface(iface.dav_interface):
 
     def get_lastmodified(self,uri):
         """ return the last modified date of the object """
+        collection = set(self.user.allowed_cal_items(self.user)).sorted(lambda c: c.start_datetime)
+        raise Warning(collection)
         path=self.uri2local(uri)
         if os.path.exists(path):
             s=os.stat(path)
