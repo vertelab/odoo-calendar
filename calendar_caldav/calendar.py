@@ -36,6 +36,7 @@ from pywebdav import lib
 from pywebdav.lib.errors import DAV_Error, DAV_NotFound, DAV_Secret
 from pywebdav.lib.constants import COLLECTION, OBJECT, DAV_PROPS, RT_ALLPROP, RT_PROPNAME, RT_PROP
 from pywebdav.lib import iface
+from radicale import xmlutils
 
 import urlparse
 
@@ -62,16 +63,23 @@ try:
 except ImportError:
     raise Warning('urllib2 library missing, pip install urllib2')    
     
+try:
+    from radicale import ical
+except ImportError:
+    raise Warning('radicale library missing, pip install radicale') 
 
 # calendar_ics -> res.partner
 
 # http://ical.oops.se/holidays/Sweden/-1,+1
 # http://www.skatteverketkalender.se/skvcal-manadsmoms-maxfyrtiomiljoner-ingenperiodisk-ingenrotrut-verk1.ics
+      
+# https://github.com/apple/ccs-caldavtester
             
 class calendar_event(models.Model):
     _inherit = 'calendar.event'
     
     #~ ics_subscription = fields.Boolean(default=False) # partner_ids + ics_subscription -> its ok to delete
+    mimetype = fields.Selection(string="Mime",selection=[('text/calendar','text/calendar')],default='text/calendar')
 
 class res_users(models.Model):
     _inherit = 'res.users'
@@ -166,8 +174,8 @@ class caldav(http.Controller):
     @http.route(['/caldav'], type='http', auth="public", website=True)
     def caldav_icalendar(self, partner=False, **post):
         #~ environ["REQUEST_METHOD"]
-        _logger.error('%s %s ' % (request.httprequest.environ['REQUEST_METHOD'],request.httprequest.environ['PATH_INFO']))
-        _logger.error('%s  ' % (request.httprequest.environ))
+        _logger.error('REQUEST_METHOD %s PATH_INFO %s ' % (request.httprequest.environ['REQUEST_METHOD'],request.httprequest.environ['PATH_INFO']))
+        _logger.error('httprequest.environ %s  ' % (request.httprequest.environ))
         
         path = request.httprequest.environ.get("PATH_INFO",'')
 
@@ -459,6 +467,13 @@ class caldav(http.Controller):
                                 'xmlns:b="urn:uuid:'
                                 'c2f41010-65b3-11d1-a29f-00aa00c14882/" '
                                 'b:dt="dateTime.tz">')
+
+
+        collections = set(user.allowed_cal_items(user)[0] + user.allowed_cal_items(user)[1])
+        answer = xmlutils.propfind(
+            request.httprequest.environ["PATH_INFO"], content, collections, user)
+        return 200, [('Depth','1')], answer
+        return client.MULTI_STATUS, headers, answer
 
 
         return 200, [
@@ -959,6 +974,187 @@ class DAVInterface(iface.dav_interface):
         else:
             return 0
 
+class Collection(ical.Collection):
+    """Collection stored in event.event."""
+    def __init__(self, path, principal=False):
+        self.session = Session()
+        super(Collection, self).__init__(path, principal)
+
+    def __del__(self):
+        self.session.commit()
+
+    def _query(self, item_types):
+        """Get collection's items matching ``item_types``."""
+        item_objects = []
+        for item_type in item_types:
+            items = (
+                self.session.query(DBItem)
+                .filter_by(collection_path=self.path, tag=item_type.tag)
+                .order_by(DBItem.name).all())
+            for item in items:
+                text = "\n".join(
+                    "%s:%s" % (line.name, line.value) for line in item.lines)
+                item_objects.append(item_type(text, item.name))
+        return item_objects
+
+    @property
+    def _modification_time(self):
+        """Collection's last modification time."""
+        timestamp = (
+            self.session.query(func.max(DBLine.timestamp))
+            .join(DBItem).filter_by(collection_path=self.path).first()[0])
+        if timestamp:
+            return datetime.fromtimestamp(float(timestamp) / 10 ** 6)
+        else:
+            return datetime.now()
+
+    @property
+    def _db_collection(self):
+        """Collection's object mapped to the table line."""
+        return self.session.query(DBCollection).get(self.path)
+
+    def write(self):
+        if self._db_collection:
+            for item in self._db_collection.items:
+                for line in item.lines:
+                    self.session.delete(line)
+                self.session.delete(item)
+            for header in self._db_collection.headers:
+                self.session.delete(header)
+        else:
+            db_collection = DBCollection()
+            db_collection.path = self.path
+            db_collection.parent_path = "/".join(self.path.split("/")[:-1])
+            self.session.add(db_collection)
+
+        for header in self.headers:
+            db_header = DBHeader()
+            db_header.name, db_header.value = header.text.split(":", 1)
+            db_header.collection_path = self.path
+            self.session.add(db_header)
+
+        for item in self.items.values():
+            db_item = DBItem()
+            db_item.name = item.name
+            db_item.tag = item.tag
+            db_item.collection_path = self.path
+            self.session.add(db_item)
+
+            for line in ical.unfold(item.text):
+                db_line = DBLine()
+                db_line.name, db_line.value = line.split(":", 1)
+                db_line.item_name = item.name
+                self.session.add(db_line)
+
+    def delete(self):
+        self.session.delete(self._db_collection)
+
+    @property
+    def text(self):
+        return ical.serialize(self.tag, self.headers, self.components)
+
+    @property
+    def etag(self):
+        return '"%s"' % hash(self._modification_time)
+
+    @property
+    def headers(self):
+        headers = (
+            self.session.query(DBHeader)
+            .filter_by(collection_path=self.path)
+            .order_by(DBHeader.name).all())
+        return [
+            ical.Header("%s:%s" % (header.name, header.value))
+            for header in headers]
+
+    @classmethod
+    def children(cls, path):
+        session = Session()
+        children = (
+            session.query(DBCollection)
+            .filter_by(parent_path=path or "").all())
+        collections = [cls(child.path) for child in children]
+        session.close()
+        return collections
+
+    @classmethod
+    def is_node(cls, path):
+        if not path:
+            return True
+        session = Session()
+        result = (
+            session.query(DBCollection)
+            .filter_by(parent_path=path or "").count() > 0)
+        session.close()
+        return result
+
+    @classmethod
+    def is_leaf(cls, path):
+        if not path:
+            return False
+        session = Session()
+        result = (
+            session.query(DBItem)
+            .filter_by(collection_path=path or "").count() > 0)
+        session.close()
+        return result
+
+    @property
+    def last_modified(self):
+        return time.strftime(
+            "%a, %d %b %Y %H:%M:%S +0000", self._modification_time.timetuple())
+
+    @property
+    @contextmanager
+    def props(self):
+        # On enter
+        properties = {}
+        db_properties = (
+            self.session.query(DBProperty)
+            .filter_by(collection_path=self.path).all())
+        for prop in db_properties:
+            properties[prop.name] = prop.value
+        old_properties = properties.copy()
+        yield properties
+        # On exit
+        if old_properties != properties:
+            for prop in db_properties:
+                self.session.delete(prop)
+            for name, value in properties.items():
+                prop = DBProperty(name=name, value=value or '',
+                                  collection_path=self.path)
+                self.session.add(prop)
+
+    @property
+    def components(self):
+        return self._query((ical.Event, ical.Todo, ical.Journal, ical.Card))
+
+    @property
+    def events(self):
+        return self._query((ical.Event,))
+
+    @property
+    def todos(self):
+        return self._query((ical.Todo,))
+
+    @property
+    def journals(self):
+        return self._query((ical.Journal,))
+
+    @property
+    def timezones(self):
+        return self._query((ical.Timezone,))
+
+    @property
+    def cards(self):
+        return self._query((ical.Card,))
+
+    def save(self):
+        """Save the text into the collection.
+
+        This method is not used for databases.
+
+        """
 
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
