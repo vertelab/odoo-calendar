@@ -19,23 +19,19 @@
 #
 ##############################################################################
 
-{
-    'name': 'Cancel reason',
-    'version': '0.1',
-    'category': '',
-    'description': """
-Base mapping
-============
-This modules makes it possible to give a reason for cancellation of a meeting.
-""",
-    'author': 'Vertel AB',
-    'license': 'AGPL-3',
-    'website': 'http://www.vertel.se',
-    'depends': ['calendar',],
-    'data': [
-			 'views/calendar_event.xml',
-        ],
-    'application': False,
-    'installable': True,
-}
-# vim:expandtab:smartindent:tabstop=4s:softtabstop=4:shiftwidth=4:
+from odoo import models, fields, api, _
+import logging
+_logger = logging.getLogger(__name__)
+
+class CalendarEvent(models.Model):
+    _inherit = 'calendar.event'
+
+    state = fields.Selection([('draft', 'Unconfirmed'), ('open', 'Confirmed'), ('cancel', 'Cancelled')], string='Status', readonly=True, track_visibility='onchange', default='draft')
+    meeting_status = fields.Selection(selection=[('request', 'Requested by applicant'),
+                                        ('plan', 'Planned by administrator'),
+                                        ('ok', 'Meeting OK'),
+                                        ('cancel', 'Cancelled by administrator'),
+                                        ('fail', 'Applicant failed to attend to the meeting')],
+                                        string='Meeting status', 
+                                        default='request', 
+                                        help="Reasons for having or cancelling the meeting")

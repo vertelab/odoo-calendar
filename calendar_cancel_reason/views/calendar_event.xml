@@ -57,31 +57,6 @@
      </xpath> 
     </field>
   </record>
-<!--
-  <record id="calendar_event_meeting_status" model="ir.ui.view"> 
-    <field name="name">calendar.event.form.status</field>
-    <field name="model">calendar.event</field> 
-    <field name="inherit_id" ref="calendar.action_calendar_event" /> 
-    <field name="arch" type="xml"> 
-      <xpath expr="//field[@name='name']" position="after">
-          <field name="meeting_status"/> 
-     </xpath> 
-    </field>
-  </record>
-  -->
-  
-<!--
-  <record id="calendar_event_meeting_status" model="ir.ui.view"> 
-    <field name="name">calendar.event.form.status</field>
-    <field name="model">calendar.event</field> 
-    <field name="inherit_id" ref="calendar.action_calendar_event_notify" /> 
-    <field name="arch" type="xml"> 
-      <xpath expr="//field[@name='name']" position="after">
-          <field name="meeting_status"/> 
-     </xpath> 
-    </field>
-  </record>
-  -->
 
 <!--
 Possible form to update:
