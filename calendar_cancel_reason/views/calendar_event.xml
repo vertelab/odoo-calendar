@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     
-  <record id="calendar_event_form_popup_status" model="ir.ui.view"> 
+  <record id="view_calendar_event_form_popup_cancel" model="ir.ui.view"> 
     <field name="name">calendar.event.popup.status</field>
     <field name="model">calendar.event</field> 
     <field name="inherit_id" ref="calendar.view_calendar_event_form_popup" /> 
@@ -12,7 +12,7 @@
     </field>
   </record>
 
-  <record id="calendar_event_tree_status" model="ir.ui.view"> 
+  <record id="view_calendar_event_tree_cancel" model="ir.ui.view"> 
     <field name="name">calendar.event.tree.status</field>
     <field name="model">calendar.event</field> 
     <field name="inherit_id" ref="calendar.view_calendar_event_tree" /> 
@@ -23,7 +23,7 @@
     </field>
   </record>
 
-  <record id="calendar_event_form_status" model="ir.ui.view"> 
+  <record id="view_calendar_event_form_cancel" model="ir.ui.view"> 
     <field name="name">calendar.event.form.status</field>
     <field name="model">calendar.event</field> 
     <field name="inherit_id" ref="calendar.view_calendar_event_form" /> 
@@ -45,7 +45,7 @@
     </field>
   </record>
 
-  <record id="calendar_event_search_status" model="ir.ui.view"> 
+  <record id="view_calendar_event_search_cancel" model="ir.ui.view"> 
     <field name="name">calendar.event.search.status</field>
     <field name="model">calendar.event</field> 
     <field name="inherit_id" ref="calendar.view_calendar_event_search" /> 
