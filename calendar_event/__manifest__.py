@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    OpenERP, Open Source Management Solution, third party addon
-#    Copyright (C) 2004-2016 Vertel AB (<http://vertel.se>).
+#    Odoo, Open Source Management Solution, third party addon
+#    Copyright (C) 2004-2019 Vertel AB (<http://vertel.se>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,27 +20,22 @@
 ##############################################################################
 
 {
-    'name': 'Calendar ics-urls',
+    'name': 'Cancel reason',
     'version': '0.1',
-    'category': 'Tools',
-    'summary': 'Subscription on calendar.ics-urls',
-    'licence': 'AGPL-3',
+    'category': '',
     'description': """
-Adds and updates calendar objects according to an ics-url
-
+Base mapping
+============
+This modules makes it possible to give a reason for cancellation of a meeting.
 """,
     'author': 'Vertel AB',
+    'license': 'AGPL-3',
     'website': 'http://www.vertel.se',
     'depends': ['calendar',],
-    'external_dependencies': {
-        'python': ['icalendar', 'urllib2'],
-    },
-    'data': [ 'res_partner_view.xml',
-    #'security/ir.model.access.csv',
-    'res_partner_data.xml'
-    ],
+    'data': [
+			 'views/calendar_event.xml',
+        ],
     'application': False,
     'installable': True,
-    'demo': ['calendar_ics_demo.xml',],
 }
 # vim:expandtab:smartindent:tabstop=4s:softtabstop=4:shiftwidth=4:
