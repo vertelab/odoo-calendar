@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="calendar_event_view_form_inherit_website_calendar" model="ir.ui.view">
+        <field name="name">calendar.event.form</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="booking_type_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="calendar_event_view_search_inherit_website_calendar" model="ir.ui.view">
+        <field name="name">calendar.event.search.inherit.booking</field>
+        <field name="model">calendar.event</field>
+        <field name="inherit_id" ref="calendar.view_calendar_event_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='mymeetings']" position="after">
+                <separator/>
+                <filter string="Online Bokkings" domain="[('booking_type_id', '!=', False)]" name="online"/>
+                <separator/>
+                <field name="booking_type_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Calendar Reporting -->
+    <record id="calendar_event_view_graph" model="ir.ui.view">
+        <field name="name">Events</field>
+        <field name="model">calendar.event</field>
+        <field name="arch" type="xml">
+            <graph string="Bookings" type="bar">
+                <field name="start" type="row"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="calendar_event_view_pivot" model="ir.ui.view">
+        <field name="name">calendar.event.pivot</field>
+        <field name="model">calendar.event</field>
+        <field name="arch" type="xml">
+            <pivot string="bookings" display_quantity="true">
+                <field name="start" type="row"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="website_calendar_report" model="ir.actions.act_window">
+        <field name="name">All Bookings</field>
+        <field name="res_model">calendar.event</field>
+        <field name="view_mode">graph,pivot,calendar,form</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_empty_folder">
+            No data found
+          </p><p>
+            You should schedule bookings to get statistics.
+          </p>
+        </field>
+    </record>
+
+    <record id="calendar_event_action_reporting" model="ir.actions.act_window">
+        <field name="name">Online Bookingss</field>
+        <field name="res_model">calendar.event</field>
+        <field name="view_mode">graph,pivot,calendar,form</field>
+        <field name="context">{'search_default_online': True}</field>
+        <field name="help" type="html">
+          <p class="o_view_nocontent_empty_folder">
+            No data found
+          </p><p>
+            You should schedule bookings to get statistics.
+          </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_schedule_report"
+        parent="calendar.mail_menu_calendar"
+        name="Reporting"
+        sequence="15"/>
+    <menuitem
+        id="menu_schedule_report_all"
+        parent="website_calendar_ce.menu_schedule_report"
+        action="calendar_event_action_reporting"/>
+    <menuitem
+        id="menu_schedule_report_online"
+        parent="website_calendar_ce.menu_schedule_report"
+        action="website_calendar_report"/>
+
+</odoo>

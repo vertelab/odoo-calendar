@@ -1,0 +1,1044 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* website_calendar
+# 
+# Translators:
+# Kristoffer Grundström <lovaren@gmail.com>, 2019
+# Martin Trigaux, 2019
+# lasch a <bmail440@gmail.com>, 2019
+# Martin Wilderoth <martin.wilderoth@linserv.se>, 2019
+# Robert Frykelius <robert.frykelius@linserv.se>, 2019
+# Chrille Hedberg <hedberg.chrille@gmail.com>, 2019
+# Sandra Pettersson <sandra.pettersson@vertel.se>, 2020
+# Han Wong <han.wong@vertel.se>, 2021
+# Anders Wallenquist <anders.wallenquist@vertel.se>, 2021
+# STefan Rundgren <stefanrundgren@cellglas.com>, 2021
+# Simon S, 2021
+# Fredrik Arvas <fredrik.arvas@vertel.se>, 2021
+# Kim Asplund <kim.asplund@gmail.com>, 2021
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 13.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-07 07:21+0000\n"
+"PO-Revision-Date: 2019-08-26 09:39+0000\n"
+"Last-Translator: Kim Asplund <kim.asplund@gmail.com>, 2021\n"
+"Language-Team: Swedish (https://www.transifex.com/odoo/teams/41243/sv/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: sv\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: website_calendar
+#: code:addons/website_calendar/models/calendar_appointment.py:0
+#, python-format
+msgid " (copy)"
+msgstr " (kopia)"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__bookingment_count
+msgid "# Bookings"
+msgstr "# Bokningar"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_calendar
+msgid "#{day['today_cls'] and 'Today' or ''}"
+msgstr ""
+
+#. module: website_calendar
+#: code:addons/website_calendar/controllers/main.py:0
+#, python-format
+msgid "%s with %s"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid "(timezone:"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_form
+msgid "+1 (650) 691-3277"
+msgstr "+1 (650) 691-3277"
+
+#. module: website_calendar
+#: code:addons/website_calendar/controllers/main.py:0
+#, python-format
+msgid ", All Day"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_form
+msgid "-- select a country --"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid ""
+"<br/>\n"
+"                            It's too late to cancel online, please contact the attendees another way if you really can't make it."
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_kanban
+msgid "<i class=\"fa fa-ellipsis-v\" role=\"img\" aria-label=\"Manage\" title=\"Manage\"/>"
+msgstr "<i class=\"fa fa-ellipsis-v\" role=\"img\" aria-label=\"Manage\" title=\"Manage\"/>"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid "<i class=\"fa fa-fw fa-arrow-right\"/>Add to Google Calendar"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid "<i class=\"fa fa-fw fa-arrow-right\"/>Add to iCal/Outlook"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid "<i class=\"fa fa-fw fa-times\"/>Cancel / Reschedule"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "<span> days</span>"
+msgstr "<span> dagar</span>"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "<span> hours before</span>"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "<span> hours</span>"
+msgstr "<span> timmar</span>"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "<span>and not after </span>"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "<span>at least </span>"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "<span>until </span>"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.index
+msgid ""
+"<strong>Booking canceled!</strong>\n"
+"                            You can schedule another bookingment from here."
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment
+msgid ""
+"<strong>Booking failed!</strong>\n"
+"                            The selected timeslot is not available anymore.\n"
+"                            Someone has booked the same time slot a few\n"
+"                            seconds before you."
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment
+msgid ""
+"<strong>Booking failed!</strong>\n"
+"                            The selected timeslot is not available.\n"
+"                            It appears you already have another meeting with us at that date."
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid "<strong>Your bookingment has been successfully booked!</strong>"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_form
+msgid "A text message reminder is sent to you before your booking"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_event__access_token
+msgid "Access Token"
+msgstr "Åtkomst Token"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_needaction
+msgid "Action Needed"
+msgstr "Åtgärd krävs"
+
+#. module: website_calendar
+#: model:res.groups,name:website_calendar.group_calendar_manager
+msgid "Administrator"
+msgstr "Administratör"
+
+#. module: website_calendar
+#: model:ir.actions.act_window,name:website_calendar.website_calendar_report
+#: model:ir.ui.menu,name:website_calendar.menu_schedule_report_online
+msgid "All Bookings"
+msgstr "Alla bokningar"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_form
+msgid "Allow Cancelling"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.actions.act_window,help:website_calendar.calendar_appointment_type_action
+msgid ""
+"Allow your customers to book an appointment on your website\n"
+"                by creating appointment types here."
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_answer__name
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_answer_view_form
+msgid "Answer"
+msgstr "Svar"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_form
+#: model_terms:ir.ui.view,arch_db:website_calendar.index
+#: model:website.menu,name:website_calendar.menu_appointment
+msgid "Booking"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_form
+msgid "Booking Confirmation"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__appointment_duration
+msgid "Booking Duration"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_form
+msgid "Booking Introduction"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment
+msgid "Booking Time"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_question__appointment_type_id
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_slot__appointment_type_id
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__name
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_form
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_tree
+msgid "Booking Type"
+msgstr "Tidsbokningstyp"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_validated
+msgid "Booking:"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.index
+msgid "Booking<span class=\"chevron\"/>"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_form
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_event_view_graph
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_event_view_pivot
+msgid "Bookings"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__assignation_method
+msgid "Assignation Method"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_attachment_count
+msgid "Attachment Count"
+msgstr "Antal bilagor"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_validated
+msgid "Attendees:"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__slot_ids
+msgid "Availabilities"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_question__answer_ids
+msgid "Available Answers"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_form
+msgid "Available Employees"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.ui.menu,name:website_calendar.calendar_appointment_type_menu_action
+msgid "Calendar"
+msgstr "Kalender"
+
+#. module: website_calendar
+#: model:ir.model,name:website_calendar.model_calendar_event
+msgid "Calendar Event"
+msgstr "Kalenderhändelse"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__can_publish
+msgid "Can Publish"
+msgstr "Kan Publicera"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__min_cancellation_hours
+msgid "Cancel Before (hours)"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_appointment_question__question_type__checkbox
+msgid "Checkboxes (multiple answers)"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_appointment_type__assignation_method__chosen
+msgid "Chosen by the Customer"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_form
+msgid "Confirm Booking <span class=\"fa fa-arrow-right\"/>"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_form
+msgid "Confirm your details"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_confirmation
+msgid "Confirmation Message"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_form
+#: model_terms:ir.ui.view,arch_db:website_calendar.index
+msgid "Confirmation<span class=\"chevron\"/>"
+msgstr "Bekräftelse"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_validated
+msgid "Confirmed"
+msgstr "Bekräftad"
+
+#. module: website_calendar
+#: model:ir.model,name:website_calendar.model_res_partner
+msgid "Contact"
+msgstr "Kontakt"
+
+#. module: website_calendar
+#. openerp-web
+#: code:addons/website_calendar/static/src/js/appointment_employee_url.js:0
+#, python-format
+msgid "Copied !"
+msgstr "Kopierad !"
+
+#. module: website_calendar
+#: code:addons/website_calendar/controllers/main.py:0
+#, python-format
+msgid "Country: %s"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.actions.act_window,help:website_calendar.calendar_appointment_type_action
+msgid "Create a new appointment type"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_answer__create_uid
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_question__create_uid
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_slot__create_uid
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__create_uid
+msgid "Created by"
+msgstr "Skapad av"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_answer__create_date
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_question__create_date
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_slot__create_date
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__create_date
+msgid "Created on"
+msgstr "Skapad den"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_validated
+msgid "Declined"
+msgstr "Avslaget"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_validated
+msgid "Description:"
+msgstr "Beskrivning:"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_answer__display_name
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_question__display_name
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_slot__display_name
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__display_name
+msgid "Display Name"
+msgstr "Visningsnamn"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_appointment_question__question_type__select
+msgid "Dropdown (one answer)"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_validated
+msgid "Duration:"
+msgstr "Varaktighet:"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_kanban
+msgid "Edit"
+msgstr "Redigera"
+
+#. module: website_calendar
+#: code:addons/website_calendar/controllers/main.py:0
+#, python-format
+msgid "Email: %s"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__employee_ids
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_form
+msgid "Employees"
+msgstr "Anställda"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_follower_ids
+msgid "Followers"
+msgstr "Följare"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_channel_ids
+msgid "Followers (Channels)"
+msgstr "Följare (Kanaler)"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Följare (kontakter)"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_calendar
+msgid "Fri"
+msgstr "Fri"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_appointment_slot__weekday__5
+msgid "Friday"
+msgstr "Fredag"
+
+#. module: website_calendar
+#: model_terms:calendar.appointment.type,message_intro:website_calendar.calendar_appointment
+msgid ""
+"Get a <strong>customized demo</strong> and an <strong>analysis of your "
+"needs</strong>."
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__assignation_method
+msgid ""
+"How employees will be assigned to meetings customers book on your website."
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_answer__id
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_question__id
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_slot__id
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__id
+msgid "ID"
+msgstr "ID"
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__message_needaction
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__message_unread
+msgid "If checked, new messages require your attention."
+msgstr ""
+"Om den är markerad så finns det meddelanden som kräver din uppmärksamhet."
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__message_has_error
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Om markerad så har det blivit ett leveransfel för några  meddelanden."
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.setup
+msgid ""
+"In order to configure your first appointment, go\n"
+"                        to the \"Calendar\" application in Odoo and create\n"
+"                        an online appointment."
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_form
+msgid "Individual Booking Link"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_intro
+msgid "Introduction Message"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_is_follower
+msgid "Is Follower"
+msgstr "Är följare"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__is_published
+msgid "Is Published"
+msgstr "Är Publicerad"
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__country_ids
+msgid ""
+"Keep empty to allow visitors from any country, otherwise you only allow "
+"visitors from selected countries"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_answer____last_update
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_question____last_update
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_slot____last_update
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type____last_update
+msgid "Last Modified on"
+msgstr "Senast redigerad"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_answer__write_uid
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_question__write_uid
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_slot__write_uid
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__write_uid
+msgid "Last Updated by"
+msgstr "Senast uppdaterad av"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_answer__write_date
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_question__write_date
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_slot__write_date
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__write_date
+msgid "Last Updated on"
+msgstr "Senast uppdaterad"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__location
+msgid "Location"
+msgstr "Plats"
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__location
+msgid "Location of the appointments"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_validated
+msgid "Location:"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_main_attachment_id
+msgid "Main Attachment"
+msgstr "Huvudbilaga"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_has_error
+msgid "Message Delivery error"
+msgstr "Fel vid meddelandeleverans"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_ids
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_appointment_type_view_form
+msgid "Messages"
+msgstr "Meddelanden"
+
+#. module: website_calendar
+#: code:addons/website_calendar/controllers/main.py:0
+#, python-format
+msgid "Mobile: %s"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.appointment_calendar
+msgid "Mon"
+msgstr "Mon"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_appointment_slot__weekday__1
+msgid "Monday"
+msgstr "Måndag"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_appointment_question__question_type__text
+msgid "Multi-line text"
+msgstr ""
+
+#. module: website_calendar
+#. openerp-web
+#: code:addons/website_calendar/static/src/js/website_calendar.editor.js:0
+#, python-format
+msgid "Name"
+msgstr "Namn"
+
+#. module: website_calendar
+#. openerp-web
+#: code:addons/website_calendar/static/src/js/website_calendar.editor.js:0
+#, python-format
+msgid "New Booking Type"
+msgstr "Ny Boknings Typ"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.setup
+msgid "No appointments available!"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.actions.act_window,help:website_calendar.calendar_event_action_reporting
+#: model_terms:ir.actions.act_window,help:website_calendar.website_calendar_report
+msgid "No data found"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Antal åtgärder"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_appointment_type__message_has_error_counter
+msgid "Number of errors"
+msgstr "Antal fel"
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__message_needaction_counter
+msgid "Number of messages which requires an action"
+msgstr "Antal meddelanden som kräver en åtgärd"
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Antal meddelanden med leveransfel"
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_appointment_type__message_unread_counter
+msgid "Number of unread messages"
+msgstr "Antal olästa meddelanden"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_event__appointment_type_id
+msgid "Online Booking"
+msgstr "Online Möte"
+
+#. module: website_calendar
+#: model:ir.model,name:website_calendar.model_calendar_appointment_answer
+msgid "Online Booking : Answers"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model,name:website_calendar.model_calendar_appointment_question
+msgid "Online Booking : Questions"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model,name:website_calendar.model_calendar_appointment_slot
+msgid "Online Booking : Time Slot"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model,name:website_calendar.model_calendar_appointment_type
+msgid "Online Booking Type"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.actions.act_window,name:website_calendar.calendar_bookingment_type_action
+#: model:ir.actions.act_window,name:website_calendar.calendar_event_action_reporting
+#: model:ir.module.category,name:website_calendar.module_category_calendar
+#: model:ir.ui.menu,name:website_calendar.bookingment_type_menu
+#: model:ir.ui.menu,name:website_calendar.menu_schedule_report_all
+#: model:ir.ui.menu,name:website_calendar.website_bookingment_type_menu
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_event_view_search_inherit_website_calendar
+msgid "Online Bookings"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_question__placeholder
+msgid "Placeholder"
+msgstr "Platshållare"
+
+#. module: website_calendar
+#: code:addons/website_calendar/models/calendar_bookingment.py:0
+#, python-format
+msgid "Please enter a valid hour between 0:00 to 24:00 for your slots."
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment
+msgid "Please, select another date."
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_question__name
+msgid "Question"
+msgstr "Fråga"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_question__question_type
+msgid "Question Type"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_answer__question_id
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__question_ids
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "Questions"
+msgstr "Frågor"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_bookingment_question__question_type__radio
+msgid "Radio (one answer)"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_bookingment_type__assignation_method__random
+msgid "Random"
+msgstr "Slumpmässig"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__reminder_ids
+msgid "Reminders"
+msgstr "Påminnelser"
+
+#. module: website_calendar
+#: model:ir.ui.menu,name:website_calendar.menu_schedule_report
+msgid "Reporting"
+msgstr "Rapportering"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_question__question_required
+msgid "Required Answer"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__country_ids
+msgid "Restrict Countries"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_kanban
+msgid "SCHEDULED"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__is_seo_optimized
+msgid "SEO optimized"
+msgstr "SEO Optimerad"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "SMS leveransfel"
+
+#. module: website_calendar
+#: model:calendar.alarm,name:website_calendar.calendar_alarm_data_1h_sms
+msgid "SMS Text Message - 1 Hours"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_calendar
+msgid "Sat"
+msgstr "Sat"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_bookingment_slot__weekday__6
+msgid "Saturday"
+msgstr "lördag"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "Schedule Booking"
+msgstr ""
+
+#. module: website_calendar
+#: model:calendar.bookingment.type,name:website_calendar.calendar_bookingment
+msgid "Schedule a Demo"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.index
+msgid "Schedule an Booking"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__min_schedule_hours
+msgid "Schedule before (hours)"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__max_schedule_days
+msgid "Schedule not after (days)"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "Scheduling & Availability"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_question__sequence
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__sequence
+msgid "Sequence"
+msgstr "Sekvens"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_bookingment_question__question_type__char
+msgid "Single line text"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "Slots"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_slot__hour
+msgid "Starting Hour"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "Starting Hour (0:00 - 24:00)"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_calendar
+msgid "Sun"
+msgstr "Sun"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_bookingment_slot__weekday__7
+msgid "Sunday"
+msgstr "Söndag"
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_bookingment_type__website_url
+msgid "The full URL to access the document through the website."
+msgstr "Den fullständiga URL för åtkomst av dokument via webbplatsen."
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_calendar
+msgid "Thu"
+msgstr "Thu"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_bookingment_slot__weekday__4
+msgid "Thursday"
+msgstr "torsdag"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_form
+msgid "Time"
+msgstr "Tid"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_calendar
+msgid "Time displayed in"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_select_timezone
+msgid "Time zone:"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment
+#: model_terms:ir.ui.view,arch_db:website_calendar.index
+msgid "Time<span class=\"chevron\"/>"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__bookingment_tz
+msgid "Timezone"
+msgstr "Tidzon"
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_bookingment_type__bookingment_tz
+msgid "Timezone where bookingment take place"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_calendar
+msgid "Tue"
+msgstr "Tue"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_bookingment_slot__weekday__2
+msgid "Tuesday"
+msgstr "tisdag"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__message_unread
+msgid "Unread Messages"
+msgstr "Olästa meddelanden"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__message_unread_counter
+msgid "Unread Messages Counter"
+msgstr "Räknare olästa meddelanden"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.index
+msgid "View Availabilities <span class=\"fa fa-arrow-right\"/>"
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__website_published
+msgid "Visible on current website"
+msgstr "Synlig på vald webbplats"
+
+#. module: website_calendar
+#: model_terms:calendar.bookingment.type,message_confirmation:website_calendar.calendar_bookingment
+msgid ""
+"We thank you for your interest in our products!<br>\n"
+"               Please make sure to arrive <strong>10 minutes</strong> before your bookingment."
+msgstr ""
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__website_message_ids
+msgid "Website Messages"
+msgstr "Webbplatsmeddelanden"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__website_url
+msgid "Website URL"
+msgstr "Webbplatsens URL"
+
+#. module: website_calendar
+#: model:ir.model.fields,help:website_calendar.field_calendar_bookingment_type__website_message_ids
+msgid "Website communication history"
+msgstr "Webbplatsens kommunikationshistorik"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__website_meta_description
+msgid "Website meta description"
+msgstr "Webbplatsens metabeskrivning"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__website_meta_keywords
+msgid "Website meta keywords"
+msgstr "Webbplatsens metasökord"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__website_meta_title
+msgid "Website meta title"
+msgstr "Webbplatsens metatitel"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_type__website_meta_og_img
+msgid "Website opengraph image"
+msgstr "Webbplats opengraph bild"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_calendar
+msgid "Wed"
+msgstr "Wed"
+
+#. module: website_calendar
+#: model:ir.model.fields.selection,name:website_calendar.selection__calendar_bookingment_slot__weekday__3
+msgid "Wednesday"
+msgstr "Onsdag"
+
+#. module: website_calendar
+#: model:ir.model.fields,field_description:website_calendar.field_calendar_bookingment_slot__weekday
+msgid "Week Day"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid "When:"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.employee_select
+msgid "With:"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.actions.act_window,help:website_calendar.calendar_event_action_reporting
+#: model_terms:ir.actions.act_window,help:website_calendar.website_calendar_report
+msgid "You should schedule bookingments to get statistics."
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_form
+msgid "Your Country"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_form
+msgid "Your Email"
+msgstr "Din e-post"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_form
+msgid "Your Name"
+msgstr "Ditt namn"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_form
+msgid "Your Phone"
+msgstr "Ditt telefonnummer"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid "Your bookingment is in less than"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.calendar_bookingment_type_view_form
+msgid "e.g. Schedule a demo"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid "hour"
+msgstr "timme"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_validated
+msgid "hours from now!"
+msgstr ""
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_form
+msgid "on"
+msgstr "på"
+
+#. module: website_calendar
+#: model_terms:ir.ui.view,arch_db:website_calendar.bookingment_calendar
+msgid "timezone"
+msgstr ""

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="calendar_booking" model="calendar.booking.type">
+        <field name="name">Schedule a Demo</field>
+        <field name="location">215 Vine St. Scranton Pennsylvania 18503</field>
+        <field name="message_intro" type="xml">
+            <p>Get a <strong>customized demo</strong> and an <strong>analysis of your needs</strong>.</p>
+        </field>
+        <field name="message_confirmation" type="xml">
+            <p style="text-align:center;">We thank you for your interest in our products!<br/>
+               Please make sure to arrive <strong>10 minutes</strong> before your booking.</p>
+        </field>
+        <field name="reminder_ids" eval="[(6, 0, [ref('calendar.alarm_notif_1')])]"/>
+        <field name="employee_ids" eval="[(6, 0, [ref('hr.employee_admin')])]"/>
+        <field name="is_published" eval="True"/>
+    </record>
+
+    <record id="calendar_booking_slot1" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">5</field>
+        <field name="hour">9</field>
+    </record>
+    <record id="calendar_booking_slot2" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">5</field>
+        <field name="hour">11</field>
+    </record>
+    <record id="calendar_booking_slot3" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">5</field>
+        <field name="hour">13</field>
+    </record>
+    <record id="calendar_booking_slot4" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">5</field>
+        <field name="hour">15</field>
+    </record>
+
+    <record id="calendar_booking_slot5" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">3</field>
+        <field name="hour">9</field>
+    </record>
+    <record id="calendar_booking_slot6" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">3</field>
+        <field name="hour">11</field>
+    </record>
+    <record id="calendar_booking_slot7" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">3</field>
+        <field name="hour">13</field>
+    </record>
+    <record id="calendar_booking_slot8" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">3</field>
+        <field name="hour">15</field>
+    </record>
+
+    <record id="calendar_booking_slot9" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">1</field>
+        <field name="hour">9</field>
+    </record>
+    <record id="calendar_booking_slot10" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">1</field>
+        <field name="hour">11</field>
+    </record>
+    <record id="calendar_booking_slot11" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">1</field>
+        <field name="hour">13</field>
+    </record>
+    <record id="calendar_booking_slot12" model="calendar.booking.slot">
+        <field name="booking_type_id" ref="calendar_booking"/>
+        <field name="weekday">1</field>
+        <field name="hour">15.5</field>
+    </record>
+</odoo>
