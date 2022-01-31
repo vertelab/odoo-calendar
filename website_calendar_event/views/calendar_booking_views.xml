@@ -1,0 +1,17 @@
+<odoo>
+    <record id="calendar_booking_type_view_form" model="ir.ui.view">
+        <field name="name">calendar.booking.type.form</field>
+        <field name="model">calendar.booking.type</field>
+        <field name="inherit_id" ref="website_calendar_ce.calendar_booking_type_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='schedule_availability']" position="before">
+                <page string="Related project" name="related_project_page">
+                    <group string="Related project" name="related_project_group">
+                        <field name="related_project_id"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

@@ -1,0 +1,40 @@
+<odoo>
+    <template id="portal_my_home" name="Show Bookings" customize_show="True" inherit_id="portal.portal_my_home" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Waitlists</t>
+                <t t-set="url" t-value="'/my/waitlists'"/>
+                <t t-set="placeholder_count" t-value="'waitlist_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_my_waitlists" name="My Waitlists">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Waitlists</t>
+            </t>
+            <t t-if="not waitlists">
+                <div class="alert alert-warning mt8" role="alert">
+                    There are no waitlists.
+                </div>
+            </t>
+            <t t-if="waitlists" t-call="portal.portal_table">
+                <tbody>
+                    <tr t-foreach="waitlists" t-as="waitlist">
+                        <td>
+                            <span t-field="waitlist.related_booking_type_id"/><t t-if="waitlist.employee_id"> <span t-field="waitlist.employee_id"/></t>. Current position: <span t-field="waitlist.current_position" />
+                        </td>
+                        <td class="text-right">
+                            <a class="text-danger" t-attf-href="/my/waitlists/cancel?waitlist_id=#{waitlist.id}"><span class="fa fa-trash" /></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+
+</odoo>
