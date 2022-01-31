@@ -1,0 +1,56 @@
+<odoo>
+    <template id="waitlist_confirmation" name="Website Booking: Your Data">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_website_waitlist_confirmation">
+                <div class="oe_structure container mb128 o_website_waitlist_confirmation_form">
+                    <t t-if="not already_in_queue">
+                        <h2>Registered to waitlist</h2>
+                    </t>
+                    <t t-if="already_in_queue">
+                        <h2>Already in waitlist</h2>
+                    </t>
+                    <span>Current place is </span><span t-field="queue_position.current_position"/>
+
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="booking_error" name="Website Booking: Your Data">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_website_booking_error">
+                <div class="oe_structure container mb128 o_website_booking_error_inner">
+                    <h2>Can't use this service without logging in.</h2>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="booking_form" name="Website Booking: Your Data">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_website_calendar_full">
+                <div class="oe_structure container mb128 o_website_calendar_full_form">
+                    <ul class="wizard mt32 float-right">
+                        <li><a t-attf-href="/website/calendar" class="text-success">Booking</a><span class="chevron"></span></li>
+                        <li><a t-attf-href="/website/calendar/#{ slug(booking_type) }/booking" class="text-success">Time</a><span class="chevron"></span></li>
+                        <li class="text-primary">Confirmation<span class="chevron"></span></li>
+                    </ul>
+                    <h2 class="o_page_header mt32">No available timeslots for: </h2>
+                    <span t-field="booking_type.name"/>
+                    <t t-if="employee">
+                        <span> with </span>
+                        <span t-field="employee.name"/>
+                    </t>
+                    <br />
+                    <form class="o_website_waitlist_form w-md-50" t-attf-action="/website/calendar/#{ slug(booking_type) }/waitlist" type="post">
+                        <t t-if="employee">
+                            <input type="hidden" name="employee_id" t-att-value="employee.id"/>
+                        </t>
+                        <button type="submit" class="btn btn-primary">Register on waitlist <span class="fa fa-arrow-right"/></button>
+                    </form>
+
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

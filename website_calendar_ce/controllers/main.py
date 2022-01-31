@@ -3,19 +3,19 @@
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
-#  
+#
 
-
+import logging
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
@@ -27,6 +27,9 @@ from odoo import http, _, fields
 from odoo.http import request
 from odoo.tools import html2plaintext, DEFAULT_SERVER_DATETIME_FORMAT as dtf
 from odoo.tools.misc import get_lang
+
+
+_logger = logging.getLogger(__name__)
 
 
 class WebsiteCalendar(http.Controller):
@@ -69,12 +72,15 @@ class WebsiteCalendar(http.Controller):
             'assignation_method': Appt.assignation_method,
         }
         if result['assignation_method'] == 'chosen':
-            selection_template = request.env.ref('website_calendar_ce.employee_select')
-            result['employee_selection_html'] = selection_template.render({
-                'booking_type': Appt,
-                'suggested_employees': Appt.employee_ids.name_get(),
-                'selected_employee_id': prev_emp and int(prev_emp),
-            })
+            selection_template = http.request.env.ref('website_calendar_ce.employee_select')
+            data = {
+                    'booking_type': Appt,
+                    'suggested_employees': Appt.employee_ids.name_get(),
+                    'selected_employee_id': prev_emp and int(prev_emp),
+                    }
+            # TODO: I dislike using private function here, although no other function seems to work
+            #       as I need it to work.
+            result['employee_selection_html'] = selection_template._render(data)
         return result
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/booking'], type='http', auth="public", website=True)
@@ -154,10 +160,9 @@ class WebsiteCalendar(http.Controller):
         categ_id = request.env.ref('website_calendar_ce.calendar_event_type_data_online_booking')
         alarm_ids = booking_type.reminder_ids and [(6, 0, booking_type.reminder_ids.ids)] or []
         partner_ids = list(set([Employee.user_id.partner_id.id] + [Partner.id]))
-        event = request.env['calendar.event'].sudo().with_context(allowed_company_ids=Employee.user_id.company_ids.ids).create({
+        data = {
             'state': 'open',
             'name': _('%s with %s') % (booking_type.name, name),
-            'start': date_start.strftime(dtf),
             # FIXME master
             # we override here start_date(time) value because they are not properly
             # recomputed due to ugly overrides in event.calendar (reccurrencies suck!)
@@ -175,18 +180,20 @@ class WebsiteCalendar(http.Controller):
             'categ_ids': [(4, categ_id.id, False)],
             'booking_type_id': booking_type.id,
             'user_id': Employee.user_id.id,
-        })
+        }
+        event = self._create_event(request, Employee, data)
         event.attendee_ids.write({'state': 'accepted'})
         return request.redirect('/website/calendar/view/' + event.access_token + '?message=new')
+
+    def _create_event(self, request, Employee, data):
+        return request.env['calendar.event'].sudo().with_context(allowed_company_ids=Employee.user_id.company_ids.ids).create(data)
 
     @http.route(['/website/calendar/view/<string:access_token>'], type='http', auth="public", website=True)
     def calendar_booking_view(self, access_token, edit=False, message=False, **kwargs):
         event = request.env['calendar.event'].sudo().search([('access_token', '=', access_token)], limit=1)
         if not event:
             return request.not_found()
-        
-        
-        
+
         timezone = request.session.get('timezone')
         if not timezone:
             timezone = request.env.context.get('tz') or event.booking_type_id.booking_tz or event.partner_ids and event.partner_ids[0].tz or event.user_id.tz or 'UTC'

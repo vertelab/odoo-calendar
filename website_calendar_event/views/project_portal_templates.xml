@@ -1,0 +1,43 @@
+<odoo>
+    <template id="portal_my_home" name="Show Bookings" customize_show="True" inherit_id="portal.portal_my_home" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Bookings</t>
+                <t t-set="url" t-value="'/my/bookings'"/>
+                <t t-set="placeholder_count" t-value="'booking_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_my_bookings" name="My Bookings">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Bookings</t>
+            </t>
+            <t t-if="not bookings">
+                <div class="alert alert-warning mt8" role="alert">
+                    There are no bookings.
+                </div>
+            </t>
+            <t t-if="bookings" t-call="portal.portal_table">
+                <tbody>
+                    <tr t-foreach="bookings" t-as="booking">
+                        <td>
+                            <a t-attf-href="/website/calendar/view/#{booking.access_token}?{{ keep_query() }}"><span t-field="booking.name"/>&amp;nbsp;<span t-field="booking.start"/></a>
+                        </td>
+                        <td class="text-right">
+                            <a t-attf-href="/my/tasks?{{keep_query(filterby=booking.id)}}">
+                                <!--t t-esc="project.task_count" />
+                                <t t-esc="project.label_tasks" /-->
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+
+</odoo>

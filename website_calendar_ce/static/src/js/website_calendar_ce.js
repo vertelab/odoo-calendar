@@ -1,12 +1,15 @@
+
+
 odoo.define('website_calendar_ce.select_booking_type', function (require) {
 'use strict';
+
 
 var publicWidget = require('web.public.widget');
 
 publicWidget.registry.websiteCalendarSelect = publicWidget.Widget.extend({
-    selector: '.o_website_calendar_booking',
+    selector: '.o_website_calendar',
     events: {
-        'change .o_website_booking_form select[id="calendarType"]': '_onBookingTypeChange'
+        'change select[id="calendarType"]': "_onBookingTypeChange",
     },
 
     /**
@@ -24,8 +27,13 @@ publicWidget.registry.websiteCalendarSelect = publicWidget.Widget.extend({
      */
     start: function (parent) {
         // set default timezone
-        var timezone = jstz.determine();
-        $(".o_website_appoinment_form select[name='timezone']").val(timezone.name());
+        // TODO: This does not seem to work, as jstz is not available
+        /**
+         *
+         * var timezone = jstz.determine();
+         * $(".o_website_appoinment_form select[name='timezone']").val(timezone.name());
+         *
+         */
         return this._super.apply(this, arguments);
     },
 
@@ -71,6 +79,9 @@ publicWidget.registry.websiteCalendarSelect = publicWidget.Widget.extend({
 odoo.define('website_calendar_ce.booking_form', function (require) {
 'use strict';
 
+// TODO: This entire event handler seems to be unused, some other function is updating the
+// data we are interested in
+
 var publicWidget = require('web.public.widget');
 
 publicWidget.registry.websiteCalendarForm = publicWidget.Widget.extend({
@@ -94,7 +105,10 @@ publicWidget.registry.websiteCalendarForm = publicWidget.Widget.extend({
 });
 });
 
-odoo.define('website_calendar_ce.booking_website_form', function (require) {
+// TODO: This event handler require 'animation' which is not available using the required modules
+// currently set up.
+
+/*odoo.define('website_calendar_ce.booking_website_form', function (require) {
 'use strict';
 
 var publicWidget = require('web.public.widget');
@@ -108,4 +122,4 @@ publicWidget.registry.websiteCalendarFormChecker = websiteFormWidget.extend({
         this.$target.find('.booking_submit_form').submit()
     },
 });
-});
+});*/

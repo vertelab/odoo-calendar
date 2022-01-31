@@ -3,19 +3,19 @@
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
-#  
+#
 
-
+import json
 import calendar as cal
 import random
 import pytz
@@ -64,6 +64,16 @@ class CalendarBookingType(models.Model):
         ('chosen', 'Chosen by the Customer')], string='Assignation Method', default='random',
         help="How employees will be assigned to meetings customers book on your website.")
     booking_count = fields.Integer('# Bookings', compute='_compute_booking_count')
+
+    @api.model
+    def find_all_bookings(self):
+        bookings = []
+        for booking in self.env[self._name].sudo().search([]):
+            booking_line =  {}
+            booking_line['id'] = booking.id
+            booking_line['name'] = booking.name
+            bookings.append(booking_line)
+        return json.dumps(bookings)
 
     def _compute_booking_count(self):
         meeting_data = self.env['calendar.event'].read_group([('booking_type_id', 'in', self.ids)], ['booking_type_id'], ['booking_type_id'])
