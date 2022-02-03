@@ -16,6 +16,16 @@
         </t>
     </template>
 
+    <template id="booking_error" name="Website Booking: Your Data">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_website_booking_error">
+                <div class="oe_structure container mb128 o_website_booking_error_inner">
+                    <h2>Can't use this service without logging in.</h2>
+                </div>
+            </div>
+        </t>
+    </template>
+
     <template id="booking_form" name="Website Booking: Your Data">
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar_full">
