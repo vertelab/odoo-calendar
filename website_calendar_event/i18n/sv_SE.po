@@ -1,0 +1,127 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* website_calendar_event
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0-20220202\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-02-07 12:24+0000\n"
+"PO-Revision-Date: 2022-02-07 13:54+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: sv\n"
+"X-Generator: Poedit 3.0\n"
+
+#. module: website_calendar_event
+#: model_terms:ir.ui.view,arch_db:website_calendar_event.portal_my_bookings
+msgid "&amp;nbsp;"
+msgstr "&amp;nbsp;"
+
+#. module: website_calendar_event
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_task__access_token
+msgid "Access token"
+msgstr "Access token"
+
+#. module: website_calendar_event
+#: model_terms:ir.ui.view,arch_db:website_calendar_event.portal_my_bookings
+#: model_terms:ir.ui.view,arch_db:website_calendar_event.portal_my_home
+msgid "Bookings"
+msgstr "Bokningar"
+
+#. module: website_calendar_event
+#: model:ir.model,name:website_calendar_event.model_calendar_event
+msgid "Calendar Event"
+msgstr "Kalenderhändelse"
+
+#. module: website_calendar_event
+#: model:ir.model.fields,field_description:website_calendar_event.field_calendar_booking_type__display_name
+#: model:ir.model.fields,field_description:website_calendar_event.field_calendar_event__display_name
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_project__display_name
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_task__display_name
+msgid "Display Name"
+msgstr "Visningsnamn"
+
+#. module: website_calendar_event
+#: code:addons/website_calendar_event/models/calendar_event.py:0
+#, python-format
+msgid "Event canceled by user"
+msgstr "Händelse som avbröts av användaren"
+
+#. module: website_calendar_event
+#: model:ir.model.fields,field_description:website_calendar_event.field_calendar_booking_type__id
+#: model:ir.model.fields,field_description:website_calendar_event.field_calendar_event__id
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_project__id
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_task__id
+msgid "ID"
+msgstr "ID"
+
+#. module: website_calendar_event
+#: model:ir.model.fields,field_description:website_calendar_event.field_calendar_booking_type____last_update
+#: model:ir.model.fields,field_description:website_calendar_event.field_calendar_event____last_update
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_project____last_update
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_task____last_update
+msgid "Last Modified on"
+msgstr "Senast redigerad"
+
+#. module: website_calendar_event
+#: code:addons/website_calendar_event/controllers/portal.py:0
+#, python-format
+msgid "Name"
+msgstr "Namn"
+
+#. module: website_calendar_event
+#: code:addons/website_calendar_event/controllers/portal.py:0
+#, python-format
+msgid "Newest"
+msgstr "Nyaste"
+
+#. module: website_calendar_event
+#: model:ir.model,name:website_calendar_event.model_calendar_booking_type
+msgid "Online Booking Type"
+msgstr "Onlinebokningstyp"
+
+#. module: website_calendar_event
+#: model:ir.model,name:website_calendar_event.model_project_project
+msgid "Project"
+msgstr "Projekt"
+
+#. module: website_calendar_event
+#: model_terms:ir.ui.view,arch_db:website_calendar_event.edit_project
+msgid "Related online bookings"
+msgstr "Relaterade onlinebokningar"
+
+#. module: website_calendar_event
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_project__related_online_booking_ids
+msgid "Related online_booking_ids"
+msgstr "Relaterade online_booking_ids"
+
+#. module: website_calendar_event
+#: model:ir.model.fields,field_description:website_calendar_event.field_calendar_booking_type__related_project_id
+#: model_terms:ir.ui.view,arch_db:website_calendar_event.calendar_booking_type_view_form
+msgid "Related project"
+msgstr "Relaterat projekt"
+
+#. module: website_calendar_event
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_task__start
+msgid "Start"
+msgstr "Start"
+
+#. module: website_calendar_event
+#: model:ir.model.fields,field_description:website_calendar_event.field_project_task__stop
+msgid "Stop"
+msgstr "Slut"
+
+#. module: website_calendar_event
+#: model:ir.model,name:website_calendar_event.model_project_task
+msgid "Task"
+msgstr "Aktivitet"
+
+#. module: website_calendar_event
+#: model_terms:ir.ui.view,arch_db:website_calendar_event.portal_my_bookings
+msgid "There are no bookings."
+msgstr "Det finns inga bokningar."

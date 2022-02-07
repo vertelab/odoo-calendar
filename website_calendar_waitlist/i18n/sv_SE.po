@@ -1,0 +1,174 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* website_calendar_waitlist
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0-20220202\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-02-07 12:24+0000\n"
+"PO-Revision-Date: 2022-02-07 13:53+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: sv\n"
+"X-Generator: Poedit 3.0\n"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.portal_my_waitlists
+msgid ". Current position:"
+msgstr ". Nuvarende position:"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.booking_form
+msgid "<span> with </span>"
+msgstr "<span> med </span>"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.waitlist_confirmation
+msgid "<span>Current place is </span>"
+msgstr "<span>Aktuell plats är </span>"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.waitlist_confirmation
+msgid "Already in waitlist"
+msgstr "Redan i väntelistan"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.booking_form
+msgid "Booking"
+msgstr "Bokning"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.booking_error
+msgid "Can't use this service without logging in."
+msgstr "Det går inte att använda den här tjänsten utan att logga in."
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.booking_form
+msgid "Confirmation<span class=\"chevron\"/>"
+msgstr "Bekräftelse<span class=\"chevron\"/>"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__create_uid
+msgid "Created by"
+msgstr "Skapad av"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__create_date
+msgid "Created on"
+msgstr "Skapad den"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__current_position
+msgid "Current Position"
+msgstr "Nuvarande position"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type__display_name
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__display_name
+msgid "Display Name"
+msgstr "Visningsnamn"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__employee_id
+msgid "Employee"
+msgstr "Anställd"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type__id
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__id
+msgid "ID"
+msgstr "ID"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type____last_update
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist____last_update
+msgid "Last Modified on"
+msgstr "Senast ändrad den"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__write_uid
+msgid "Last Updated by"
+msgstr "Senast uppdaterad av"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__write_date
+msgid "Last Updated on"
+msgstr "Senast uppdaterad den"
+
+#. module: website_calendar_waitlist
+#: code:addons/website_calendar_waitlist/controllers/portal.py:0
+#, python-format
+msgid "Name"
+msgstr "Namn"
+
+#. module: website_calendar_waitlist
+#: code:addons/website_calendar_waitlist/controllers/portal.py:0
+#, python-format
+msgid "Newest"
+msgstr "Nyaste"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.booking_form
+msgid "No available timeslots for:"
+msgstr "Inga tillgängliga tidsluckor för:"
+
+#. module: website_calendar_waitlist
+#: model:ir.model,name:website_calendar_waitlist.model_calendar_booking_type
+msgid "Online Booking Type"
+msgstr "Onlinebokningstyp"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.booking_form
+msgid "Register on waitlist <span class=\"fa fa-arrow-right\"/>"
+msgstr "Registrera på väntelistan <span class=\"fa fa-arrow-right\"/>"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.waitlist_confirmation
+msgid "Registered to waitlist"
+msgstr "Registrerad på väntelistan"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__related_booking_type_id
+msgid "Related Booking Type"
+msgstr "Relaterad bokningstyp"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.portal_my_waitlists
+msgid "There are no waitlists."
+msgstr "Det finns ingen väntelista."
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.booking_form
+msgid "Time"
+msgstr "Tid"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type_waitlist__related_user_id
+msgid "User"
+msgstr "Användare"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.calendar_booking_type_view_form
+msgid "Waiting list"
+msgstr "Väntelista"
+
+#. module: website_calendar_waitlist
+#: model:ir.model.fields,field_description:website_calendar_waitlist.field_calendar_booking_type__related_wait_list_ids
+msgid "Waitlist"
+msgstr "Väntelista"
+
+#. module: website_calendar_waitlist
+#: model:ir.model,name:website_calendar_waitlist.model_calendar_booking_type_waitlist
+msgid "Waitlist for calendar types"
+msgstr "Väntelista för bokningstyp"
+
+#. module: website_calendar_waitlist
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.portal_my_home
+#: model_terms:ir.ui.view,arch_db:website_calendar_waitlist.portal_my_waitlists
+msgid "Waitlists"
+msgstr "Väntelistor"
