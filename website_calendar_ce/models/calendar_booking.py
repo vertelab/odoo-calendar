@@ -15,7 +15,7 @@
 #  MA 02110-1301, USA.
 #
 
-
+import json
 import calendar as cal
 import random
 import pytz
@@ -64,6 +64,16 @@ class CalendarBookingType(models.Model):
         ('chosen', 'Chosen by the Customer')], string='Assignation Method', default='random',
         help="How employees will be assigned to meetings customers book on your website.")
     booking_count = fields.Integer('# Bookings', compute='_compute_booking_count')
+
+    @api.model
+    def find_all_bookings(self):
+        bookings = []
+        for booking in self.env[self._name].sudo().search([]):
+            booking_line =  {}
+            booking_line['id'] = booking.id
+            booking_line['name'] = booking.name
+            bookings.append(booking_line)
+        return json.dumps(bookings)
 
     def _compute_booking_count(self):
         meeting_data = self.env['calendar.event'].read_group([('booking_type_id', 'in', self.ids)], ['booking_type_id'], ['booking_type_id'])

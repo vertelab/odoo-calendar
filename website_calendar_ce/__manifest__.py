@@ -20,6 +20,7 @@ Allow clients to Schedule Bookings through your Website
         'views/website_calendar_templates.xml',
         'security/website_calendar_security.xml',
         'security/ir.model.access.csv',
+        'views/snippets/snippets.xml',
     ],
     'demo': [
         'data/website_calendar_demo.xml'
