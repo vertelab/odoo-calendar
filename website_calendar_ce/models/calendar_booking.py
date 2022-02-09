@@ -68,12 +68,28 @@ class CalendarBookingType(models.Model):
     @api.model
     def find_all_bookings(self):
         bookings = []
-        for booking in self.env[self._name].sudo().search([]):
+        for booking in self.env[self._name].sudo().search([('website_published', '=', True)]):
             booking_line =  {}
             booking_line['id'] = booking.id
             booking_line['name'] = booking.name
             bookings.append(booking_line)
         return json.dumps(bookings)
+
+    @api.model
+    def get_booking_details(self, booking_id=False):
+        if booking_id:
+            _booking_id = self.env[self._name].sudo().browse(booking_id)
+            booking_details = {
+                'booking_id': _booking_id.id,
+                'timezone': _booking_id.booking_tz,
+                'assignation_method': _booking_id.assignation_method,
+                'suggested_employees': [{
+                    'employee_id': emp.id,
+                    'employee_name': emp.name,
+                } for emp in _booking_id.employee_ids]
+            }
+            return booking_details
+        return False
 
     def _compute_booking_count(self):
         meeting_data = self.env['calendar.event'].read_group([('booking_type_id', 'in', self.ids)], ['booking_type_id'], ['booking_type_id'])
