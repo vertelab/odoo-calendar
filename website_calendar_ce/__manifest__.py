@@ -25,6 +25,9 @@ Allow clients to Schedule Bookings through your Website
     'demo': [
         'data/website_calendar_demo.xml'
     ],
+    'qweb': [
+        'static/src/xml/booking.xml',
+    ],
     'installable': True,
     'application': True,
     'auto_install': False,

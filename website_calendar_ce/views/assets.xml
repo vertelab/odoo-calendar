@@ -1,9 +1,0 @@
-<odoo>
-    <template id="assets" inherit_id="website.assets_editor" name="Editor assets">
-        <xpath expr="." position="inside">
-            <script type="text/javascript" src="/website_calendar_ce/static/src/js/new_content.js" />
-            <!--script type="text/javascript" src="/document_wiki/static/src/js/document_wiki.js" />
-            <script type="text/javascript" src="/document_wiki/static/src/js/page_properties.js" /-->
-        </xpath>
-    </template>
-</odoo>

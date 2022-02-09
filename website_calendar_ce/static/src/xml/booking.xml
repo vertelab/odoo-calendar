@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="BookingType">
+        <t>
+            <form class="o_website_appointment_form w-md-50" type="post" t-attf-action="/website/calendar/#{active_booking_type}/booking">
+                <div id="booking" class="form-group row">
+                    <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
+                    <div class="col-md-9">
+                        <select class="form-control" id="calendarType" disabled="1">
+                            <t t-foreach="booking_types" t-as="cal">
+                                <option t-att-value="cal.id" t-att-selected="cal.id == active_booking_type ? 'selected' : undefined">
+                                    <t t-esc="cal.name"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                </div>
+                <div id="employee_select"/>
+                <div class="form-group row">
+                    <div class="offset-md-8 col-md-4">
+                        <button type="submit" class="btn btn-primary">View Availability <span class="fa fa-arrow-right"/></button>
+                    </div>
+                </div>
+            </form>
+        </t>
+<!--        <t t-if="not booking_types">-->
+<!--            <span>Need to select booking type in options.</span>-->
+<!--        </t>-->
+    </t>
+
+    <t t-name="BookingEmployees">
+        <div id="employee_select" t-att-class="'form-group ' + (assignation_method!='chosen' and 'o_hidden' or '')">
+            <label for="selectEmployee" class="col-md-4 col-form-label">With:</label>
+            <div class="col-md-7">
+              <!-- do not add the disabled tag or it won't be submitted with the form -->
+                <select class="form-control" name="employee_id" id="selectEmployee">
+                    <t t-foreach="suggested_employees" t-as="emp">
+                        <option t-att-value="emp.employee_id">
+                            <t t-esc="emp.employee_name"/>
+                        </option>
+                    </t>
+              </select>
+            </div>
+        </div>
+    </t>
+</templates>
+
+
+
