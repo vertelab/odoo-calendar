@@ -32,45 +32,49 @@ odoo.define('website_calendar_ce.online_booking_options', function (require) {
             this.booking_types = JSON.parse(data);
             this.active_booking_type = this.booking_types[0].id;
 
-            this.selectProjectEl = document.createElement('we-select');
-            this.selectProjectEl.setAttribute('string', 'Booking Type');
+            this.ActionEl = document.createElement('we-select');
+            this.ActionEl.setAttribute('string', 'Booking Type');
 
             this.booking_types.forEach(booking_type => {
                 const option = document.createElement('we-button');
                 option.textContent = booking_type.name;
                 option.setAttribute('data-customize-website-variable', booking_type.name)
                 option.dataset.selectAction = booking_type.id;
-                this.selectProjectEl.append(option);
+                this.ActionEl.append(option);
             });
             return _super(...arguments);
         },
 
         start: function () {
-            this.$('#booking_header').append(QWeb.render('BookingType',
+            this._render()
+            return this._super.apply(this, arguments);
+
+        },
+
+        _render: function () {
+            console.log(this.$el)
+            this.$('#booking_header').replaceWith(QWeb.render('BookingType',
                 {'booking_types': this.booking_types, 'active_booking_type': this.active_booking_type}
             ));
             this._CalendarTypeSelected()
-            return this._super.apply(this, arguments);
-
         },
 
         _renderCustomXML: function(uiFragment) {
             // Add Action select
             const firstOption = uiFragment.childNodes[0];
-            uiFragment.insertBefore(this.selectProjectEl.cloneNode(true), firstOption);
+            uiFragment.insertBefore(this.ActionEl.cloneNode(true), firstOption);
             return uiFragment;
         },
 
         _onAddItemSelectClick: function (ev) {
             /* On clink on we-button, update the active booking type */
-            this.active_booking_type = ev.currentTarget.dataset.selectAction
-            ev.currentTarget.classList.toggle('active');
+            this.active_booking_type = parseInt(ev.currentTarget.dataset.selectAction)
+            this._render()
             this._CalendarTypeSelected()
         },
 
         _CalendarTypeSelected: function () {
              /* update the calendar type form after we-button is clicked or widget start */
-            console.log(typeof this.active_booking_type)
             this.$('#calendarType option').removeAttr('selected').filter(
                 `[value=${this.active_booking_type}]`).attr('selected', true)
             this._BookingTypeEmployee(this.active_booking_type)
