@@ -257,3 +257,17 @@ class WebsiteCalendar(http.Controller):
             return request.redirect('/website/calendar/view/' + access_token + '?message=no-cancel')
         event.unlink()
         return request.redirect('/website/calendar?message=cancel')
+
+    # Snippets
+    @http.route(['/website/calendar_snippet/<model("calendar.booking.type"):booking_type>/booking'], type='http', auth="public",
+                website=True)
+    def calendar_booking_snippet(self, booking_type=None, employee_id=None, timezone=None, failed=False, **kwargs):
+        request.session['timezone'] = timezone or booking_type.booking_tz
+        Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
+        Slots = booking_type.sudo()._get_booking_slots(request.session['timezone'], Employee)
+        return request.render("website_calendar_ce.booking_snippet", {
+            'booking_type': booking_type,
+            'timezone': request.session['timezone'],
+            'failed': failed,
+            'slots': Slots,
+        })

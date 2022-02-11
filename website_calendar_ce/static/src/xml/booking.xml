@@ -3,7 +3,7 @@
     <t t-name="BookingType">
         <t>
             <div id="booking_header">
-                <form class="o_website_appointment_form w-md-50" type="post" t-attf-action="/website/calendar/#{active_booking_type}/booking">
+                <form class="o_website_appointment_form w-md-50" type="post" t-attf-action="/website/calendar_snippet/#{active_booking_type}/booking">
                     <div id="booking" class="form-group row">
                         <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
                         <div class="col-md-9">

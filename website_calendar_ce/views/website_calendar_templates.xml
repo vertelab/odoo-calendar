@@ -414,5 +414,49 @@
         </t>
     </template>
 
+    <!-- Snippets-->
+    <template id="booking_snippet" name="Website Booking: Schedule Booking">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure container mb128">
+                    <ul class="wizard mt32 float-right">
+                        <li><a class="text-success">Booking</a><span class="chevron"></span></li>
+                        <li class="text-primary">Time<span class="chevron"></span></li>
+                        <li class="text-muted">Confirmation<span class="chevron"></span></li>
+                    </ul>
+                    <h1 class="o_page_header mt32">Booking Time</h1>
+                    <div t-if="failed=='employee'" class="alert alert-danger mt16" role="alert">
+                        <p>
+                            <strong>Booking failed!</strong>
+                            The selected timeslot is not available anymore.
+                            Someone has booked the same time slot a few
+                            seconds before you.
+                        </p><p>
+                            Please, select another date.
+                        </p>
+                    </div>
+                    <div t-if="failed=='partner'" class="alert alert-danger mt16" role="alert">
+                        <p>
+                            <strong>Booking failed!</strong>
+                            The selected timeslot is not available.
+                            It appears you already have another meeting with us at that date.
+                        </p><p>
+                            Please, select another date.
+                        </p>
+                    </div>
+                    <div class="mb8">
+                        <t t-call="website.publish_management">
+                          <t t-set="object" t-value="booking_type"/>
+                          <t t-set="publish_edit" t-value="True"/>
+                          <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>
+                        </t>
+                    </div>
+                    <div class="clearfix"/>
+                    <t t-call="website_calendar_ce.booking_calendar"/>
+                </div>
+            </div>
+        </t>
+    </template>
+
 
 </odoo>
