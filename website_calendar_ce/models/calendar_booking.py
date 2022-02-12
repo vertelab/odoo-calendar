@@ -68,7 +68,7 @@ class CalendarBookingType(models.Model):
     @api.model
     def find_all_bookings(self):
         bookings = []
-        for booking in self.env[self._name].sudo().search([]):
+        for booking in self.env[self._name].sudo().search([('website_published', '=', True)]):
             booking_line =  {}
             booking_line['id'] = booking.id
             booking_line['name'] = booking.name
@@ -79,7 +79,6 @@ class CalendarBookingType(models.Model):
     def get_booking_details(self, booking_id=False):
         if booking_id:
             _booking_id = self.env[self._name].sudo().browse(booking_id)
-            print(_booking_id)
             booking_details = {
                 'booking_id': _booking_id.id,
                 'timezone': _booking_id.booking_tz,
@@ -89,7 +88,6 @@ class CalendarBookingType(models.Model):
                     'employee_name': emp.name,
                 } for emp in _booking_id.employee_ids]
             }
-            print(booking_details)
             return booking_details
         return False
 

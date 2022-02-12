@@ -6,14 +6,15 @@
                 <form class="o_website_appointment_form w-md-50" type="post" t-attf-action="/website/calendar_snippet/#{active_booking_type}/booking">
                     <div id="booking" class="form-group row">
                         <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
-                        <div class="col-md-9">
-                            <select class="form-control" id="calendarType" disabled="1">
+                        <div class="col-md-9" style="display: flex;align-items: center;">
+                            <select class="form-control" id="calendarType" disabled="1" style="display:none;">
                                 <t t-foreach="booking_types" t-as="cal">
                                     <option t-att-value="cal.id" t-att-selected="cal.id == active_booking_type ? 'selected' : undefined">
                                         <t t-esc="cal.name"/>
                                     </option>
                                 </t>
                             </select>
+                            <t t-esc="active_booking_type_name"/>
                         </div>
                     </div>
                     <div id="employee_select"/>

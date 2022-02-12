@@ -31,6 +31,7 @@ odoo.define('website_calendar_ce.online_booking_options', function (require) {
             });
             this.booking_types = JSON.parse(data);
             this.active_booking_type = this.booking_types[0].id;
+            this.active_booking_type_name = this.booking_types[0].name;
 
             this.ActionEl = document.createElement('we-select');
             this.ActionEl.setAttribute('string', 'Booking Type');
@@ -52,9 +53,12 @@ odoo.define('website_calendar_ce.online_booking_options', function (require) {
         },
 
         _render: function () {
-            console.log(this.$el)
             this.$('#booking_header').replaceWith(QWeb.render('BookingType',
-                {'booking_types': this.booking_types, 'active_booking_type': this.active_booking_type}
+                {
+                    'booking_types': this.booking_types,
+                    'active_booking_type': this.active_booking_type,
+                    'active_booking_type_name': this.active_booking_type_name
+                }
             ));
             this._CalendarTypeSelected()
         },
@@ -69,6 +73,7 @@ odoo.define('website_calendar_ce.online_booking_options', function (require) {
         _onAddItemSelectClick: function (ev) {
             /* On clink on we-button, update the active booking type */
             this.active_booking_type = parseInt(ev.currentTarget.dataset.selectAction)
+            this.active_booking_type_name = ev.currentTarget.textContent
             this._render()
             this._CalendarTypeSelected()
         },
