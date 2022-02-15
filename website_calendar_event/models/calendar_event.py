@@ -14,7 +14,6 @@ class Meeting(models.Model):
         if self.booking_type_id:
             related_task = self.env['project.task'].sudo().search([('access_token', '=', self.access_token)])
             if len(related_task) != 1:
-                #TODO: Better error
                 raise AssertionError("Too many/few related tasks for access token %s", self.access_token)
             related_task.kanban_state = "blocked"
             related_task.message_post(body=_("Event canceled by user"))

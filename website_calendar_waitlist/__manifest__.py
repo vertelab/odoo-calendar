@@ -7,10 +7,13 @@
     'sequence': 131,
     'summary': 'Schedule bookings with clients',
     'website': 'https://vertel.se/apps/website_calendar_event',
-    'description': """
-TODO:
-""",
     'depends': ['website_calendar_ce', 'website_calendar_event', 'hr', 'base'],
+    'description': """
+Adds waiting list for fully booked calendar events.
+-------------------------------------------------------
+
+""",
+
     'data': [
         'views/calendar_booking_views.xml',
         'views/website_waitlist_templates.xml',

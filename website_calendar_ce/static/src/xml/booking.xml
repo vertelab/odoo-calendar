@@ -26,9 +26,6 @@
                 </form>
             </div>
         </t>
-<!--        <t t-if="not booking_types">-->
-<!--            <span>Need to select booking type in options.</span>-->
-<!--        </t>-->
     </t>
 
     <t t-name="BookingEmployees">

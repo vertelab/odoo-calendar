@@ -3,17 +3,10 @@
 import werkzeug
 import logging
 import datetime
-#from collections import OrderedDict
-
-#from operator import itemgetter
 
 from odoo import http, _
-#from odoo.exceptions import AccessError, MissingError
 from odoo.http import request
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
-#from odoo.tools import groupby as groupbyelem
-
-#from odoo.osv.expression import OR
 
 _logger = logging.getLogger(__name__)
 
