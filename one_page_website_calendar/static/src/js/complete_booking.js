@@ -2,7 +2,7 @@ odoo.define('one_page_website_calendar.one_page_booking_complete', function (req
     'use strict';
 
     var core = require('web.core');
-    var options = require('web_editor.snippets.options');
+    // var options = require('web_editor.snippets.options');
     var publicWidget = require('web.public.widget');
     var rpc = require('web.rpc');
     var QWeb = core.qweb;
@@ -23,9 +23,9 @@ odoo.define('one_page_website_calendar.one_page_booking_complete', function (req
 
         },
 
-        // _onSelectBookingTime: function () {
-        //     console.log("time time")
-        // },
+        _onSelectBookingTime: function () {
+            console.log("time time")
+        },
     })
 
     return publicWidget.registry.OnePageWebsiteCalendarBookingWidget;

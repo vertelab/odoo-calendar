@@ -11,7 +11,7 @@
         Allow clients to Schedule Bookings through your Website
         -------------------------------------------------------
     """,
-    'depends': ['calendar_sms', 'hr', 'website'],
+    'depends': ['calendar_sms', 'hr', 'website', 'website_calendar_ce'],
     'data': [
         'views/assets.xml',
         'views/snippet.xml',
