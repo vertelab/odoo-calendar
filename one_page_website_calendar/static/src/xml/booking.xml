@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="BookingType">
+        <t>
+            <div id="one_page_start_booking">
+                <div class="o_website_appointment_form w-md-50">
+                    <div id="booking" class="form-group row">
+                        <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
+                        <div class="col-md-9" style="display: flex;align-items: center;">
+                            <select class="form-control" name="booking_type_id" id="calendarType" disabled="1" style="display:none;">
+                                <t t-foreach="booking_types" t-as="cal">
+                                    <option t-att-value="cal.id" t-att-selected="cal.id == active_booking_type ? 'selected' : undefined">
+                                        <t t-esc="cal.name"/>
+                                    </option>
+                                </t>
+                            </select>
+                            <t t-esc="active_booking_type_name"/>
+                        </div>
+                    </div>
+                    <div id="employee_select"/>
+                    <div class="form-group row">
+                        <div class="offset-md-8 col-md-4">
+                            <button class="btn btn-primary" id="view_availability">
+                                View Availability <span class="fa fa-arrow-right"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </t>
+
+    <t t-name="BookingEmployees">
+        <div id="employee_select" t-att-class="'form-group ' + (assignation_method!='chosen' and 'o_hidden' or '')">
+            <label for="selectEmployee" class="col-md-4 col-form-label">With:</label>
+            <div class="col-md-7">
+              <!-- do not add the disabled tag or it won't be submitted with the form -->
+                <select class="form-control" name="employee_id" id="selectEmployee">
+                    <t t-foreach="suggested_employees" t-as="emp">
+                        <option t-att-value="emp.employee_id">
+                            <t t-esc="emp.employee_name"/>
+                        </option>
+                    </t>
+              </select>
+            </div>
+        </div>
+    </t>
+
+    <!-- Timezone -->
+    <t t-name="BookingCalendarAvailability">
+        <div class="row" id="one_page_view_booking_availability">
+            <div t-foreach="slots" t-as="month" class="col-lg-6">
+                <h3 t-esc="month['month']"/>
+                <table class="table">
+                    <tr class="active">
+                        <th class="text-center">Mon</th>
+                        <th class="text-center">Tue</th>
+                        <th class="text-center">Wed</th>
+                        <th class="text-center">Thu</th>
+                        <th class="text-center">Fri</th>
+                        <th class="text-center">Sat</th>
+                        <th class="text-center">Sun</th>
+                    </tr>
+
+                    <tr t-foreach="month['weeks']" t-as="weeks" class="o_calendar_days">
+                        <t t-foreach="weeks" t-as="day">
+                            <td t-attf-class="text-center#{day.slots.length > 0 and ' o_day dropdown' or ''} #{day.weekend_cls} #{day.today_cls}" t-attf-title="#{day.today_cls and 'Today' or ''}">
+                                <t t-if="day.slots.length > 0">
+                                    <div class="dropdown-toggle o_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <strong>
+                                            <span t-esc="new Date(day.day).getDate()"/>
+                                        </strong>
+                                    </div>
+                                    <div class="dropdown-menu" role="menu">
+                                        <t t-foreach="day.slots" t-as="slot">
+                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-esc="slot.hours" id="booking_time"/>
+<!--                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}" t-esc="slot.hours"/>-->
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div t-esc="new Date(day.day).getDate()" t-att-class="day.mute_cls"/>
+                                </t>
+                            </td>
+                        </t>
+                    </tr>
+                    <!--to fix bootstrap md height add empty tr so now each month has 6 weeks row -->
+                    <tr t-if="month.weeks.length == 5" class="o_calendar_days"/>
+                </table>
+            </div>
+        </div>
+        <p>
+            Time displayed in <strong t-esc="timezone"/> timezone
+        </p>
+    </t>
+</templates>
+
+
+

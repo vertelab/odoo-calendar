@@ -1,0 +1,16 @@
+<odoo>
+    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Online Booking">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/scss" href="/one_page_website_calendar/static/src/scss/website_calendar_ce.scss"/>
+            <script type="text/javascript" src="/one_page_website_calendar/static/src/js/website_calendar_ce.js"/>
+            <script type="text/javascript" src="/one_page_website_calendar/static/src/js/booking_time_slot.js"/>
+            <script type="text/javascript" src="/one_page_website_calendar/static/src/js/complete_booking.js"/>
+        </xpath>
+    </template>
+
+    <template id="assets_editor_inherit_website_calendar" inherit_id="website.assets_editor" name="website_calendar Assets Editor">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/one_page_website_calendar/static/src/js/booking_snippets_options.js"/>
+        </xpath>
+    </template>
+</odoo>
