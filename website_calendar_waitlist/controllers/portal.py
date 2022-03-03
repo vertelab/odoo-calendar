@@ -3,6 +3,7 @@
 import werkzeug
 import logging
 import datetime
+
 #from collections import OrderedDict
 
 #from operator import itemgetter
@@ -14,6 +15,7 @@ from odoo.addons.portal.controllers.portal import CustomerPortal, pager as porta
 #from odoo.tools import groupby as groupbyelem
 
 #from odoo.osv.expression import OR
+
 
 _logger = logging.getLogger(__name__)
 

@@ -27,6 +27,7 @@
         </section>
     </template>
 
+
 <!--<template id="s_online_booking" name="Online Booking">-->
 <!--    <section class="s_online_booking">-->
 <!--        <div class="container">-->
@@ -77,6 +78,7 @@
 <!--        </div>-->
 <!--    </section>-->
 <!--</template>-->
+
 
     <template id="snippets" inherit_id="website.snippets" name="Place into bar">
         <xpath expr="//div[@id='snippet_structure']/div[hasclass('o_panel_body')]" position="inside">
