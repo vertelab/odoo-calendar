@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="BookingType">
+        <t>
+            <div id="one_page_start_booking">
+                <div class="o_website_appointment_form w-md-50">
+                    <div id="booking" class="form-group row">
+                        <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
+                        <div class="col-md-9" style="display: flex;align-items: center;">
+                            <select class="form-control" name="booking_type_id" id="calendarType" disabled="1" style="display:none;">
+                                <t t-foreach="booking_types" t-as="cal">
+                                    <option t-att-value="cal.id" t-att-selected="cal.id == active_booking_type ? 'selected' : undefined">
+                                        <t t-esc="cal.name"/>
+                                    </option>
+                                </t>
+                            </select>
+                            <t t-esc="active_booking_type_name"/>
+                        </div>
+                    </div>
+                    <div id="employee_select"/>
+                    <div class="form-group row">
+                        <div class="offset-md-8 col-md-4">
+                            <button class="btn btn-primary" id="view_availability">
+                                View Availability <span class="fa fa-arrow-right"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </t>
+
+    <t t-name="BookingEmployees">
+        <div id="employee_select" t-att-class="'form-group ' + (assignation_method!='chosen' and 'o_hidden' or '')">
+            <label for="selectEmployee" class="col-md-4 col-form-label">With:</label>
+            <div class="col-md-7">
+              <!-- do not add the disabled tag or it won't be submitted with the form -->
+                <select class="form-control" name="employee_id" id="selectEmployee">
+                    <t t-foreach="suggested_employees" t-as="emp">
+                        <option t-att-value="emp.employee_id">
+                            <t t-esc="emp.employee_name"/>
+                        </option>
+                    </t>
+              </select>
+            </div>
+        </div>
+    </t>
+
+    <!-- Timezone -->
+    <t t-name="BookingCalendarAvailability">
+        <div class="row" id="one_page_view_booking_availability">
+            <input type="hidden" name="employee_id" t-att-value="employee_id"/>
+            <input type="hidden" name="booking_type_id" t-att-value="booking_type_id"/>
+
+            <div t-foreach="slots" t-as="month" class="col-lg-6">
+                <h3 t-esc="month['month']"/>
+                <table class="table">
+                    <tr class="active">
+                        <th class="text-center">Mon</th>
+                        <th class="text-center">Tue</th>
+                        <th class="text-center">Wed</th>
+                        <th class="text-center">Thu</th>
+                        <th class="text-center">Fri</th>
+                        <th class="text-center">Sat</th>
+                        <th class="text-center">Sun</th>
+                    </tr>
+
+                    <tr t-foreach="month['weeks']" t-as="weeks" class="o_calendar_days">
+                        <t t-foreach="weeks" t-as="day">
+                            <td t-attf-class="text-center#{day.slots.length > 0 and ' o_day dropdown' or ''} #{day.weekend_cls} #{day.today_cls}" t-attf-title="#{day.today_cls and 'Today' or ''}">
+                                <t t-if="day.slots.length > 0">
+                                    <div class="dropdown-toggle o_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <strong>
+                                            <span t-esc="new Date(day.day).getDate()"/>
+                                        </strong>
+                                    </div>
+                                    <div class="dropdown-menu" role="menu">
+                                        <t t-foreach="day.slots" t-as="slot">
+                                            <div id="booking_time">
+                                                <a t-if='slot' role="menuitem" class="dropdown-item" t-esc="slot.hours"/>
+                                                <input type="hidden" name="slot_datetime" t-att-value="slot.datetime"/>
+                                            </div>
+<!--                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}" t-esc="slot.hours"/>-->
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <div t-esc="new Date(day.day).getDate()" t-att-class="day.mute_cls"/>
+                                </t>
+                            </td>
+                        </t>
+                    </tr>
+                    <!--to fix bootstrap md height add empty tr so now each month has 6 weeks row -->
+                    <tr t-if="month.weeks.length == 5" class="o_calendar_days"/>
+                </table>
+            </div>
+        </div>
+        <p>
+            Time displayed in <strong t-esc="timezone"/> timezone
+        </p>
+    </t>
+
+    <t t-name="BookingCalendarForm">
+        <div class="oe_structure container mb128 o_website_calendar_form" id="one_page_view_booking_confirmation">
+            <p>
+                <span t-esc="booking_type_name"/> on <strong t-esc="datetime_locale"/>
+            </p>
+
+            <form class="mt32 booking_submit_form" t-attf-action="/website/calendar/#{ booking_type }/submit" method="POST">
+<!--            <form class="mt32 booking_submit_form">-->
+                <input type="hidden" name="csrf_token" t-att-value="csrf_token"/>
+                <input type="hidden" name="datetime_str" t-att-value="datetime_str"/>
+                <input type="hidden" name="employee_id" t-att-value="employee_id"/>
+                <div class="form-group row col-xl-8 form-field">
+                    <label for="name" class="col-md-4 col-form-label">Your Name</label>
+                    <div class="col-md-8">
+                        <input type="char" class="form-control o_website_form_input" name="name" required="1" t-att-value="'name' in partner_data ? partner_data['name'] : ''"/>
+                    </div>
+                </div>
+                <div class="form-group row col-xl-8 form-field">
+                    <label class="col-md-4 col-form-label" for="country_id">Your Country</label>
+                    <div class="col-md-8">
+                        <select name="country_id" class="form-control o_website_form_input" required="1" id="country_field">
+                            <t t-foreach="countries or []" t-as="country">
+                                <option t-att-value="country.id" t-att-data-phone-code="country.phone_code ? ('+' + (country.phone_code)+' ') : None" t-att-selected="partner_data.country_id ? country.id == partner_data['country_id'][0] : false"><t t-esc="country.name"/></option>
+                            </t>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row col-xl-8 form-field">
+                    <label for="email" class="col-md-4 col-form-label">Your Email</label>
+                    <div class="col-md-8">
+                        <input type="email" class="form-control o_website_form_input" name="email" t-att-value="'email' in partner_data ? partner_data['email']: ''" required="1"/>
+                    </div>
+                </div>
+                <div class="form-group row col-xl-8 form-field">
+                    <label for="phone" class="col-md-4 col-form-label">Your Phone</label>
+                    <div class="col-md-8">
+                        <input type="tel" class="form-control o_website_form_input" name="phone" placeholder="+1 (650) 691-3277" required="1" id="phone_field" t-att-value="'mobile' in partner_data ? partner_data['mobile'] : ''"/>
+<!--                        <small t-if="booking_type.reminder_ids.filtered(lambda r:r.alarm_type=='sms')" class="text-muted">-->
+<!--                            A text message reminder is sent to you before your booking-->
+<!--                        </small>-->
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="offset-md-2 col-md-10">
+                        <button type="submit" class="btn btn-primary o_website_form_send">Confirm Booking <span class="fa fa-arrow-right"/></button>
+                            <span id="o_website_form_result"></span>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </t>
+</templates>
+
+
+

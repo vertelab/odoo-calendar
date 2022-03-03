@@ -29,6 +29,8 @@ class ExtendedWebsiteCalendar(WebsiteCalendar):
 
         _logger.warning(f"{booking_type=}")
         if request.env.user.partner_id == request.env.ref('base.public_partner'):
+            # TODO: dont allow public user!
+
             return request.render("website_calendar_waitlist.booking_error", {
                 })
         elif self._has_available_slots(Slots):

@@ -26,6 +26,7 @@
                 </form>
             </div>
         </t>
+
     </t>
 
     <t t-name="BookingEmployees">

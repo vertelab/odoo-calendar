@@ -1,0 +1,56 @@
+<odoo>
+    <template id="online_booking_types" name="Booking Types" inherit_id="website.snippet_options">
+        <xpath expr="." position="inside">
+            <div data-snippet-option-id="booking_type"
+                data-selector=".s_online_booking"
+                data-selector-children=".oe_structure"
+                data-js="one_page_booking_options">
+            </div>
+        </xpath>
+    </template>
+
+    <template id="s_online_booking" name="One-Page Online Booking">
+        <section class="s_online_booking">
+            <div class="container">
+                <div class="oe_structure container mb128 one_page_website_calendar_booking">
+                    <ul class="wizard mt32 float-right nav nav-tabs" id="nav_ids">
+                        <li class="nav-item text-primary">
+                            <a aria-controls="start_booking" role="tab" data-toggle="tab" class="nav-link active" href="#start_booking">Booking</a>
+                            <span class="chevron"></span>
+                        </li>
+                        <li class="nav-item text-muted">
+                            <a aria-controls="time_slot" role="tab" data-toggle="tab" class="nav-link" href="#time_slot">Time</a>
+                            <span class="chevron"></span>
+                        </li>
+                        <li class="nav-item text-muted">
+                            <a aria-controls="booking_confirmation" role="tab" data-toggle="tab" class="nav-link" href="#booking_confirmation">Confirmation</a>
+                            <span class="chevron"></span>
+                        </li>
+                    </ul>
+                    <h1 class="o_page_header mt32" id="booking_header">
+                        Schedule an Booking
+                    </h1>
+
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="start_booking">
+                            <div id="one_page_start_booking"/>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="time_slot">
+                            <div id="one_page_view_booking_availability"/>
+                        </div>
+                        <div role="tabpanel" class="tab-pane" id="booking_confirmation">
+                            <div id="one_page_view_booking_confirmation"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </template>
+
+    <template id="snippets" inherit_id="website.snippets" name="Place into bar">
+        <xpath expr="//div[@id='snippet_structure']/div[hasclass('o_panel_body')]" position="inside">
+            <t t-snippet="one_page_website_calendar.s_online_booking"
+                t-thumbnail="/one_page_website_calendar/static/src/img/calendar.jpg"/>
+        </xpath>
+    </template>
+</odoo>

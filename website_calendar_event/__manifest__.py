@@ -8,11 +8,11 @@
     'summary': 'Schedule bookings with clients',
     'website': 'https://vertel.se/apps/website_calendar_event',
     'description': """
-Link calendar event and projects
--------------------------------------------------------
 
+TODO:
 """,
-   'depends': ['website_calendar_ce', 'project'],
+    'depends': ['website_calendar_ce', 'project'],
+
     'data': [
         'views/calendar_booking_views.xml',
         'views/project.xml',
