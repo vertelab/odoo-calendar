@@ -97,4 +97,13 @@ odoo.define('one_page_website_calendar.one_page_booking_options', function (requ
             return true
         },
     });
+
+    $("document").ready(function(){
+        $("#nav_ids li a").click(function(e){
+            e.preventDefault();
+            var showIt =  $(this).attr('href');
+            $(".tab-pane").hide();
+            $(showIt).show();
+        })
+    })
 })

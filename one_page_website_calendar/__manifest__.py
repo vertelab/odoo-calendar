@@ -15,7 +15,6 @@
     'data': [
         'views/assets.xml',
         'views/snippet.xml',
-
     ],
     'qweb': [
         'static/src/xml/booking.xml',

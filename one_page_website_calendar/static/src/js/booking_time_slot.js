@@ -5,6 +5,9 @@ odoo.define('one_page_website_calendar.one_page_booking_slot', function (require
     var QWeb = core.qweb;
     var publicWidget = require('web.public.widget');
 
+    var ajax = require('web.ajax');
+    ajax.loadXML('/one_page_website_calendar/static/src/xml/booking.xml', QWeb);
+
 
     publicWidget.registry.OnePageWebsiteCalendarWidget = publicWidget.Widget.extend({
         selector: '#one_page_start_booking',
@@ -45,6 +48,7 @@ odoo.define('one_page_website_calendar.one_page_booking_slot', function (require
             }).then(res => {
                 const data = Object.assign({}, res)
                 $('#one_page_view_booking_availability').replaceWith(QWeb.render('BookingCalendarAvailability', data));
+                $('#booking_header').html('Booking Time')
             })
         },
     })

@@ -27,7 +27,7 @@
                             <span class="chevron"></span>
                         </li>
                     </ul>
-                    <h1 class="o_page_header mt32">
+                    <h1 class="o_page_header mt32" id="booking_header">
                         Schedule an Booking
                     </h1>
 
@@ -38,7 +38,9 @@
                         <div role="tabpanel" class="tab-pane" id="time_slot">
                             <div id="one_page_view_booking_availability"/>
                         </div>
-                        <div role="tabpanel" class="tab-pane" id="booking_confirmation">booking_confirmation</div>
+                        <div role="tabpanel" class="tab-pane" id="booking_confirmation">
+                            <div id="one_page_view_booking_confirmation"/>
+                        </div>
                     </div>
                 </div>
             </div>

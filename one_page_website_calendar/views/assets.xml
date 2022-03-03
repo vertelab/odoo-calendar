@@ -1,10 +1,9 @@
 <odoo>
     <template id="assets_frontend" inherit_id="website.assets_frontend" name="Online Booking">
-        <xpath expr="//link[last()]" position="after">
-            <link rel="stylesheet" type="text/scss" href="/one_page_website_calendar/static/src/scss/website_calendar_ce.scss"/>
-        </xpath>
+<!--        <xpath expr="//link[last()]" position="after">-->
+<!--            <link rel="stylesheet" type="text/scss" href="/one_page_website_calendar/static/src/scss/website_calendar_ce.scss" t-ignore="true"/>-->
+<!--        </xpath>-->
         <xpath expr="//script[last()]" position="after">  
-            <script type="text/javascript" src="/one_page_website_calendar/static/src/js/website_calendar_ce.js"/>
             <script type="text/javascript" src="/one_page_website_calendar/static/src/js/booking_time_slot.js"/>
             <script type="text/javascript" src="/one_page_website_calendar/static/src/js/complete_booking.js"/>
         </xpath>

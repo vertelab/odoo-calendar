@@ -42,7 +42,47 @@ class WebsiteCalendar(http.Controller):
         Slots = BookingType.sudo()._get_booking_slots(request.session['timezone'], Employee)
         return {
             'booking_type': BookingType.name,
+            'booking_type_id': BookingType.id,
+            'employee_id': Employee.id,
             'timezone': request.session['timezone'],
             'failed': failed,
             'slots': Slots,
         }
+
+    # @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/info'], type='http', auth="public", website=True)
+    @http.route(['/website/calendar/slot/info'], type='json', auth="public", website=True)
+    def _calendar_slot_booking_form(self, booking_type, employee_id, date_time, **kwargs):
+        partner_data = {}
+        if request.env.user.partner_id != request.env.ref('base.public_partner'):
+            partner_data = request.env.user.partner_id.read(fields=['name', 'mobile', 'country_id', 'email'])[0]
+        day_name = format_datetime(datetime.strptime(date_time, dtf), 'EEE', locale=get_lang(request.env).code)
+        date_formated = format_datetime(datetime.strptime(date_time, dtf), locale=get_lang(request.env).code)
+        BookingType = request.env['calendar.booking.type'].sudo().browse(int(booking_type)) if booking_type else None
+        values = {
+            'partner_data': partner_data,
+            'booking_type': BookingType.id,
+            'booking_type_name': BookingType.name,
+            'datetime': date_time,
+            'datetime_locale': day_name + ' ' + date_formated,
+            'datetime_str': date_time,
+            'employee_id': employee_id,
+            'countries': [
+                {'id': rec.id, 'phone_code': rec.phone_code, 'name': rec.name}
+                for rec in request.env['res.country'].search([])
+            ],
+            'question_ids': [
+                {
+                    'id': question.id,
+                    'question_type': question.question_type,
+                    'name': question.name,
+                    'placeholder': question.placeholder,
+                    'answer_ids':  [
+                        {'id': answer.id, 'name': answer.name}
+                        for answer in question.answer_ids
+                    ],
+                }
+                for question in BookingType.question_ids
+            ],
+            'csrf_token': request.csrf_token()
+        }
+        return values
