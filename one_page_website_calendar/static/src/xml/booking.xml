@@ -53,7 +53,22 @@
             <input type="hidden" name="booking_type_id" t-att-value="booking_type_id"/>
 
             <div t-foreach="slots" t-as="month" class="col-lg-6">
-                <h3 t-esc="month['month']"/>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div class="previous_month">
+                        <a href="#">
+                            <i class="fa fa-fw o_button_icon fa-arrow-left"></i>
+                        </a>
+                    </div>
+                    <div>
+                        <h3 t-esc="month['month']"/>
+                    </div>
+                    <div class="next_month">
+                        <a href="#">
+                            <i class="fa fa-fw o_button_icon fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
                 <table class="table">
                     <tr class="active">
                         <th class="text-center">Mon</th>
@@ -80,7 +95,6 @@
                                                 <a t-if='slot' role="menuitem" class="dropdown-item" t-esc="slot.hours"/>
                                                 <input type="hidden" name="slot_datetime" t-att-value="slot.datetime"/>
                                             </div>
-<!--                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}" t-esc="slot.hours"/>-->
                                         </t>
                                     </div>
                                 </t>
