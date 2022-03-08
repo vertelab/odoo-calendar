@@ -35,11 +35,11 @@ _logger = logging.getLogger(__name__)
 class WebsiteCalendar(http.Controller):
 
     @http.route(['/website/calendar/booking/slots'], type='json', auth="public", website=True)
-    def _get_calendar_booking_slot(self, booking_type=None, employee_id=None, timezone=None, failed=False, **kwargs):
+    def _get_calendar_booking_slot(self, booking_type=None, employee_id=None, timezone=None, month=0, failed=False, **kwargs):
         BookingType = request.env['calendar.booking.type'].sudo().browse(int(booking_type)) if booking_type else None
         request.session['timezone'] = timezone or BookingType.booking_tz
         Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
-        Slots = BookingType.sudo()._get_booking_slots(request.session['timezone'], Employee)
+        Slots = BookingType.sudo()._get_advanced_booking_slots(request.session['timezone'], int(month), Employee)
         return {
             'booking_type': BookingType.name,
             'booking_type_id': BookingType.id,
