@@ -91,7 +91,7 @@
                                           <span>and not after </span><field name="max_schedule_days" class="oe_inline"/><span> days</span>
                                         </div>
                                     </div>
-                                    <label for="min_cancellation_hours" string="Allow Cancelling"/>
+                                    <label for="min_cancellation_hours" string="Allow Cancellation"/>
                                     <div>
                                         <div>
                                           <span>until </span><field name="min_cancellation_hours" class="oe_inline" widget="float_time"/><span> hours before</span>

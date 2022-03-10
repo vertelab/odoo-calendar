@@ -19,7 +19,7 @@
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='mymeetings']" position="after">
                 <separator/>
-                <filter string="Online Bokkings" domain="[('booking_type_id', '!=', False)]" name="online"/>
+                <filter string="Online Bookings" domain="[('booking_type_id', '!=', False)]" name="online"/>
                 <separator/>
                 <field name="booking_type_id"/>
             </xpath>
@@ -61,7 +61,7 @@
     </record>
 
     <record id="calendar_event_action_reporting" model="ir.actions.act_window">
-        <field name="name">Online Bookingss</field>
+        <field name="name">Online Bookings</field>
         <field name="res_model">calendar.event</field>
         <field name="view_mode">graph,pivot,calendar,form</field>
         <field name="context">{'search_default_online': True}</field>

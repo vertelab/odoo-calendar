@@ -51,7 +51,7 @@ class CalendarBookingType(models.Model):
 
     country_ids = fields.Many2many(
         'res.country', 'website_calendar_type_country_rel', string='Restrict Countries',
-        help="Keep empty to allow visitors from any country, otherwise you only allow visitors from selected countries")
+        help="If empty, allow visitors from any country, otherwise only allow visitors from selected countries")
     question_ids = fields.One2many('calendar.booking.question', 'booking_type_id', string='Questions', copy=True)
 
     slot_ids = fields.One2many('calendar.booking.slot', 'booking_type_id', 'Availabilities', copy=True)
