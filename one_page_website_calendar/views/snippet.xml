@@ -15,20 +15,20 @@
                 <div class="oe_structure container mb128 one_page_website_calendar_booking">
                     <ul class="wizard mt32 float-right nav nav-tabs" id="nav_ids">
                         <li class="nav-item text-primary">
-                            <a aria-controls="start_booking" role="tab" data-toggle="tab" class="nav-link active" href="#start_booking">Booking</a>
+                            <a aria-controls="start_booking" role="tab" data-toggle="tab" class="nav-link active" href="#start_booking">Bokning</a>
                             <span class="chevron"></span>
                         </li>
                         <li class="nav-item text-muted">
-                            <a aria-controls="time_slot" role="tab" data-toggle="tab" class="nav-link" href="#time_slot">Time</a>
+                            <a aria-controls="time_slot" role="tab" data-toggle="tab" class="nav-link" href="#time_slot">Tid</a>
                             <span class="chevron"></span>
                         </li>
                         <li class="nav-item text-muted">
-                            <a aria-controls="booking_confirmation" role="tab" data-toggle="tab" class="nav-link" href="#booking_confirmation">Confirmation</a>
+                            <a aria-controls="booking_confirmation" role="tab" data-toggle="tab" class="nav-link" href="#booking_confirmation">Bekräfta</a>
                             <span class="chevron"></span>
                         </li>
                     </ul>
                     <h1 class="o_page_header mt32" id="booking_header">
-                        Schedule an Booking
+                        Boka ett Tillfälle
                     </h1>
 
                     <div class="tab-content">
