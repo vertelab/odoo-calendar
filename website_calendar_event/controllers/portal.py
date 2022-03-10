@@ -25,14 +25,14 @@ _logger = logging.getLogger(__name__)
 
 class CustomerPortalExtension(CustomerPortal):
     def _get_base_booking_domain(self):
-        return [('partner_id', '=', request.env.user.partner_id.id), # The correct person
-                ('kanban_state', '!=', 'blocked'),                   # In an uncancelled event
+        return [('partner_ids', 'in', request.env.user.partner_id.id), # The correct person
+                # ~ ('kanban_state', '!=', 'blocked'),                   # In an uncancelled event
                 ('start', '>=', datetime.date.today())]              # That hasn't already happened
 
     def _get_booking_count(self, domain=None):
         if domain is None:
             domain = self._get_base_booking_domain()
-        return request.env['project.task'].sudo().search_count(domain)
+        return request.env["calendar.event"].sudo().search_count(domain)
 
     def _prepare_home_portal_values(self, counters):
         values = super()._prepare_home_portal_values(counters)
@@ -66,14 +66,17 @@ class CustomerPortalExtension(CustomerPortal):
             page=page,
             step=self._items_per_page
         )
-
-        tasks = request.env["project.task"].sudo().search(domain, order=order, limit=self._items_per_page, offset=pager['offset'])
-        request.session['my_bookings_history'] = tasks.ids[:100]
-
+        _logger.warning("#"*999)
+        _logger.warning(f"{domain=} {order=}")
+        # ~ tasks = request.env["project.task"].sudo().search(domain, order=order, limit=self._items_per_page, offset=pager['offset'])
+        # ~ domain=[('partner_id', '=', 91), ('kanban_state', '!=', 'blocked'), ('start', '>=', datetime.date(2022, 3, 4))]
+        calender_booking = request.env["calendar.event"].sudo().search(domain, order=order, limit=self._items_per_page, offset=pager['offset'])
+        request.session['my_bookings_history'] = calender_booking.ids[:100]
+        _logger.warning(f"{calender_booking=}")
         values.update({
             'date': date_begin,
             'date_end': date_end,
-            'bookings': tasks,
+            'bookings': calender_booking,
             'page_name': 'booking',
             'default_url': '/my/bookings',
             'pager': pager,

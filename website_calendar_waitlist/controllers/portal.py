@@ -48,7 +48,8 @@ class CustomerPortalExtension(CustomerPortal):
     def portal_my_waitlists(self, page=1, date_begin=None, date_end=None, sortby=None, **kw):
         values = self._prepare_portal_layout_values()
         domain = self._get_base_waitlist_domain()
-
+        _logger.warning("#"*999)
+        _logger.warning(f"{self=} {page=} {date_begin=} {date_end=} {sortby=} {kw=}")
         searchbar_sortings = {
             'date': {'label': _('Newest'), 'order': 'create_date asc'},
             'name': {'label': _('Name'), 'order': 'name'},
@@ -69,10 +70,10 @@ class CustomerPortalExtension(CustomerPortal):
             page=page,
             step=self._items_per_page
         )
-
+        _logger.warning(f"{domain=} {order=}")
         tasks = request.env["calendar.booking.type.waitlist"].sudo().search(domain, order=order, limit=self._items_per_page, offset=pager['offset'])
         request.session['my_bookings_history'] = tasks.ids[:100]
-
+        _logger.warning(f"{tasks=}")
         values.update({
             'date': date_begin,
             'date_end': date_end,
@@ -83,6 +84,8 @@ class CustomerPortalExtension(CustomerPortal):
             'searchbar_sortings': searchbar_sortings,
             'sortby': sortby
         })
+        _logger.warning(f"{values=}")
+        _logger.warning("*"*999)
         return request.render("website_calendar_waitlist.portal_my_waitlists", values)
 
     @http.route(['/my/waitlists/cancel'], type='http', auth="user", website=True)
