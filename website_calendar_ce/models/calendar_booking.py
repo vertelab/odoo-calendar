@@ -29,6 +29,7 @@ from odoo.tools.misc import get_lang
 from odoo.addons.base.models.res_partner import _tz_get
 from odoo.addons.http_routing.models.ir_http import slug
 from odoo.exceptions import ValidationError
+import pandas as pd
 
 
 class CalendarBookingType(models.Model):
@@ -324,6 +325,19 @@ class CalendarBookingType(models.Model):
             start = start + relativedelta(months=1)
         return months
 
+    def open_booking_wizard(self):
+        return {
+            'view_mode': 'form',
+            'res_model': 'calendar.booking.slot.wizard',
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'view_id': self.env.ref('website_calendar_ce.time_slot_wizard').id,
+            'context': {
+                'default_booking_id': self.id,
+                'default_booking_duration': self.booking_duration
+            }
+        }
+
 
 class CalendarBookingSlot(models.Model):
     _name = "calendar.booking.slot"
@@ -351,6 +365,54 @@ class CalendarBookingSlot(models.Model):
     def name_get(self):
         weekdays = dict(self._fields['weekday'].selection)
         return self.mapped(lambda slot: (slot.id, "%s, %02d:%02d" % (weekdays.get(slot.weekday), int(slot.hour), int(round((slot.hour % 1) * 60)))))
+
+
+class CalendarBookingSlotWizard(models.TransientModel):
+    _name = "calendar.booking.slot.wizard"
+    _description = "Set Time Slot"
+
+    time_from = fields.Char(string="Starting Hour", required=True, default="00:00")
+    time_to = fields.Char(string="Ending Hour", required=True, default="00:00")
+    booking_duration = fields.Char(string="Booking Duration", required=True)
+    booking_id = fields.Many2one('calendar.booking.type', string="Booking", required=True)
+
+    sunday = fields.Boolean(string="Sunday")
+    monday = fields.Boolean(string="Monday")
+    tuesday = fields.Boolean(string="Tuesday")
+    wednesday = fields.Boolean(string="Wednesday")
+    thursday = fields.Boolean(string="Thursday")
+    friday = fields.Boolean(string="Friday")
+    saturday = fields.Boolean(string="Saturday")
+
+    def compute_slot(self):
+        fmt = '%H:%M'
+        time_from = datetime.strptime(self.time_from, fmt)
+        time_to = datetime.strptime(self.time_to, fmt)
+        frequency = '%sH' % self.booking_duration
+        date_range = pd.date_range(start=time_from, end=time_to, freq=frequency)
+        if self.monday:
+            self._populate_slot(date_range, fmt, 1)
+        if self.tuesday:
+            self._populate_slot(date_range, fmt, 2)
+        if self.wednesday:
+            self._populate_slot(date_range, fmt, 3)
+        if self.thursday:
+            self._populate_slot(date_range, fmt, 4)
+        if self.friday:
+            self._populate_slot(date_range, fmt, 5)
+        if self.saturday:
+            self._populate_slot(date_range, fmt, 6)
+        if self.sunday:
+            self._populate_slot(date_range, fmt, 7)
+
+    def _populate_slot(self, date_range, fmt, weekday):
+        for time_interval in date_range:
+            float_hour = float(time_interval.strftime(fmt).replace(':', '.'))
+            self.env['calendar.booking.slot'].create({
+                'booking_type_id': self.booking_id.id,
+                'hour': float_hour,
+                'weekday': str(weekday)
+            })
 
 
 class CalendarBookingQuestion(models.Model):

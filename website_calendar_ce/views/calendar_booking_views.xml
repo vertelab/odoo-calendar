@@ -116,6 +116,8 @@
                             </field>
                         </page>
                         <page string="Slots" name="slots">
+                            <button name="open_booking_wizard" string="Set Slot" class="btn btn-primary" type="object"/>
+                            <br/>
                             <field name="slot_ids">
                                 <tree editable="bottom">
                                     <field name="weekday"/>
@@ -209,5 +211,64 @@
         parent="website.menu_website_global_configuration"
         action="calendar_booking_type_action"
         sequence="200"/>
+
+
+    <record model="ir.ui.view" id="time_slot_wizard">
+        <field name="name">Time Slot Wizard</field>
+        <field name="model">calendar.booking.slot.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <div style="display:flex;flex-direction:row;">
+                        <div style="margin-left: 40px;">
+                            <label for="sunday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="sunday" nolabel="1"/>
+                        </div>
+                        <div style="margin-left: 40px;">
+                            <label for="monday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="monday" nolabel="1"/>
+                        </div>
+                        <div style="margin-left: 40px;">
+                            <label for="tuesday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="tuesday" nolabel="1"/>
+                        </div>
+                        <div style="margin-left: 40px;">
+                            <label for="wednesday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="wednesday" nolabel="1"/>
+                        </div>
+                        <div style="margin-left: 40px;">
+                            <label for="thursday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="thursday" nolabel="1"/>
+                        </div>
+
+                        <div style="margin-left: 40px;">
+                            <label for="friday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="friday" nolabel="1"/>
+                        </div>
+
+                        <div style="margin-left: 40px;">
+                            <label for="saturday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="saturday" nolabel="1" style="position: unset !important;"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <field name="booking_id"/>
+                        <field name="time_from"/>
+                    </group>
+                    <group>
+                        <label for="booking_duration"/>
+                        <div>
+                              <field name="booking_duration" class="oe_inline"/><span> hours</span>
+                        </div>
+                        <field name="time_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Compute Slot" class="oe_highlight" type="object" name="compute_slot"/>
+                </footer>
+            </form>
+        </field>
+    </record>
 
 </odoo>
