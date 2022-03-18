@@ -221,10 +221,6 @@
                 <group>
                     <div style="display:flex;flex-direction:row;">
                         <div style="margin-left: 40px;">
-                            <label for="sunday" style="margin: 0 15px 0 0 !important;"/>
-                            <field name="sunday" nolabel="1"/>
-                        </div>
-                        <div style="margin-left: 40px;">
                             <label for="monday" style="margin: 0 15px 0 0 !important;"/>
                             <field name="monday" nolabel="1"/>
                         </div>
@@ -250,6 +246,10 @@
                             <label for="saturday" style="margin: 0 15px 0 0 !important;"/>
                             <field name="saturday" nolabel="1" style="position: unset !important;"/>
                         </div>
+                        <div style="margin-left: 40px;">
+                            <label for="sunday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="sunday" nolabel="1"/>
+                        </div>
                     </div>
 
                     <group>
@@ -259,7 +259,7 @@
                     <group>
                         <label for="booking_duration"/>
                         <div>
-                              <field name="booking_duration" class="oe_inline"/><span> hours</span>
+                              <field name="booking_duration" widget="float_time" class="oe_inline"/><span> hours</span>
                         </div>
                         <field name="time_to"/>
                     </group>

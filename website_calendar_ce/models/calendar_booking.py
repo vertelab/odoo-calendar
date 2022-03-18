@@ -376,13 +376,14 @@ class CalendarBookingSlotWizard(models.TransientModel):
     booking_duration = fields.Char(string="Booking Duration", required=True)
     booking_id = fields.Many2one('calendar.booking.type', string="Booking", required=True)
 
-    sunday = fields.Boolean(string="Sunday")
+    
     monday = fields.Boolean(string="Monday")
     tuesday = fields.Boolean(string="Tuesday")
     wednesday = fields.Boolean(string="Wednesday")
     thursday = fields.Boolean(string="Thursday")
     friday = fields.Boolean(string="Friday")
     saturday = fields.Boolean(string="Saturday")
+    sunday = fields.Boolean(string="Sunday")
 
     def compute_slot(self):
         fmt = '%H:%M'
@@ -405,9 +406,17 @@ class CalendarBookingSlotWizard(models.TransientModel):
         if self.sunday:
             self._populate_slot(date_range, fmt, 7)
 
+    def conv_time_float(self, time):
+        vals = time.split(':')
+        t, hours = divmod(float(vals[0]), 24)
+        t, minutes = divmod(float(vals[1]), 60)
+        minutes = minutes / 60.0
+        return hours + minutes
+
     def _populate_slot(self, date_range, fmt, weekday):
         for time_interval in date_range:
-            float_hour = float(time_interval.strftime(fmt).replace(':', '.'))
+            float_hour_string = time_interval.strftime(fmt)
+            float_hour = self.conv_time_float(float_hour_string)
             self.env['calendar.booking.slot'].create({
                 'booking_type_id': self.booking_id.id,
                 'hour': float_hour,

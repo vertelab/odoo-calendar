@@ -25,7 +25,7 @@
         </xpath>
     </template>
 
-    <template id="qunit_suite" inherit_id="web.qunit_suite" name="Website Calendar Tests" >
+    <template id="qunit_suite" inherit_id="web.qunit_suite" name="Website Calendar Tests">
         <xpath expr="//t[@t-set='head']" position="inside">
             <script type="text/javascript" src="website_calendar_ce/static/tests/website_calendar_tests.js"/>
         </xpath>
@@ -37,9 +37,12 @@
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure container mb128 o_website_calendar_booking">
                     <ul class="wizard mt32 float-right">
-                        <li class="text-primary">Booking<span class="chevron"></span></li>
-                        <li class="text-muted">Time<span class="chevron"></span></li>
-                        <li class="text-muted">Confirmation<span class="chevron"></span></li>
+                        <li class="text-primary">Booking<span class="chevron"></span>
+                        </li>
+                        <li class="text-muted">Time<span class="chevron"></span>
+                        </li>
+                        <li class="text-muted">Confirmation<span class="chevron"></span>
+                        </li>
                     </ul>
                     <h1 class="o_page_header mt32">
                         Schedule an Booking
@@ -51,24 +54,25 @@
                         </p>
                     </div>
                     <form class="o_website_appoinment_form w-md-50" t-attf-action="/website/calendar/#{ slug(booking_type) }/booking" type="post">
-                      <div id="booking" class="form-group row">
-                        <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
-                        <div class="col-md-9">
-                          <select class="form-control" id="calendarType" t-att-disabled="len(suggested_booking_types)==1 and '1' or None">
-                            <t t-foreach="suggested_booking_types" t-as="cal">
-                                <option t-att-value="cal.id" t-att-selected="cal.id == booking_type.id and 'selected'">
-                                    <t t-esc="cal.name"/>
-                                </option>
-                            </t>
-                          </select>
+                        <div id="booking" class="form-group row">
+                            <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
+                            <div class="col-md-9">
+                                <select class="form-control" id="calendarType" t-att-disabled="len(suggested_booking_types)==1 and '1' or None">
+                                    <t t-foreach="suggested_booking_types" t-as="cal">
+                                        <option t-att-value="cal.id" t-att-selected="cal.id == booking_type.id and 'selected'">
+                                            <t t-esc="cal.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
                         </div>
-                      </div>
-                      <t t-call="website_calendar_ce.employee_select"/>
-                      <div class="form-group row">
-                        <div class="offset-md-8 col-md-4">
-                            <button type="submit" class="btn btn-primary">View Availabilities <span class="fa fa-arrow-right"/></button>
+                        <t t-call="website_calendar_ce.employee_select"/>
+                        <div class="form-group row">
+                            <div class="offset-md-8 col-md-4">
+                                <button type="submit" class="btn btn-primary">View Availabilities <span class="fa fa-arrow-right"/>
+                                </button>
+                            </div>
                         </div>
-                      </div>
                     </form>
                     <div t-raw="booking_type.message_intro" class="o_calendar_intro mb32"/>
                 </div>
@@ -77,33 +81,33 @@
     </template>
 
     <template id="employee_select" name="Website Booking: Booking Calendars">
-      <div name="employee_select" t-att-class="'form-group ' + (booking_type.assignation_method!='chosen' and 'o_hidden' or '')">
-        <label for="selectEmployee" class="col-md-4 col-form-label">With:</label>
-        <div class="col-md-7">
-          <!-- do not add the disabled tag or it won't be submitted with the form -->
-          <select class="form-control" name="employee_id" id="selectEmployee">
-            <t t-foreach="suggested_employees" t-as="emp">
-                <option t-att-value="emp[0]" t-att-selected="emp[0] == selected_employee_id and 'selected'">
-                    <t t-esc="emp[1]"/>
-                </option>
-            </t>
-          </select>
+        <div name="employee_select" t-att-class="'form-group ' + (booking_type.assignation_method!='chosen' and 'o_hidden' or '')">
+            <label for="selectEmployee" class="col-md-4 col-form-label">With:</label>
+            <div class="col-md-7">
+                <!-- do not add the disabled tag or it won't be submitted with the form -->
+                <select class="form-control" name="employee_id" id="selectEmployee">
+                    <t t-foreach="suggested_employees" t-as="emp">
+                        <option t-att-value="emp[0]" t-att-selected="emp[0] == selected_employee_id and 'selected'">
+                            <t t-esc="emp[1]"/>
+                        </option>
+                    </t>
+                </select>
+            </div>
         </div>
-      </div>
     </template>
 
     <template id="booking_select_timezone" inherit_id="website_calendar_ce.index" active="False" customize_show="True" name="Website Booking: Timezone Selection">
         <xpath expr="//div[@id='booking']" position="after">
-          <div class="form-group row">
-            <label for="calendarTimezone" class="col-md-3 col-form-label">Time zone:</label>
-            <div class="col-md-9">
-              <select class="form-control" name="timezone">
-                <t t-foreach="booking_type._fields['booking_tz'].selection(booking_type)" t-as="timezone">
-                    <option t-att-value="timezone[0]" t-esc="timezone[1]" t-att-selected="(timezone[1] == request.session.timezone) and 1 or None"/>
-                </t>
-              </select>
+            <div class="form-group row">
+                <label for="calendarTimezone" class="col-md-3 col-form-label">Time zone:</label>
+                <div class="col-md-9">
+                    <select class="form-control" name="timezone">
+                        <t t-foreach="booking_type._fields['booking_tz'].selection(booking_type)" t-as="timezone">
+                            <option t-att-value="timezone[0]" t-esc="timezone[1]" t-att-selected="(timezone[1] == request.session.timezone) and 1 or None"/>
+                        </t>
+                    </select>
+                </div>
             </div>
-          </div>
         </xpath>
     </template>
 
@@ -126,9 +130,9 @@
                             <td t-attf-class="text-center#{day['slots'] and ' o_day dropdown' or ''} #{day['weekend_cls']} #{day['today_cls']}" t-attf-title="#{day['today_cls'] and 'Today' or ''}">
                                 <t t-if="day['slots']">
                                     <div class="dropdown-toggle o_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                      <strong>
-                                        <span t-esc="day['day'].day"/>
-                                      </strong>
+                                        <strong>
+                                            <span t-esc="day['day'].day"/>
+                                        </strong>
                                     </div>
                                     <div class="dropdown-menu" role="menu">
                                         <t t-foreach="day['slots']" t-as="slot">
@@ -148,7 +152,8 @@
             </div>
         </div>
         <p>
-            Time displayed in <strong t-esc="timezone"/> timezone
+            Time displayed in <strong t-esc="timezone"/>
+ timezone
         </p>
     </template>
 
@@ -157,9 +162,14 @@
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure container mb128">
                     <ul class="wizard mt32 float-right">
-                        <li><a t-attf-href="/website/calendar" class="text-success">Booking</a><span class="chevron"></span></li>
-                        <li class="text-primary">Time<span class="chevron"></span></li>
-                        <li class="text-muted">Confirmation<span class="chevron"></span></li>
+                        <li>
+                            <a t-attf-href="/website/calendar" class="text-success">Booking</a>
+                            <span class="chevron"></span>
+                        </li>
+                        <li class="text-primary">Time<span class="chevron"></span>
+                        </li>
+                        <li class="text-muted">Confirmation<span class="chevron"></span>
+                        </li>
                     </ul>
                     <h1 class="o_page_header mt32">Booking Time</h1>
                     <div t-if="failed=='employee'" class="alert alert-danger mt16" role="alert">
@@ -168,7 +178,8 @@
                             The selected timeslot is not available anymore.
                             Someone has booked the same time slot a few
                             seconds before you.
-                        </p><p>
+                        </p>
+                        <p>
                             Please, select another date.
                         </p>
                     </div>
@@ -177,15 +188,16 @@
                             <strong>Booking failed!</strong>
                             The selected timeslot is not available.
                             It appears you already have another meeting with us at that date.
-                        </p><p>
+                        </p>
+                        <p>
                             Please, select another date.
                         </p>
                     </div>
                     <div class="mb8">
                         <t t-call="website.publish_management">
-                          <t t-set="object" t-value="booking_type"/>
-                          <t t-set="publish_edit" t-value="True"/>
-                          <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>
+                            <t t-set="object" t-value="booking_type"/>
+                            <t t-set="publish_edit" t-value="True"/>
+                            <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>
                         </t>
                     </div>
                     <div class="clearfix"/>
@@ -200,109 +212,125 @@
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure container mb128 o_website_calendar_form">
                     <ul class="wizard mt32 float-right">
-                        <li><a t-attf-href="/website/calendar" class="text-success">Booking</a><span class="chevron"></span></li>
-                        <li><a t-attf-href="/website/calendar/#{ slug(booking_type) }/booking" class="text-success">Time</a><span class="chevron"></span></li>
-                        <li class="text-primary">Confirmation<span class="chevron"></span></li>
+                        <li>
+                            <a t-attf-href="/website/calendar" class="text-success">Booking</a>
+                            <span class="chevron"></span>
+                        </li>
+                        <li>
+                            <a t-attf-href="/website/calendar/#{ slug(booking_type) }/booking" class="text-success">Time</a>
+                            <span class="chevron"></span>
+                        </li>
+                        <li class="text-primary">Confirmation<span class="chevron"></span>
+                        </li>
                     </ul>
                     <h2 class="o_page_header mt32">Confirm your details</h2>
                     <p>
-                        <span t-field="booking_type.name"/> on <strong t-esc="datetime_locale"/>
+                        <span t-field="booking_type.name"/>
+ on <strong t-esc="datetime_locale"/>
                     </p>
 
                     <form class="mt32 booking_submit_form" t-attf-action="/website/calendar/#{ slug(booking_type) }/submit" method="POST">
-                      <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                      <input type="hidden" name="datetime_str" t-att-value="datetime_str"/>
-                      <input type="hidden" name="employee_id" t-att-value="employee_id"/>
-                      <div class="form-group row col-xl-8 form-field">
-                        <label for="name" class="col-md-4 col-form-label">Your Name</label>
-                        <div class="col-md-8">
-                          <input type="char" class="form-control o_website_form_input" name="name" required="1" t-att-value="'name' in partner_data and partner_data['name']"/>
-                        </div>
-                    </div><div class="form-group row col-xl-8 form-field">
-                        <label class="col-md-4 col-form-label" for="country_id">Your Country</label>
-                        <div class="col-md-8">
-                          <select name="country_id" class="form-control o_website_form_input" required="1" id="country_field">
-                              <t t-if="'country_id' not in partner_data or not partner_data['country_id']">
-                                <option disabled="1" selected="1"> -- select a country -- </option>
-                              </t>
-                              <t t-foreach="countries or []" t-as="country">
-                                  <option t-att-value="country.id" t-att-data-phone-code="country.phone_code and ('+'+str(country.phone_code)+' ') or None" t-att-selected="partner_data.get('country_id') and country.id == partner_data['country_id'][0]"><t t-esc="country.name"/></option>
-                              </t>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div class="form-group row col-xl-8 form-field">
-                        <label for="email" class="col-md-4 col-form-label">Your Email</label>
-                        <div class="col-md-8">
-                          <input type="email" class="form-control o_website_form_input" name="email" t-att-value="'email' in partner_data and partner_data['email']" required="1"/>
-                        </div>
-                    </div><div class="form-group row col-xl-8 form-field">
-                        <label for="phone" class="col-md-4 col-form-label">Your Phone</label>
-                        <div class="col-md-8">
-                          <input type="tel" class="form-control o_website_form_input" name="phone" placeholder="+1 (650) 691-3277" required="1" id="phone_field" t-att-value="'mobile' in partner_data and partner_data['mobile']"/>
-                          <small t-if="booking_type.reminder_ids.filtered(lambda r:r.alarm_type=='sms')" class="text-muted">
-                              A text message reminder is sent to you before your booking
-                          </small>
-                        </div>
-                      </div>
-
-                      <t t-foreach="booking_type.question_ids" t-as="question">
-                          <div class="form-group row col-xl-8 form-field" t-if="question.question_type!='text'">
-                            <label t-att-for="question_#{question.id}" class="col-md-4 col-form-label" t-esc="question.name"/>
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="datetime_str" t-att-value="datetime_str"/>
+                        <input type="hidden" name="employee_id" t-att-value="employee_id"/>
+                        <div class="form-group row col-xl-8 form-field">
+                            <label for="name" class="col-md-4 col-form-label">Your Name</label>
                             <div class="col-md-8">
-                              <t t-if="question.question_type=='char'">
-                                  <input type="char" class="form-control o_website_form_input"
-                                        t-attf-name="question_#{question.id}"
-                                        t-att-required="question.question_required or None"
-                                        t-att-placeholder="question.placeholder"/>
-                              </t>
-                              <t t-if="question.question_type=='select'">
-                                  <select t-attf-name="question_#{question.id}" class="form-control o_website_form_input"
-                                        t-att-required="question.question_required or None"
-                                        t-att-placeholder="question.placeholder">
-                                      <t t-foreach="question.answer_ids or []" t-as="answer">
-                                          <option t-att-value="answer.name"><t t-esc="answer.name"/></option>
-                                      </t>
-                                  </select>
-                              </t>
-                              <t t-if="question.question_type=='radio'">
-                                  <div class="checkbox" t-foreach="question.answer_ids or []" t-as="answer">
-                                      <label>
-                                          <input type="radio" t-attf-name="question_#{question.id}"
-                                            t-att-required="question.question_required or None"
-                                            t-att-value="answer.name" class="o_website_form_input"/> <t t-esc="answer.name"/>
-                                      </label>
-                                  </div>
-                              </t>
-                              <t t-if="question.question_type=='checkbox'">
-                                  <div class="checkbox" t-foreach="question.answer_ids or []" t-as="answer">
-                                      <label>
-                                          <input type="checkbox" t-attf-name="question_#{question.id}_answer_#{answer.id}"
-                                            t-att-required="question.question_required or None"
-                                            t-att-value="answer.name" class="o_website_form_input"/><t t-esc="answer.name"/>
-                                      </label>
-                                  </div>
-                              </t>
+                                <input type="char" class="form-control o_website_form_input" name="name" required="1" t-att-value="'name' in partner_data and partner_data['name']"/>
                             </div>
-                          </div>
-                          <div class="form-group row col-xl-8" t-if="question.question_type=='text'">
-                              <label t-att-for="question_#{question.id}" class="col-md-4 col-form-label" t-esc="question.name"/>
-                              <div class="col-md-8">
-                                  <textarea class="form-control o_website_form_input" rows="8"
-                                      t-att-required="question.question_required or None"
-                                      t-attf-name="question_#{question.id}"
-                                      t-att-placeholder="question.placeholder"/>
-                              </div>
-                          </div>
-                      </t>
-
-                      <div class="form-group row">
-                        <div class="offset-md-2 col-md-10">
-                          <button type="submit" class="btn btn-primary o_website_form_send">Confirm Booking <span class="fa fa-arrow-right"/></button>
-                          <span id="o_website_form_result"></span>
                         </div>
-                      </div>
+                        <div class="form-group row col-xl-8 form-field" hidden="1">
+                            <label class="col-md-4 col-form-label" for="country_id">Your Country</label>
+                            <div class="col-md-8">
+                                <select name="country_id" class="form-control o_website_form_input" required="1" id="country_field">
+                                    <t t-if="'country_id' not in partner_data or not partner_data['country_id']">
+                                        <option disabled="1" selected="1"> -- select a country -- </option>
+                                    </t>
+                                    <t t-foreach="countries or []" t-as="country">
+                                        <option t-att-value="country.id" t-att-data-phone-code="country.phone_code and ('+'+str(country.phone_code)+' ') or None" t-att-selected="partner_data.get('country_id') and country.id == partner_data['country_id'][0]">
+                                            <t t-esc="country.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group row col-xl-8 form-field">
+                            <label for="company" class="col-md-4 col-form-label">Your Company</label>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control o_website_form_input" name="company" required="1"/>
+                            </div>
+                        </div>
+                        <div class="form-group row col-xl-8 form-field">
+                            <label for="email" class="col-md-4 col-form-label">Your Email</label>
+                            <div class="col-md-8">
+                                <input type="email" class="form-control o_website_form_input" name="email" t-att-value="'email' in partner_data and partner_data['email']" required="1"/>
+                            </div>
+                        </div>
+                        <div class="form-group row col-xl-8 form-field">
+                            <label for="phone" class="col-md-4 col-form-label">Your Phone</label>
+                            <div class="col-md-8">
+                                <input type="tel" class="form-control o_website_form_input" name="phone" placeholder="+1 (650) 691-3277" required="1" id="phone_field" t-att-value="'mobile' in partner_data and partner_data['mobile']"/>
+                                <small t-if="booking_type.reminder_ids.filtered(lambda r:r.alarm_type=='sms')" class="text-muted">
+                              A text message reminder is sent to you before your booking
+                                </small>
+                            </div>
+                        </div>
+                        <div class="form-group row col-xl-8 form-field">
+                            <label for="comment" class="col-md-4 col-form-label">Comment</label>
+                            <div class="col-md-8">
+                                <textarea rows="4" class="form-control o_website_form_input" name="comment" required="1"></textarea>
+                            </div>
+                        </div>
+
+                        <t t-foreach="booking_type.question_ids" t-as="question">
+                            <div class="form-group row col-xl-8 form-field" t-if="question.question_type!='text'">
+                                <label t-att-for="question_#{question.id}" class="col-md-4 col-form-label" t-esc="question.name"/>
+                                <div class="col-md-8">
+                                    <t t-if="question.question_type=='char'">
+                                        <input type="char" class="form-control o_website_form_input" t-attf-name="question_#{question.id}" t-att-required="question.question_required or None" t-att-placeholder="question.placeholder"/>
+                                    </t>
+                                    <t t-if="question.question_type=='select'">
+                                        <select t-attf-name="question_#{question.id}" class="form-control o_website_form_input" t-att-required="question.question_required or None" t-att-placeholder="question.placeholder">
+                                            <t t-foreach="question.answer_ids or []" t-as="answer">
+                                                <option t-att-value="answer.name">
+                                                    <t t-esc="answer.name"/>
+                                                </option>
+                                            </t>
+                                        </select>
+                                    </t>
+                                    <t t-if="question.question_type=='radio'">
+                                        <div class="checkbox" t-foreach="question.answer_ids or []" t-as="answer">
+                                            <label>
+                                                <input type="radio" t-attf-name="question_#{question.id}" t-att-required="question.question_required or None" t-att-value="answer.name" class="o_website_form_input"/>
+                                                <t t-esc="answer.name"/>
+                                            </label>
+                                        </div>
+                                    </t>
+                                    <t t-if="question.question_type=='checkbox'">
+                                        <div class="checkbox" t-foreach="question.answer_ids or []" t-as="answer">
+                                            <label>
+                                                <input type="checkbox" t-attf-name="question_#{question.id}_answer_#{answer.id}" t-att-required="question.question_required or None" t-att-value="answer.name" class="o_website_form_input"/>
+                                                <t t-esc="answer.name"/>
+                                            </label>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                            <div class="form-group row col-xl-8" t-if="question.question_type=='text'">
+                                <label t-att-for="question_#{question.id}" class="col-md-4 col-form-label" t-esc="question.name"/>
+                                <div class="col-md-8">
+                                    <textarea class="form-control o_website_form_input" rows="8" t-att-required="question.question_required or None" t-attf-name="question_#{question.id}" t-att-placeholder="question.placeholder"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <div class="form-group row">
+                            <div class="offset-md-2 col-md-10">
+                                <button type="submit" class="btn btn-primary o_website_form_send">Confirm Booking <span class="fa fa-arrow-right"/>
+                                </button>
+                                <span id="o_website_form_result"></span>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -313,7 +341,8 @@
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure container mb128">
-                    <h1 class="o_page_header">Booking: <span t-esc="event.name"/></h1>
+                    <h1 class="o_page_header">Booking: <span t-esc="event.name"/>
+                    </h1>
                     <div class="alert alert-info" t-if="message=='new'" role="status">
                         <p>
                             <strong>Your booking has been successfully booked!</strong>
@@ -321,78 +350,87 @@
                     </div>
                     <div class="alert alert-danger" t-if="message=='no-cancel'" role="alert">
                         <p>
-                            <strong>Your booking is in less than <t t-esc="event.booking_type_id.min_cancellation_hours"/> hours from now!</strong><br/>
+                            <strong>Your booking is in less than <t t-esc="event.booking_type_id.min_cancellation_hours"/>
+ hours from now!</strong>
+                            <br/>
                             It's too late to cancel online, please contact the attendees another way if you really can't make it.
                         </p>
                     </div>
                     <div class="row">
-                      <t t-if="event.booking_type_id">
-                          <div t-raw="event.booking_type_id.message_confirmation" style="margin-bottom:10px;"/>
-                      </t>
-                      <div class="col-md-9">
-                        <div class="row">
-                            <div class="col-md-2 text-right">
-                                <label>When:</label>
+                        <t t-if="event.booking_type_id">
+                            <div t-raw="event.booking_type_id.message_confirmation" style="margin-bottom:10px;"/>
+                        </t>
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="col-md-2 text-right">
+                                    <label>When:</label>
+                                </div>
+                                <div class="col-md-10">
+                                    <t t-esc="datetime_start"/>
+                                    <br/>
+                                    <i class="text-muted">(timezone: <t t-esc="request.session.timezone"/>
+)</i>
+                                </div>
                             </div>
-                            <div class="col-md-10">
-                                <t t-esc="datetime_start"/>
-                                <br/>
-                                <i class="text-muted">(timezone: <t t-esc="request.session.timezone"/>)</i>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2 text-right">
-                                <label>Duration:</label>
-                            </div>
-                            <div class="col-md-10">
-                                <t t-esc="int(event.duration)"/><t t-if="event.duration % 1">:<t t-esc="'%02d' % (int(event.duration % 1 * 60),)"/></t>
+                            <div class="row">
+                                <div class="col-md-2 text-right">
+                                    <label>Duration:</label>
+                                </div>
+                                <div class="col-md-10">
+                                    <t t-esc="int(event.duration)"/>
+                                    <t t-if="event.duration % 1">:                                        <t t-esc="'%02d' % (int(event.duration % 1 * 60),)"/>
+                                    </t>
                                 hour<t t-if="event.duration>=2">s</t>
+                                </div>
                             </div>
-                        </div>
-                        <div t-if="event.location" class="row">
-                            <div class="col-md-2 text-right">
-                                <label>Location:</label>
+                            <div t-if="event.location" class="row">
+                                <div class="col-md-2 text-right">
+                                    <label>Location:</label>
+                                </div>
+                                <div class="col-md-10">
+                                    <t t-esc="event.location"/>
+                                </div>
                             </div>
-                            <div class="col-md-10">
-                                <t t-esc="event.location"/>
+                            <div class="row">
+                                <div class="col-md-2 text-right">
+                                    <label>Attendees:</label>
+                                </div>
+                                <div class="col-md-10">
+                                    <div t-foreach="event.attendee_ids" t-as="attendee">
+                                        <strong t-esc="attendee.common_name"/>
+                                        <span t-if="attendee.state=='accepted'" class="fa fa-check text-success" title="Confirmed" role="img" aria-label="Confirmed"/>
+                                        <span t-if="attendee.state=='declined'" class="fa fa-times text-danger" title="Declined" role="img" aria-label="Declined"/>
+                                        <div t-esc="attendee.email"/>
+                                        <div t-if="attendee.partner_id">
+                                            <t t-esc="attendee.partner_id.phone"/>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2 text-right">
-                                <label>Attendees:</label>
-                            </div>
-                            <div class="col-md-10">
-                                <div t-foreach="event.attendee_ids" t-as="attendee">
-                                    <t t-esc="attendee.common_name"/>
-                                    <span t-if="attendee.state=='accepted'" class="fa fa-check text-success" title="Confirmed" role="img" aria-label="Confirmed"/>
-                                    <span t-if="attendee.state=='declined'" class="fa fa-times text-danger" title="Declined" role="img" aria-label="Declined"/>
+                            <div t-if="event.description" class="row">
+                                <div class="col-md-2 text-right">
+                                    <label>Description:</label>
+                                </div>
+                                <div class="col-md-10">
+                                    <div t-field="event.description"/>
                                 </div>
                             </div>
                         </div>
-                        <div t-if="event.description" class="row">
-                            <div class="col-md-2 text-right">
-                                <label>Description:</label>
-                            </div>
-                            <div class="col-md-10">
-                                <div t-field="event.description"/>
-                            </div>
-                        </div>
-                      </div>
-                      <div class="col-md-3">
-                          <a role="button" class="btn btn-block btn-primary" t-attf-href="/website/calendar/ics/#{event.access_token}.ics">
-                              <i class="fa fa-fw fa-arrow-right"></i>Add to iCal/Outlook
-                          </a>
-                          <a role="button" class="btn btn-primary btn-block" t-att-href="google_url">
-                              <i class="fa fa-fw fa-arrow-right"></i>Add to Google Calendar
-                          </a>
-                          <t t-if="event.booking_type_id">
-                            <br/>
-                            <br/>
-                            <a role="button" class="btn btn-danger btn-block" t-attf-href="/website/calendar/cancel/#{event.access_token}">
-                                <i class="fa fa-fw fa-times"></i>Cancel / Reschedule
+                        <div class="col-md-3">
+                            <a role="button" class="btn btn-block btn-primary" t-attf-href="/website/calendar/ics/#{event.access_token}.ics">
+                                <i class="fa fa-fw fa-arrow-right"></i>Add to iCal/Outlook
                             </a>
-                          </t>
-                      </div>
+                            <a role="button" class="btn btn-primary btn-block" t-att-href="google_url">
+                                <i class="fa fa-fw fa-arrow-right"></i>Add to Google Calendar
+                            </a>
+                            <t t-if="event.booking_type_id">
+                                <br/>
+                                <br/>
+                                <a role="button" class="btn btn-danger btn-block" t-attf-href="/website/calendar/cancel/#{event.access_token}">
+                                    <i class="fa fa-fw fa-times"></i>Cancel / Reschedule
+                                </a>
+                            </t>
+                        </div>
 
                     </div>
 
@@ -422,9 +460,14 @@
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure container mb128">
                     <ul class="wizard mt32 float-right">
-                        <li><a class="text-success">Booking</a><span class="chevron"></span></li>
-                        <li class="text-primary">Time<span class="chevron"></span></li>
-                        <li class="text-muted">Confirmation<span class="chevron"></span></li>
+                        <li>
+                            <a class="text-success">Booking</a>
+                            <span class="chevron"></span>
+                        </li>
+                        <li class="text-primary">Time<span class="chevron"></span>
+                        </li>
+                        <li class="text-muted">Confirmation<span class="chevron"></span>
+                        </li>
                     </ul>
                     <h1 class="o_page_header mt32">Booking Time</h1>
                     <div t-if="failed=='employee'" class="alert alert-danger mt16" role="alert">
@@ -433,7 +476,8 @@
                             The selected timeslot is not available anymore.
                             Someone has booked the same time slot a few
                             seconds before you.
-                        </p><p>
+                        </p>
+                        <p>
                             Please, select another date.
                         </p>
                     </div>
@@ -442,15 +486,16 @@
                             <strong>Booking failed!</strong>
                             The selected timeslot is not available.
                             It appears you already have another meeting with us at that date.
-                        </p><p>
+                        </p>
+                        <p>
                             Please, select another date.
                         </p>
                     </div>
                     <div class="mb8">
                         <t t-call="website.publish_management">
-                          <t t-set="object" t-value="booking_type"/>
-                          <t t-set="publish_edit" t-value="True"/>
-                          <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>
+                            <t t-set="object" t-value="booking_type"/>
+                            <t t-set="publish_edit" t-value="True"/>
+                            <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>
                         </t>
                     </div>
                     <div class="clearfix"/>

@@ -113,7 +113,7 @@ class WebsiteCalendar(http.Controller):
         })
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/submit'], type='http', auth="public", website=True, methods=["POST"])
-    def calendar_booking_submit(self, booking_type, datetime_str, employee_id, name, phone, email, country_id=False, **kwargs):
+    def calendar_booking_submit(self, booking_type, datetime_str, employee_id, name, phone, email, country_id=False, comment=False, company=False, **kwargs):
         timezone = request.session['timezone']
         tz_session = pytz.timezone(timezone)
         date_start = tz_session.localize(fields.Datetime.from_string(datetime_str)).astimezone(pytz.utc)
@@ -156,6 +156,10 @@ class WebsiteCalendar(http.Controller):
                     description += '\n* ' + question.name + ' *\n' + kwargs.get(key, False) + '\n\n'
                 else:
                     description += question.name + ': ' + kwargs.get(key) + '\n'
+        if company:
+            description += "Company: " + company
+        if comment:
+            description += "\nComment: " + comment
 
         categ_id = request.env.ref('website_calendar_ce.calendar_event_type_data_online_booking')
         alarm_ids = booking_type.reminder_ids and [(6, 0, booking_type.reminder_ids.ids)] or []
