@@ -9,6 +9,9 @@
             <xpath expr="//field[@name='user_id']" position="after">
                 <field name="booking_type_id"/>
             </xpath>
+            <xpath expr="//field[@name='location']" position="after">
+                <field name="meeting_url"/>
+            </xpath>
         </field>
     </record>
 

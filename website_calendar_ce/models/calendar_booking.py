@@ -65,6 +65,7 @@ class CalendarBookingType(models.Model):
         ('chosen', 'Chosen by the Customer')], string='Assignation Method', default='random',
         help="How employees will be assigned to meetings customers book on your website.")
     booking_count = fields.Integer('# Bookings', compute='_compute_booking_count')
+    meeting_base_url = fields.Char('Meeting base url')
 
     @api.model
     def find_all_bookings(self):
@@ -371,17 +372,17 @@ class CalendarBookingSlotWizard(models.TransientModel):
     _name = "calendar.booking.slot.wizard"
     _description = "Set Time Slot"
 
-    time_from = fields.Char(string="Starting Hour", required=True, default="00:00")
-    time_to = fields.Char(string="Ending Hour", required=True, default="00:00")
+    time_from = fields.Char(string="Starting Hour", required=True, default="08:00")
+    time_to = fields.Char(string="Ending Hour", required=True, default="17:00")
     booking_duration = fields.Char(string="Booking Duration", required=True)
     booking_id = fields.Many2one('calendar.booking.type', string="Booking", required=True)
 
     
-    monday = fields.Boolean(string="Monday")
-    tuesday = fields.Boolean(string="Tuesday")
-    wednesday = fields.Boolean(string="Wednesday")
-    thursday = fields.Boolean(string="Thursday")
-    friday = fields.Boolean(string="Friday")
+    monday = fields.Boolean(string="Monday", default=True)
+    tuesday = fields.Boolean(string="Tuesday", default=True)
+    wednesday = fields.Boolean(string="Wednesday", default=True)
+    thursday = fields.Boolean(string="Thursday", default=True)
+    friday = fields.Boolean(string="Friday", default=True)
     saturday = fields.Boolean(string="Saturday")
     sunday = fields.Boolean(string="Sunday")
 

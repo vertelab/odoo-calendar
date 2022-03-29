@@ -27,17 +27,17 @@ from odoo import http, _, fields
 from odoo.http import request
 from odoo.tools import html2plaintext, DEFAULT_SERVER_DATETIME_FORMAT as dtf
 from odoo.tools.misc import get_lang
-
+import uuid
 
 _logger = logging.getLogger(__name__)
 
 
 class WebsiteCalendar(http.Controller):
     @http.route([
-        '/website/calendar',
-        '/website/calendar/<model("calendar.booking.type"):booking_type>',
+        '/website/calendar/',
+        '/website/calendar/<model("calendar.booking.type"):booking_type>/',
     ], type='http', auth="public", website=True)
-    def calendar_booking_choice(self, booking_type=None, employee_id=None, message=None, **kwargs):
+    def calendar_booking_choice(self, booking_type=None, employee_id=None, message=None, description=None, header=None, **kwargs):
         if not booking_type:
             country_code = request.session.geoip and request.session.geoip.get('country_code')
             if country_code:
@@ -60,6 +60,8 @@ class WebsiteCalendar(http.Controller):
             'booking_type': booking_type,
             'suggested_booking_types': suggested_booking_types,
             'message': message,
+            'description': description,
+            'header': header,
             'selected_employee_id': employee_id and int(employee_id),
             'suggested_employees': suggested_employees,
         })
@@ -84,7 +86,7 @@ class WebsiteCalendar(http.Controller):
         return result
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/booking'], type='http', auth="public", website=True)
-    def calendar_booking(self, booking_type=None, employee_id=None, timezone=None, failed=False, **kwargs):
+    def calendar_booking(self, booking_type=None, employee_id=None, timezone=None, failed=False, header=None, description=None, **kwargs):
         request.session['timezone'] = timezone or booking_type.booking_tz
         Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
         Slots = booking_type.sudo()._get_booking_slots(request.session['timezone'], Employee)
@@ -184,6 +186,7 @@ class WebsiteCalendar(http.Controller):
             'categ_ids': [(4, categ_id.id, False)],
             'booking_type_id': booking_type.id,
             'user_id': Employee.user_id.id,
+            'meeting_url': f"{booking_type.meeting_base_url}/{str(uuid.uuid1())}"
         }
         event = self._create_event(request, Employee, data)
         event.attendee_ids.write({'state': 'accepted'})

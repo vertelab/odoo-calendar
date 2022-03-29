@@ -44,9 +44,15 @@
                         <li class="text-muted">Confirmation<span class="chevron"></span>
                         </li>
                     </ul>
-                    <h1 class="o_page_header mt32">
+                    <h1 t-if="header" class="o_page_header mt32">
+                        <t t-esc="header"/>
+                    </h1>
+                    <h1 t-else="" class="o_page_header mt32">
                         Schedule an Booking
                     </h1>
+                    <div t-if="description" class="col-md-9">
+                        <t t-esc="description"/>
+                    </div>
                     <div t-if="message=='cancel'" class="alert alert-danger mt16" role="alert">
                         <p>
                             <strong>Booking canceled!</strong>
@@ -65,6 +71,12 @@
                                     </t>
                                 </select>
                             </div>
+                        </div>
+                        <div name="header" class="form-group">
+                            <t t-esc="header"></t>
+                        </div>
+                        <div name="description" class="form-group">
+                            <t t-esc="description"></t>
                         </div>
                         <t t-call="website_calendar_ce.employee_select"/>
                         <div class="form-group row">
@@ -389,6 +401,14 @@
                                 </div>
                                 <div class="col-md-10">
                                     <t t-esc="event.location"/>
+                                </div>
+                            </div>
+                            <div t-if="event.meeting_url" class="row">
+                                <div class="col-md-2 text-right">
+                                    <label>Meeting url:</label>
+                                </div>
+                                <div class="col-md-10">
+                                    <t t-esc="event.meeting_url"/>
                                 </div>
                             </div>
                             <div class="row">

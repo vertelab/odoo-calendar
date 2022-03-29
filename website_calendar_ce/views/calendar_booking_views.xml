@@ -102,6 +102,7 @@
                                     <field name="booking_tz"/>
                                     <field name="reminder_ids" widget="many2many_tags"/>
                                     <field name="location"/>
+                                    <field name="meeting_base_url"/>
                                     <field name="assignation_method"/>
                                     <field name="country_ids" widget="many2many_tags" groups="base.group_no_one"/>
                                 </group>
