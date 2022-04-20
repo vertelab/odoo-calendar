@@ -148,7 +148,7 @@
                                     </div>
                                     <div class="dropdown-menu" role="menu">
                                         <t t-foreach="day['slots']" t-as="slot">
-                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}" t-esc="slot['hours']"/>
+                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;comment=#{comment}" t-esc="slot['hours']"/>
                                         </t>
                                     </div>
                                 </t>
@@ -290,7 +290,7 @@
                         <div class="form-group row col-xl-8 form-field">
                             <label for="comment" class="col-md-4 col-form-label">Comment</label>
                             <div class="col-md-8">
-                                <textarea rows="4" class="form-control o_website_form_input" name="comment" required="1"></textarea>
+                                <textarea rows="4" class="form-control o_website_form_input" name="comment" required="1" t-esc="comment"/>
                             </div>
                         </div>
 

@@ -86,7 +86,7 @@ class WebsiteCalendar(http.Controller):
         return result
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/booking'], type='http', auth="public", website=True)
-    def calendar_booking(self, booking_type=None, employee_id=None, timezone=None, failed=False, header=None, description=None, **kwargs):
+    def calendar_booking(self, booking_type=None, employee_id=None, timezone=None, failed=False, header=None, description=None, comment=None, **kwargs):
         request.session['timezone'] = timezone or booking_type.booking_tz
         Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
         Slots = booking_type.sudo()._get_booking_slots(request.session['timezone'], Employee)
@@ -95,10 +95,11 @@ class WebsiteCalendar(http.Controller):
             'timezone': request.session['timezone'],
             'failed': failed,
             'slots': Slots,
+            'comment': comment if comment else False
         })
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/info'], type='http', auth="public", website=True)
-    def calendar_booking_form(self, booking_type, employee_id, date_time, **kwargs):
+    def calendar_booking_form(self, booking_type, employee_id, date_time, comment=None, **kwargs):
         partner_data = {}
         if request.env.user.partner_id != request.env.ref('base.public_partner'):
             partner_data = request.env.user.partner_id.read(fields=['name', 'mobile', 'country_id', 'email'])[0]
@@ -112,6 +113,7 @@ class WebsiteCalendar(http.Controller):
             'datetime_str': date_time,
             'employee_id': employee_id,
             'countries': request.env['res.country'].search([]),
+            'comment': comment if comment else False
         })
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/submit'], type='http', auth="public", website=True, methods=["POST"])
@@ -268,7 +270,7 @@ class WebsiteCalendar(http.Controller):
     # Snippets
     @http.route(['/website/calendar_snippet/<model("calendar.booking.type"):booking_type>/booking'], type='http', auth="public",
                 website=True)
-    def calendar_booking_snippet(self, booking_type=None, employee_id=None, timezone=None, failed=False, **kwargs):
+    def calendar_booking_snippet(self, booking_type=None, employee_id=None, timezone=None, failed=False, comment=None, **kwargs):
         request.session['timezone'] = timezone or booking_type.booking_tz
         Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
         Slots = booking_type.sudo()._get_booking_slots(request.session['timezone'], Employee)
@@ -277,4 +279,6 @@ class WebsiteCalendar(http.Controller):
             'timezone': request.session['timezone'],
             'failed': failed,
             'slots': Slots,
+            'comment': comment if comment else False
         })
+
