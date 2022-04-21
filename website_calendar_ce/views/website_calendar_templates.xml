@@ -148,7 +148,7 @@
                                     </div>
                                     <div class="dropdown-menu" role="menu">
                                         <t t-foreach="day['slots']" t-as="slot">
-                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;comment=#{comment}" t-esc="slot['hours']"/>
+                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>
                                         </t>
                                     </div>
                                 </t>
@@ -235,13 +235,16 @@
                         <li class="text-primary">Confirmation<span class="chevron"></span>
                         </li>
                     </ul>
-                    <h2 class="o_page_header mt32">Confirm your details</h2>
+                    <h2 class="o_page_header mt32" t-esc="title"/>
                     <p>
                         <span t-field="booking_type.name"/>
  on <strong t-esc="datetime_locale"/>
                     </p>
+                    <p>
+                        <span t-esc="description"/>
+                    </p>
 
-                    <form class="mt32 booking_submit_form" t-attf-action="/website/calendar/#{ slug(booking_type) }/submit" method="POST">
+                    <form class="mt32 booking_submit_form" t-attf-action="/website/calendar/#{ slug(booking_type) }/submit?description=#{description}&amp;title=#{title}" method="POST">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                         <input type="hidden" name="datetime_str" t-att-value="datetime_str"/>
                         <input type="hidden" name="employee_id" t-att-value="employee_id"/>
@@ -290,7 +293,7 @@
                         <div class="form-group row col-xl-8 form-field">
                             <label for="comment" class="col-md-4 col-form-label">Comment</label>
                             <div class="col-md-8">
-                                <textarea rows="4" class="form-control o_website_form_input" name="comment" required="1" t-esc="comment"/>
+                                <textarea rows="4" class="form-control o_website_form_input" name="comment" required="0"/>
                             </div>
                         </div>
 
@@ -336,9 +339,9 @@
                             </div>
                         </t>
 
-                        <div class="form-group row">
+                        <div class="form-group row col-xl-8">
                             <div class="offset-md-2 col-md-10">
-                                <button type="submit" class="btn btn-primary o_website_form_send">Confirm Booking <span class="fa fa-arrow-right"/>
+                                <button type="submit" class="btn btn-primary o_website_form_send float-right">Confirm Booking <span class="fa fa-arrow-right"/>
                                 </button>
                                 <span id="o_website_form_result"></span>
                             </div>
