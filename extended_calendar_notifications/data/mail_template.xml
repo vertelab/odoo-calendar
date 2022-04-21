@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="calendar_event_cancelled" model="mail.template">
+        <field name="name">Calendar Event Cancellation Notification</field>
+        <field name="email_from">${(object.event_id.user_id.email_formatted or user.email_formatted or '') | safe}</field>
+        <field name="email_to">${(object.partner_id.email_formatted or user.email_formatted or '') | safe}</field>
+        <field name="subject">Cancelled Event Notification</field>
+        <field name="model_id" ref="calendar.model_calendar_attendee"/>
+        <field name="body_html">
+            <![CDATA[
+                <h1>My Big Fat Header!</h1>
+            ]]>
+        </field>
+    </record>
+</odoo>
