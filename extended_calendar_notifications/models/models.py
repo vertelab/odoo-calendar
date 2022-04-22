@@ -14,11 +14,9 @@ class Meeting(models.Model):
         events = self.filtered_domain([('alarm_ids', '!=', False)])
         partner_ids = events.mapped('partner_ids').ids
 
-        #template_id = self.env.ref('extended_calendar_notifications.calendar_event_cancelled').id
         template = self.env.ref('extended_calendar_notifications.calendar_event_cancelled')
         for attendee in self.attendee_ids:
-            template.send_mail(attendee.id, force_send=True)
-            #self.env['mail.template'].browse(template_id).send_mail(attendee.id, force_send=True)
+            template.send_mail(attendee.id, notif_layout='mail.mail_notification_light', force_send=True)
 
         result = super().unlink()
 
