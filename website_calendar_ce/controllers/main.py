@@ -194,7 +194,7 @@ class WebsiteCalendar(http.Controller):
             'categ_ids': [(4, categ_id.id, False)],
             'booking_type_id': booking_type.id,
             'user_id': Employee.user_id.id,
-            'meeting_url': f"{booking_type.meeting_base_url}/{str(uuid.uuid1())}"
+            'meeting_url': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}"
         }
         event = self._create_event(request, Employee, data)
         event.attendee_ids.write({'state': 'accepted'})

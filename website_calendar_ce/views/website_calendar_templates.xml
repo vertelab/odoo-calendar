@@ -272,7 +272,7 @@
                         <div class="form-group row col-xl-8 form-field">
                             <label for="company" class="col-md-4 col-form-label">Your Company</label>
                             <div class="col-md-8">
-                                <input type="text" class="form-control o_website_form_input" name="company" required="1"/>
+                                <input type="text" class="form-control o_website_form_input" name="company" required="1" />
                             </div>
                         </div>
                         <div class="form-group row col-xl-8 form-field">
@@ -411,7 +411,9 @@
                                     <label>Meeting url:</label>
                                 </div>
                                 <div class="col-md-10">
-                                    <t t-esc="event.meeting_url"/>
+                                    <a t-att-href="event.meeting_url">
+                                        <t t-esc="event.meeting_url"/>
+                                    </a>
                                 </div>
                             </div>
                             <div class="row">
