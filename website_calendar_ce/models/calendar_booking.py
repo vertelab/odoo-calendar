@@ -29,6 +29,7 @@ from odoo.tools.misc import get_lang
 from odoo.addons.base.models.res_partner import _tz_get
 from odoo.addons.http_routing.models.ir_http import slug
 from odoo.exceptions import ValidationError
+import pandas as pd
 
 
 class CalendarBookingType(models.Model):
@@ -64,6 +65,7 @@ class CalendarBookingType(models.Model):
         ('chosen', 'Chosen by the Customer')], string='Assignation Method', default='random',
         help="How employees will be assigned to meetings customers book on your website.")
     booking_count = fields.Integer('# Bookings', compute='_compute_booking_count')
+    meeting_base_url = fields.Char('Meeting base url')
 
     @api.model
     def find_all_bookings(self):
@@ -324,6 +326,19 @@ class CalendarBookingType(models.Model):
             start = start + relativedelta(months=1)
         return months
 
+    def open_booking_wizard(self):
+        return {
+            'view_mode': 'form',
+            'res_model': 'calendar.booking.slot.wizard',
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+            'view_id': self.env.ref('website_calendar_ce.time_slot_wizard').id,
+            'context': {
+                'default_booking_id': self.id,
+                'default_booking_duration': self.booking_duration
+            }
+        }
+
 
 class CalendarBookingSlot(models.Model):
     _name = "calendar.booking.slot"
@@ -351,6 +366,63 @@ class CalendarBookingSlot(models.Model):
     def name_get(self):
         weekdays = dict(self._fields['weekday'].selection)
         return self.mapped(lambda slot: (slot.id, "%s, %02d:%02d" % (weekdays.get(slot.weekday), int(slot.hour), int(round((slot.hour % 1) * 60)))))
+
+
+class CalendarBookingSlotWizard(models.TransientModel):
+    _name = "calendar.booking.slot.wizard"
+    _description = "Set Time Slot"
+
+    time_from = fields.Char(string="Starting Hour", required=True, default="08:00")
+    time_to = fields.Char(string="Ending Hour", required=True, default="17:00")
+    booking_duration = fields.Char(string="Booking Duration", required=True)
+    booking_id = fields.Many2one('calendar.booking.type', string="Booking", required=True)
+
+    
+    monday = fields.Boolean(string="Monday", default=True)
+    tuesday = fields.Boolean(string="Tuesday", default=True)
+    wednesday = fields.Boolean(string="Wednesday", default=True)
+    thursday = fields.Boolean(string="Thursday", default=True)
+    friday = fields.Boolean(string="Friday", default=True)
+    saturday = fields.Boolean(string="Saturday")
+    sunday = fields.Boolean(string="Sunday")
+
+    def compute_slot(self):
+        fmt = '%H:%M'
+        time_from = datetime.strptime(self.time_from, fmt)
+        time_to = datetime.strptime(self.time_to, fmt)
+        frequency = '%sH' % self.booking_duration
+        date_range = pd.date_range(start=time_from, end=time_to, freq=frequency)
+        if self.monday:
+            self._populate_slot(date_range, fmt, 1)
+        if self.tuesday:
+            self._populate_slot(date_range, fmt, 2)
+        if self.wednesday:
+            self._populate_slot(date_range, fmt, 3)
+        if self.thursday:
+            self._populate_slot(date_range, fmt, 4)
+        if self.friday:
+            self._populate_slot(date_range, fmt, 5)
+        if self.saturday:
+            self._populate_slot(date_range, fmt, 6)
+        if self.sunday:
+            self._populate_slot(date_range, fmt, 7)
+
+    def conv_time_float(self, time):
+        vals = time.split(':')
+        t, hours = divmod(float(vals[0]), 24)
+        t, minutes = divmod(float(vals[1]), 60)
+        minutes = minutes / 60.0
+        return hours + minutes
+
+    def _populate_slot(self, date_range, fmt, weekday):
+        for time_interval in date_range:
+            float_hour_string = time_interval.strftime(fmt)
+            float_hour = self.conv_time_float(float_hour_string)
+            self.env['calendar.booking.slot'].create({
+                'booking_type_id': self.booking_id.id,
+                'hour': float_hour,
+                'weekday': str(weekday)
+            })
 
 
 class CalendarBookingQuestion(models.Model):

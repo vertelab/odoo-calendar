@@ -26,6 +26,7 @@ class CalendarEvent(models.Model):
     def _default_access_token(self):
         return str(uuid.uuid4())
 
+    meeting_url = fields.Char('Meeting url')
     access_token = fields.Char('Access Token', default=_default_access_token, readonly=True)
     booking_type_id = fields.Many2one('calendar.booking.type', 'Online Booking', readonly=True)
 
