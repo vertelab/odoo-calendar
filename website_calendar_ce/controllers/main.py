@@ -199,6 +199,7 @@ class WebsiteCalendar(http.Controller):
         event = self._create_event(request, Employee, data)
         event.attendee_ids.write({'state': 'accepted'})
         return request.redirect('/website/calendar/view/' + event.access_token + '?message=new')
+        
 
     def _create_event(self, request, Employee, data):
         return request.env['calendar.event'].sudo().with_context(allowed_company_ids=Employee.user_id.company_ids.ids).create(data)

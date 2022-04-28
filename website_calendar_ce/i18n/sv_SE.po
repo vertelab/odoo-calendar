@@ -1,40 +1,27 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # 	* website_calendar_ce
-# 
-# Translators:
-# Kristoffer Grundström <lovaren@gmail.com>, 2019
-# Martin Trigaux, 2019
-# lasch a <bmail440@gmail.com>, 2019
-# Martin Wilderoth <martin.wilderoth@linserv.se>, 2019
-# Robert Frykelius <robert.frykelius@linserv.se>, 2019
-# Chrille Hedberg <hedberg.chrille@gmail.com>, 2019
-# Sandra Pettersson <sandra.pettersson@vertel.se>, 2020
-# Han Wong <han.wong@vertel.se>, 2021
-# Anders Wallenquist <anders.wallenquist@vertel.se>, 2021
-# STefan Rundgren <stefanrundgren@cellglas.com>, 2021
-# Simon S, 2021
-# Fredrik Arvas <fredrik.arvas@vertel.se>, 2021
-# Kim Asplund <kim.asplund@gmail.com>, 2021
-# Daniel Löfgren <daniel.lofgren@evrtel.se>,2022
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 14.0-20210312\n"
+"Project-Id-Version: Odoo Server 14.0-20220314\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-10 10:09+0000\n"
-"PO-Revision-Date: 2022-03-10 10:09+0000\n"
+"POT-Creation-Date: 2022-04-28 11:30+0000\n"
+"PO-Revision-Date: 2022-04-28 14:12+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: \n"
+"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: \n"
+"Language: sv\n"
+"X-Generator: Poedit 2.3\n"
 
 #. module: website_calendar_ce
 #: code:addons/website_calendar_ce/models/calendar_booking.py:0
 #, python-format
 msgid " (copy)"
-msgstr " (Kopiera)"
+msgstr ""
 
 #. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__booking_count
@@ -55,7 +42,7 @@ msgstr "%s med %s"
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_validated
 msgid "(timezone:"
-msgstr ""
+msgstr "(Tidzon:"
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form
@@ -114,6 +101,7 @@ msgstr "<span> timmar före</span>"
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.calendar_booking_type_view_form
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.time_slot_wizard
 msgid "<span> hours</span>"
 msgstr "<span> timmar</span>"
 
@@ -142,8 +130,7 @@ msgstr ""
 "                            Du kan schemalägga en annan bokning härifrån."
 
 #. module: website_calendar_ce
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
 msgid ""
 "<strong>Booking failed!</strong>\n"
 "                            The selected timeslot is not available anymore.\n"
@@ -156,8 +143,7 @@ msgstr ""
 "                            sekunder före dig."
 
 #. module: website_calendar_ce
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
 msgid ""
 "<strong>Booking failed!</strong>\n"
 "                            The selected timeslot is not available.\n"
@@ -190,7 +176,7 @@ msgstr "Åtgärd behövs"
 #. module: website_calendar_ce
 #: model:res.groups,name:website_calendar_ce.group_calendar_manager
 msgid "Administrator"
-msgstr "Administrator"
+msgstr ""
 
 #. module: website_calendar_ce
 #: model:ir.actions.act_window,name:website_calendar_ce.website_calendar_report
@@ -249,25 +235,30 @@ msgid "Available Employees"
 msgstr "Tillgängliga medarbetare"
 
 #. module: website_calendar_ce
+#: code:addons/website_calendar_ce/controllers/main.py:0
+#, python-format
+msgid "Book meeting"
+msgstr "Boka möte"
+
+#. module: website_calendar_ce
 #. openerp-web
 #: code:addons/website_calendar_ce/static/src/xml/booking.xml:0
-#: model:website.menu,name:website_calendar_ce.menu_booking
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__booking_id
+#: model:website.menu,name:website_calendar_ce.menu_booking model_terms:ir.ui.view,arch_db:website_calendar_ce.booking
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.index
 #, python-format
 msgid "Booking"
 msgstr "Bokning"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__booking_duration
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__booking_duration
 msgid "Booking Duration"
 msgstr "Bokningsperiod"
 
 #. module: website_calendar_ce
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
 msgid "Booking Time"
 msgstr "Bokningstid"
 
@@ -325,13 +316,18 @@ msgstr "Vald av kunden"
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form
-msgid "Confirm Booking <span class=\"fa fa-arrow-right\"/>"
-msgstr "Bekräfta bokningen <span class=\"fa fa-arrow-right\"/>"
+msgid "Comment"
+msgstr "Kommentar"
+
+#. module: website_calendar_ce
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.time_slot_wizard
+msgid "Compute Slot"
+msgstr "Beräkna schema"
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form
-msgid "Confirm your details"
-msgstr "Bekräfta dina uppgifter"
+msgid "Confirm Booking <span class=\"fa fa-arrow-right\"/>"
+msgstr "Bekräfta bokningen <span class=\"fa fa-arrow-right\"/>"
 
 #. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__message_confirmation
@@ -339,10 +335,8 @@ msgid "Confirmation Message"
 msgstr "Bekräftelsemeddelande"
 
 #. module: website_calendar_ce
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.index
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet model_terms:ir.ui.view,arch_db:website_calendar_ce.index
 msgid "Confirmation<span class=\"chevron\"/>"
 msgstr "Bekräftelse<span class=\"chevron\"/>"
 
@@ -379,14 +373,16 @@ msgstr "Skapa en ny bokningstyp"
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_answer__create_uid
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_question__create_uid
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot__create_uid
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__create_uid
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__create_uid
 msgid "Created by"
-msgstr ""
+msgstr "Skapad av"
 
 #. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_answer__create_date
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_question__create_date
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot__create_date
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__create_date
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__create_date
 msgid "Created on"
 msgstr "Skapad av"
@@ -405,6 +401,7 @@ msgstr "Beskrivning:"
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_answer__display_name
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_question__display_name
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot__display_name
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__display_name
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__display_name
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_event__display_name
 #: model:ir.model.fields,field_description:website_calendar_ce.field_res_partner__display_name
@@ -439,6 +436,17 @@ msgid "Employees"
 msgstr "Anställda"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__time_to
+msgid "Ending Hour"
+msgstr "Sluttimme"
+
+#. module: website_calendar_ce
+#: code:addons/website_calendar_ce/controllers/main.py:0
+#, python-format
+msgid "Fill your personal information in the form below, and confirm the booking. We'll send an invite to your email address"
+msgstr "Fyll i er personliga information i formuläret nedan och konfirmera bokningen, så skickar vi en inbjudan till er epost"
+
+#. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__message_follower_ids
 msgid "Followers"
 msgstr "Följare"
@@ -459,35 +467,26 @@ msgid "Fri"
 msgstr "Fre"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__friday
 #: model:ir.model.fields.selection,name:website_calendar_ce.selection__calendar_booking_slot__weekday__5
 msgid "Friday"
 msgstr "Fredag"
 
 #. module: website_calendar_ce
-#: model_terms:calendar.booking.type,message_intro:website_calendar_ce.calendar_booking
-msgid ""
-"Get a <strong>customized demo</strong> and an <strong>analysis of your "
-"needs</strong>."
-msgstr ""
-"Få ett <strong>anpassat demo</strong> och en <strong> analys av dina "
-"behov</strong>."
-
-#. module: website_calendar_ce
 #: model:ir.model.fields,help:website_calendar_ce.field_calendar_booking_type__assignation_method
-msgid ""
-"How employees will be assigned to meetings customers book on your website."
-msgstr ""
-"Hur anställda kommer bli tilldelade till möten som kunder bokar på din webbsida."
+msgid "How employees will be assigned to meetings customers book on your website."
+msgstr "Hur anställda kommer bli tilldelade till möten som kunder bokar på din webbsida."
 
 #. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_answer__id
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_question__id
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot__id
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__id
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__id
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_event__id
 #: model:ir.model.fields,field_description:website_calendar_ce.field_res_partner__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: website_calendar_ce
 #: model:ir.model.fields,help:website_calendar_ce.field_calendar_booking_type__message_needaction
@@ -500,6 +499,11 @@ msgstr "Om markerad, visa att det finns nya meddelanden som behöver åtgärd."
 #: model:ir.model.fields,help:website_calendar_ce.field_calendar_booking_type__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
 msgstr "Om markerad, visa att vissa meddelanden har ett leveransfel."
+
+#. module: website_calendar_ce
+#: model:ir.model.fields,help:website_calendar_ce.field_calendar_booking_type__country_ids
+msgid "If empty, allow visitors from any country, otherwise only allow visitors from selected countries"
+msgstr "Om tom, tillåt besökare från alla länder, tillåt annars besökare från valda länder"
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.setup
@@ -533,18 +537,10 @@ msgid "Is Published"
 msgstr "Är Publicerad"
 
 #. module: website_calendar_ce
-#: model:ir.model.fields,help:website_calendar_ce.field_calendar_booking_type__country_ids
-msgid ""
-"If empty, allow visitors from any country, otherwise only allow "
-"visitors from selected countries"
-msgstr ""
-"Om tom, tillåt besökare från alla länder, tillåt annars "
-"besökare från valda länder"
-
-#. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_answer____last_update
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_question____last_update
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot____last_update
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard____last_update
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type____last_update
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_event____last_update
 #: model:ir.model.fields,field_description:website_calendar_ce.field_res_partner____last_update
@@ -555,6 +551,7 @@ msgstr "Senast redigerad"
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_answer__write_uid
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_question__write_uid
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot__write_uid
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__write_uid
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__write_uid
 msgid "Last Updated by"
 msgstr "Senast uppdaterad"
@@ -563,6 +560,7 @@ msgstr "Senast uppdaterad"
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_answer__write_date
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_question__write_date
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot__write_date
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__write_date
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__write_date
 msgid "Last Updated on"
 msgstr "Senast uppdaterad den"
@@ -588,6 +586,21 @@ msgid "Main Attachment"
 msgstr "Huvud Bilaga"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__meeting_base_url
+msgid "Meeting base url"
+msgstr "Mötets bas url"
+
+#. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_event__meeting_url
+msgid "Meeting url"
+msgstr "Mötets url"
+
+#. module: website_calendar_ce
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_validated
+msgid "Meeting url:"
+msgstr "Mötets url:"
+
+#. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__message_has_error
 msgid "Message Delivery error"
 msgstr "Meddelandefel"
@@ -610,6 +623,7 @@ msgid "Mon"
 msgstr "Mån"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__monday
 #: model:ir.model.fields.selection,name:website_calendar_ce.selection__calendar_booking_slot__weekday__1
 msgid "Monday"
 msgstr "Måndag"
@@ -617,21 +631,21 @@ msgstr "Måndag"
 #. module: website_calendar_ce
 #: model:ir.model.fields.selection,name:website_calendar_ce.selection__calendar_booking_question__question_type__text
 msgid "Multi-line text"
-msgstr "Multi-line text"
+msgstr "Multiradstext"
 
 #. module: website_calendar_ce
 #. openerp-web
 #: code:addons/website_calendar_ce/static/src/js/website_calendar.editor.js:0
 #, python-format
 msgid "Name"
-msgstr "Namn"
+msgstr ""
 
 #. module: website_calendar_ce
 #. openerp-web
 #: code:addons/website_calendar_ce/static/src/js/website_calendar.editor.js:0
 #, python-format
 msgid "New Booking Type"
-msgstr "Ny Boknings Typ"
+msgstr "Ny bokningstyp"
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.setup
@@ -670,7 +684,6 @@ msgid "Number of unread messages"
 msgstr "Antal olästa meddelande"
 
 #. module: website_calendar_ce
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.calendar_event_view_search_inherit_website_calendar
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_event__booking_type_id
 #: model:ir.module.category,name:website_calendar_ce.module_category_calendar
 msgid "Online Booking"
@@ -699,8 +712,12 @@ msgstr "Onlineboknings Typ"
 #. module: website_calendar_ce
 #: model:ir.actions.act_window,name:website_calendar_ce.calendar_event_action_reporting
 #: model:ir.ui.menu,name:website_calendar_ce.menu_schedule_report_all
-#: model:ir.actions.act_window,name:website_calendar_ce.calendar_booking_type_action
-#: model:ir.ui.menu,name:website_calendar_ce.booking_type_menu
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.calendar_event_view_search_inherit_website_calendar
+msgid "Online Bookings"
+msgstr "Onlinebokningar"
+
+#. module: website_calendar_ce
+#: model:ir.actions.act_window,name:website_calendar_ce.calendar_booking_type_action model:ir.ui.menu,name:website_calendar_ce.booking_type_menu
 #: model:ir.ui.menu,name:website_calendar_ce.website_booking_type_menu
 msgid "Online bookings"
 msgstr "Onlinebokningar"
@@ -717,8 +734,7 @@ msgid "Please enter a valid hour between 0:00 to 24:00 for your slots."
 msgstr "Ange en giltig tidsvrist mellan 0:00 till 24:00 för dina bokningar."
 
 #. module: website_calendar_ce
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
 msgid "Please, select another date."
 msgstr "Vänligen välj ett annat datum."
 
@@ -795,14 +811,10 @@ msgid "Sat"
 msgstr "Lör"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__saturday
 #: model:ir.model.fields.selection,name:website_calendar_ce.selection__calendar_booking_slot__weekday__6
 msgid "Saturday"
 msgstr "Lördag"
-
-#. module: website_calendar_ce
-#: model:calendar.booking.type,name:website_calendar_ce.calendar_booking
-msgid "Schedule a Demo"
-msgstr "Schemalägg ett demo"
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.index
@@ -841,6 +853,16 @@ msgid "Sequence"
 msgstr "Sekvens"
 
 #. module: website_calendar_ce
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.calendar_booking_type_view_form
+msgid "Set Slot"
+msgstr "Sätt slot"
+
+#. module: website_calendar_ce
+#: model:ir.model,name:website_calendar_ce.model_calendar_booking_slot_wizard
+msgid "Set Time Slot"
+msgstr "Sätt tids-slot"
+
+#. module: website_calendar_ce
 #: model:ir.model.fields.selection,name:website_calendar_ce.selection__calendar_booking_question__question_type__char
 msgid "Single line text"
 msgstr "Enstaka text"
@@ -852,6 +874,7 @@ msgstr "Luckor"
 
 #. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot__hour
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__time_from
 msgid "Starting Hour"
 msgstr "Starttid"
 
@@ -863,7 +886,7 @@ msgstr "Starttid (0:00 - 24:00)"
 #. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_event__state
 msgid "Status"
-msgstr "Status"
+msgstr ""
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_calendar
@@ -871,6 +894,7 @@ msgid "Sun"
 msgstr "Sön"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__sunday
 #: model:ir.model.fields.selection,name:website_calendar_ce.selection__calendar_booking_slot__weekday__7
 msgid "Sunday"
 msgstr "Söndag"
@@ -886,6 +910,7 @@ msgid "Thu"
 msgstr "Tor"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__thursday
 #: model:ir.model.fields.selection,name:website_calendar_ce.selection__calendar_booking_slot__weekday__4
 msgid "Thursday"
 msgstr "Torsdag"
@@ -906,8 +931,7 @@ msgid "Time zone:"
 msgstr "Tidszon:"
 
 #. module: website_calendar_ce
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_snippet
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.index
 msgid "Time<span class=\"chevron\"/>"
 msgstr "Tid<span class=\"chevron\"/>"
@@ -928,6 +952,7 @@ msgid "Tue"
 msgstr "Tis"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__tuesday
 #: model:ir.model.fields.selection,name:website_calendar_ce.selection__calendar_booking_slot__weekday__2
 msgid "Tuesday"
 msgstr "Tisdag"
@@ -963,15 +988,6 @@ msgstr "Visa tillgänglighet"
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__website_published
 msgid "Visible on current website"
 msgstr "Synlig på den aktuella webbplatsen"
-
-#. module: website_calendar_ce
-#: model_terms:calendar.booking.type,message_confirmation:website_calendar_ce.calendar_booking
-msgid ""
-"We thank you for your interest in our products!<br>\n"
-"               Please make sure to arrive <strong>10 minutes</strong> before your booking."
-msgstr ""
-"Vi tackar för ditt intresse för våra produkter!<br>\n"
-"               Var noga med att anlända <strong>10 minuter</strong> före din bokning."
 
 #. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__website_message_ids
@@ -1014,6 +1030,7 @@ msgid "Wed"
 msgstr "Ons"
 
 #. module: website_calendar_ce
+#: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_slot_wizard__wednesday
 #: model:ir.model.fields.selection,name:website_calendar_ce.selection__calendar_booking_slot__weekday__3
 msgid "Wednesday"
 msgstr "Onsdag"
@@ -1030,8 +1047,7 @@ msgstr "När:"
 
 #. module: website_calendar_ce
 #. openerp-web
-#: code:addons/website_calendar_ce/static/src/xml/booking.xml:0
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.employee_select
+#: code:addons/website_calendar_ce/static/src/xml/booking.xml:0 model_terms:ir.ui.view,arch_db:website_calendar_ce.employee_select
 #, python-format
 msgid "With:"
 msgstr "Med:"
@@ -1041,6 +1057,11 @@ msgstr "Med:"
 #: model_terms:ir.actions.act_window,help:website_calendar_ce.website_calendar_report
 msgid "You should schedule bookings to get statistics."
 msgstr "Du bör schemalägga bokningar för att få statistik."
+
+#. module: website_calendar_ce
+#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form
+msgid "Your Company"
+msgstr "Ert företag"
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form
@@ -1109,7 +1130,7 @@ msgstr "timmar från nu!"
 msgid "on"
 msgstr "på"
 
-#. module: website_calendar_cea
+#. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_calendar
 msgid "timezone"
 msgstr "tidszon"
