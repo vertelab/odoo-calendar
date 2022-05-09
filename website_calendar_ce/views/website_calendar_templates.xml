@@ -398,6 +398,7 @@
                                 hour<t t-if="event.duration>=2">s</t>
                                 </div>
                             </div>
+                            <br/>
                             <div t-if="event.location" class="row">
                                 <div class="col-md-2 text-right">
                                     <label>Location:</label>
@@ -406,6 +407,7 @@
                                     <t t-esc="event.location"/>
                                 </div>
                             </div>
+                            <br/>
                             <div t-if="event.meeting_url" class="row">
                                 <div class="col-md-2 text-right">
                                     <label>Meeting url:</label>
@@ -416,6 +418,7 @@
                                     </a>
                                 </div>
                             </div>
+                            <br/>
                             <div class="row">
                                 <div class="col-md-2 text-right">
                                     <label>Attendees:</label>
@@ -429,6 +432,7 @@
                                         <div t-if="attendee.partner_id">
                                             <t t-esc="attendee.partner_id.phone"/>
                                         </div>
+                                        <br/>
                                     </div>
                                 </div>
                             </div>

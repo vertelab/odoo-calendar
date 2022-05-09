@@ -15,7 +15,7 @@
 #  MA 02110-1301, USA.
 #
 
-import logging
+
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
@@ -28,7 +28,7 @@ from odoo.http import request
 from odoo.tools import html2plaintext, DEFAULT_SERVER_DATETIME_FORMAT as dtf
 from odoo.tools.misc import get_lang
 import uuid
-
+import logging
 _logger = logging.getLogger(__name__)
 
 
@@ -133,16 +133,16 @@ class WebsiteCalendar(http.Controller):
 
         country_id = int(country_id) if country_id else None
         country_name = country_id and request.env['res.country'].browse(country_id).name or ''
-        Partner = request.env['res.partner'].sudo().search([('email', '=like', email)], limit=1)
-        if Partner:
-            if not Partner.calendar_verify_availability(date_start, date_end):
+        partner = request.env['res.partner'].sudo().search([('email', '=like', email)], limit=1)
+        if partner:
+            if not partner.calendar_verify_availability(date_start, date_end):
                 return request.redirect('/website/calendar/%s/booking?failed=partner' % booking_type.id)
-            if not Partner.mobile or len(Partner.mobile) <= 5 and len(phone) > 5:
-                Partner.write({'mobile': phone})
-            if not Partner.country_id:
-                Partner.country_id = country_id
+            if not partner.mobile or len(partner.mobile) <= 5 and len(phone) > 5:
+                partner.write({'mobile': phone})
+            if not partner.country_id:
+                partner.country_id = country_id
         else:
-            Partner = Partner.create({
+            partner = partner.create({
                 'name': name,
                 'country_id': country_id,
                 'mobile': phone,
@@ -173,7 +173,7 @@ class WebsiteCalendar(http.Controller):
 
         categ_id = request.env.ref('website_calendar_ce.calendar_event_type_data_online_booking')
         alarm_ids = booking_type.reminder_ids and [(6, 0, booking_type.reminder_ids.ids)] or []
-        partner_ids = list(set([Employee.user_id.partner_id.id] + [Partner.id]))
+        partner_ids = list(set([Employee.user_id.partner_id.id] + [partner.id]))
         data = {
             'state': 'open',
             'name': _('%s with %s') % (booking_type.name, name),
@@ -191,12 +191,14 @@ class WebsiteCalendar(http.Controller):
             'alarm_ids': alarm_ids,
             'location': booking_type.location,
             'partner_ids': [(4, pid, False) for pid in partner_ids],
+            'public_partner': partner,
             'categ_ids': [(4, categ_id.id, False)],
             'booking_type_id': booking_type.id,
             'user_id': Employee.user_id.id,
             'meeting_url': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}"
         }
         event = self._create_event(request, Employee, data)
+        event.attendee_ids.filtered(lambda attendee: attendee.partner_id.id == partner.id).write({'public_user': True})
         event.attendee_ids.write({'state': 'accepted'})
         return request.redirect('/website/calendar/view/' + event.access_token + '?message=new')
         
