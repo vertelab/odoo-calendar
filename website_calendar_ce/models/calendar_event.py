@@ -113,7 +113,7 @@ class Meeting(models.Model):
         return super()._get_public_fields() | {'booking_type_id'}
 
     def _compute_is_highlighted(self):
-        super(MeetingOriginal, self)._compute_is_highlighted()
+        super(Meeting, self)._compute_is_highlighted()
         if self.env.context.get('active_model') == 'calendar.booking.type':
             booking_type_id = self.env.context.get('active_id')
             for event in self:
@@ -124,7 +124,7 @@ class Meeting(models.Model):
         """ Initialize the value of the column for existing rows.
         """
         if column_name != 'access_token':
-            super(MeetingOriginal, self)._init_column(column_name)
+            super(Meeting, self)._init_column(column_name)
 
     def _generate_access_token(self):
         for event in self:
