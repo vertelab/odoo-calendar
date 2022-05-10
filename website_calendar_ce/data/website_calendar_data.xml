@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
+    <data noupdate="1">
         <record id="calendar_event_type_data_online_booking" model="calendar.event.type">
             <field name="name">Online Booking</field>
         </record>
@@ -18,7 +18,8 @@
             <field name="parent_id" ref="website.main_menu"/>
             <field name="sequence">55</field>
         </record>
-
+</data>
+<data>
         <record id="calendar_template_meeting_invitation_public" model="mail.template">
             <field name="name">Calendar: Meeting Invitation</field>
             <field name="model_id" ref="calendar.model_calendar_attendee"/>
