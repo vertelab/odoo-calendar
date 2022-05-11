@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 14.0-20220314\n"
+"Project-Id-Version: Odoo Server 14.0-20220316\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-10 14:18+0000\n"
-"PO-Revision-Date: 2022-05-10 16:25+0200\n"
+"POT-Creation-Date: 2022-05-11 07:34+0000\n"
+"PO-Revision-Date: 2022-05-11 09:38+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,6 +16,36 @@ msgstr ""
 "Plural-Forms: \n"
 "Language: sv\n"
 "X-Generator: Poedit 2.3\n"
+
+#. module: website_calendar_ce
+#: code:addons/website_calendar_ce/controllers/main.py:0
+#, python-format
+msgid ""
+"\n"
+"Comment: "
+msgstr ""
+"\n"
+"Kommentar: "
+
+#. module: website_calendar_ce
+#: code:addons/website_calendar_ce/controllers/main.py:0
+#, python-format
+msgid ""
+"\n"
+"Description: "
+msgstr ""
+"\n"
+"Beskrivning: "
+
+#. module: website_calendar_ce
+#: code:addons/website_calendar_ce/controllers/main.py:0
+#, python-format
+msgid ""
+"\n"
+"Title: "
+msgstr ""
+"\n"
+"Titel: "
 
 #. module: website_calendar_ce
 #: code:addons/website_calendar_ce/models/calendar_booking.py:0
@@ -112,7 +142,7 @@ msgid ""
 "            <p><strong>Details of the event</strong></p>\n"
 "            <ul>\n"
 "                % if object.event_id.description :\n"
-"                    <li>Description: ${object.event_id.description}</li>\n"
+"                    <li>Info: ${object.event_id.description}</li>\n"
 "                % endif\n"
 "                % if recurrent:\n"
 "                    <li>When: ${object.recurrence_id.name}</li>\n"
@@ -443,7 +473,7 @@ msgstr "Kalender"
 #. module: website_calendar_ce
 #: model:ir.model,name:website_calendar_ce.model_calendar_attendee
 msgid "Calendar Attendee Information"
-msgstr ""
+msgstr "Information till kalenderdeltagare"
 
 #. module: website_calendar_ce
 #: model:ir.model,name:website_calendar_ce.model_calendar_event
@@ -474,6 +504,12 @@ msgstr "Vald av kunden"
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_form
 msgid "Comment"
 msgstr "Kommentar"
+
+#. module: website_calendar_ce
+#: code:addons/website_calendar_ce/controllers/main.py:0
+#, python-format
+msgid "Company: "
+msgstr "Företag: "
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.time_slot_wizard
@@ -630,6 +666,11 @@ msgid "Friday"
 msgstr "Fredag"
 
 #. module: website_calendar_ce
+#: model_terms:calendar.booking.type,message_intro:website_calendar_ce.calendar_booking
+msgid "Get a <strong>customized demo</strong> and an <strong>analysis of your needs</strong>."
+msgstr "Få en <strong>Skräddarsydd demo</strong> och en <strong>analys av era behov</strong>."
+
+#. module: website_calendar_ce
 #: model:ir.model.fields,help:website_calendar_ce.field_calendar_booking_type__assignation_method
 msgid "How employees will be assigned to meetings customers book on your website."
 msgstr "Hur anställda kommer bli tilldelade till möten som kunder bokar på din webbsida."
@@ -765,11 +806,6 @@ msgid "Meeting url"
 msgstr "Mötets url"
 
 #. module: website_calendar_ce
-#: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_validated
-msgid "Meeting url:"
-msgstr "Mötets url:"
-
-#. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__message_has_error
 msgid "Message Delivery error"
 msgstr "Meddelandefel"
@@ -807,7 +843,7 @@ msgstr "Multiradstext"
 #: code:addons/website_calendar_ce/static/src/js/website_calendar.editor.js:0
 #, python-format
 msgid "Name"
-msgstr ""
+msgstr "Namn"
 
 #. module: website_calendar_ce
 #. openerp-web
@@ -986,6 +1022,11 @@ msgid "Saturday"
 msgstr "Lördag"
 
 #. module: website_calendar_ce
+#: model:calendar.booking.type,name:website_calendar_ce.calendar_booking
+msgid "Schedule a Demo"
+msgstr "Boka en Demo"
+
+#. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.index
 msgid "Schedule an Booking"
 msgstr "Schemalägg en Bokning"
@@ -1055,7 +1096,7 @@ msgstr "Starttid (0:00 - 24:00)"
 #. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_event__state
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #. module: website_calendar_ce
 #: model_terms:ir.ui.view,arch_db:website_calendar_ce.booking_calendar
@@ -1157,6 +1198,15 @@ msgstr "Visa tillgänglighet"
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__website_published
 msgid "Visible on current website"
 msgstr "Synlig på den aktuella webbplatsen"
+
+#. module: website_calendar_ce
+#: model_terms:calendar.booking.type,message_confirmation:website_calendar_ce.calendar_booking
+msgid ""
+"We thank you for your interest in our products!<br>\n"
+"               Please make sure to arrive <strong>10 minutes</strong> before your booking."
+msgstr ""
+"Vi tackar för ert intresse av våra produkter!<br>\n"
+"               Var vänlig och kom <strong>10 minuter</strong> innan er bokning."
 
 #. module: website_calendar_ce
 #: model:ir.model.fields,field_description:website_calendar_ce.field_calendar_booking_type__website_message_ids

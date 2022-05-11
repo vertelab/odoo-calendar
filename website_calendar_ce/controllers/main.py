@@ -192,7 +192,7 @@ class WebsiteCalendar(http.Controller):
             'duration': booking_type.booking_duration,
             'description': record_description,
             'alarm_ids': alarm_ids,
-            'location': booking_type.location,
+            'location': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}",
             'partner_ids': [(4, pid, False) for pid in partner_ids],
             'public_partner': public_partner,
             'categ_ids': [(4, categ_id.id, False)],

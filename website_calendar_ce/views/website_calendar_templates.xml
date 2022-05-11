@@ -404,11 +404,13 @@
                                     <label>Location:</label>
                                 </div>
                                 <div class="col-md-10">
-                                    <t t-esc="event.location"/>
+                                    <a t-att-href="event.location">
+                                        <t t-esc="event.location"/>
+                                    </a>
                                 </div>
                             </div>
                             <br/>
-                            <div t-if="event.meeting_url" class="row">
+                            <!-- <div t-if="event.meeting_url" class="row">
                                 <div class="col-md-2 text-right">
                                     <label>Meeting url:</label>
                                 </div>
@@ -418,7 +420,7 @@
                                     </a>
                                 </div>
                             </div>
-                            <br/>
+                            <br/> -->
                             <div class="row">
                                 <div class="col-md-2 text-right">
                                     <label>Attendees:</label>
