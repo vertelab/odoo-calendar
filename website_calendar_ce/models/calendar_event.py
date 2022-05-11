@@ -3,17 +3,17 @@
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
-#  
+#
 
 
 import uuid
@@ -28,7 +28,7 @@ class Attendee(models.Model):
     _inherit = 'calendar.attendee'
 
     public_user = fields.Boolean(string='Is public user', default=False)
-    
+
 
 class Meeting(models.Model):
     _inherit = "calendar.event"
@@ -39,6 +39,8 @@ class Meeting(models.Model):
             dict(vals, user_id=self.env.user.id) if not 'user_id' in vals else vals
             for vals in vals_list
         ]
+
+        public_partner = False
 
         for values in vals_list:
             if values.get('public_partner'):
@@ -112,7 +114,7 @@ class Meeting(models.Model):
         return super()._get_public_fields() | {'booking_type_id'}
 
     def _compute_is_highlighted(self):
-        super(MeetingOriginal, self)._compute_is_highlighted()
+        super(Meeting, self)._compute_is_highlighted()
         if self.env.context.get('active_model') == 'calendar.booking.type':
             booking_type_id = self.env.context.get('active_id')
             for event in self:
@@ -123,7 +125,7 @@ class Meeting(models.Model):
         """ Initialize the value of the column for existing rows.
         """
         if column_name != 'access_token':
-            super(MeetingOriginal, self)._init_column(column_name)
+            super(Meeting, self)._init_column(column_name)
 
     def _generate_access_token(self):
         for event in self:
