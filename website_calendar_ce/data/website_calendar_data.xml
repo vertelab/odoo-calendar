@@ -65,7 +65,7 @@
             <p><strong>Details of the event</strong></p>
             <ul>
                 % if object.event_id.description :
-                    <li>Description: ${object.event_id.description}</li>
+                    <li>Info: ${object.event_id.description}</li>
                 % endif
                 % if recurrent:
                     <li>When: ${object.recurrence_id.name}</li>

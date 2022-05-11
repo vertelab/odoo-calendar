@@ -163,17 +163,20 @@ class WebsiteCalendar(http.Controller):
                 else:
                     record_description += question.name + ': ' + kwargs.get(key) + '\n'
         if company:
-            record_description += "Company: " + company
+            record_description += _("Company: ") + company
         if comment:
-            record_description += "\nComment: " + comment
+            record_description += _("\nComment: ") + comment
         if description:
-            record_description += "\nDescription: " + description
+            record_description += _("\nDescription: ") + description
         if title:
-            record_description += "\nTitle: " + title
+            record_description += _("\nTitle: ") + title
 
         categ_id = request.env.ref('website_calendar_ce.calendar_event_type_data_online_booking')
         alarm_ids = booking_type.reminder_ids and [(6, 0, booking_type.reminder_ids.ids)] or []
         partner_ids = list(set([Employee.user_id.partner_id.id] + [partner.id]))
+        public_partner = False
+        if not partner.user_id:
+            public_partner = partner 
         data = {
             'state': 'open',
             'name': _('%s with %s') % (booking_type.name, name),
@@ -191,7 +194,7 @@ class WebsiteCalendar(http.Controller):
             'alarm_ids': alarm_ids,
             'location': booking_type.location,
             'partner_ids': [(4, pid, False) for pid in partner_ids],
-            'public_partner': partner,
+            'public_partner': public_partner,
             'categ_ids': [(4, categ_id.id, False)],
             'booking_type_id': booking_type.id,
             'user_id': Employee.user_id.id,
