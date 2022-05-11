@@ -356,7 +356,7 @@
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure container mb128">
-                    <h1 class="o_page_header">Booking: <span t-esc="event.name"/>
+                    <h1 class="o_page_header">Booking: <span t-esc="title"/>
                     </h1>
                     <div class="alert alert-info" t-if="message=='new'" role="status">
                         <p>

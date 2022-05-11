@@ -119,7 +119,7 @@ class WebsiteCalendar(http.Controller):
         })
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/submit'], type='http', auth="public", website=True, methods=["POST"])
-    def calendar_booking_submit(self, booking_type, datetime_str, employee_id, name, phone, email, country_id=False, comment=False, company=False, description=False, title=False, **kwargs):
+    def calendar_booking_submit(self, booking_type, datetime_str, employee_id, name, phone, email, country_id=False, comment=False, company=False, description=False, title=_("Book meeting"), **kwargs):
         timezone = request.session['timezone']
         tz_session = pytz.timezone(timezone)
         date_start = tz_session.localize(fields.Datetime.from_string(datetime_str)).astimezone(pytz.utc)
@@ -149,9 +149,9 @@ class WebsiteCalendar(http.Controller):
                 'email': email,
             })
 
-        record_description = (_('Country: %s') + '\n' +
-                       _('Mobile: %s') + '\n' +
-                       _('Email: %s') + '\n') % (country_name, phone, email)
+        record_description = (_('Country: %s') + '\n\n' +
+                       _('Mobile: %s') + '\n\n' +
+                       _('Email: %s') + '\n\n') % (country_name, phone, email)
         for question in booking_type.question_ids:
             key = 'question_' + str(question.id)
             if question.question_type == 'checkbox':
@@ -161,15 +161,15 @@ class WebsiteCalendar(http.Controller):
                 if question.question_type == 'text':
                     record_description += '\n* ' + question.name + ' *\n' + kwargs.get(key, False) + '\n\n'
                 else:
-                    record_description += question.name + ': ' + kwargs.get(key) + '\n'
+                    record_description += question.name + ': ' + kwargs.get(key) + '\n\n'
         if company:
             record_description += _("Company: ") + company
         if comment:
-            record_description += _("\nComment: ") + comment
+            record_description += _("\n\nComment: ") + comment
         if description:
-            record_description += _("\nDescription: ") + description
+            record_description += _("\n\nDescription: ") + description
         if title:
-            record_description += _("\nTitle: ") + title
+            record_description += _("\n\nTitle: ") + title
 
         categ_id = request.env.ref('website_calendar_ce.calendar_event_type_data_online_booking')
         alarm_ids = booking_type.reminder_ids and [(6, 0, booking_type.reminder_ids.ids)] or []
@@ -203,14 +203,14 @@ class WebsiteCalendar(http.Controller):
         event = self._create_event(request, Employee, data)
         event.attendee_ids.filtered(lambda attendee: attendee.partner_id.id == partner.id).write({'public_user': True})
         event.attendee_ids.write({'state': 'accepted'})
-        return request.redirect('/website/calendar/view/' + event.access_token + '?message=new')
+        return request.redirect('/website/calendar/view/' + event.access_token + '?message=new'+'&title='+title)
         
 
     def _create_event(self, request, Employee, data):
         return request.env['calendar.event'].sudo().with_context(allowed_company_ids=Employee.user_id.company_ids.ids).create(data)
 
     @http.route(['/website/calendar/view/<string:access_token>'], type='http', auth="public", website=True)
-    def calendar_booking_view(self, access_token, edit=False, message=False, **kwargs):
+    def calendar_booking_view(self, access_token, edit=False, message=False, description=False, title=False, **kwargs):
         event = request.env['calendar.event'].sudo().search([('access_token', '=', access_token)], limit=1)
         if not event:
             return request.not_found()
@@ -254,6 +254,8 @@ class WebsiteCalendar(http.Controller):
             'google_url': google_url,
             'message': message,
             'edit': edit,
+            'description': description if description else _("Fill your personal information in the form below, and confirm the booking. We'll send an invite to your email address"),
+            'title': title if title else _("Book meeting"),
         })
 
     @http.route(['/website/calendar/ics/<string:access_token>.ics'], type='http', auth="public", website=True)
