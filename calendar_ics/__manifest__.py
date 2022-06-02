@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Odoo SA, Open Source Management Solution, third party addon
-#    Copyright (C) 2022- Vertel AB (<https://vertel.se>).
+#    OpenERP, Open Source Management Solution, third party addon
+#    Copyright (C) 2004-2016 Vertel AB (<http://vertel.se>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -15,36 +15,34 @@
 #    GNU Affero General Public License for more details.
 #
 #    You should have received a copy of the GNU Affero General Public License
-#    along with this program. If not, see <http://www.gnu.org/licenses/>.
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
 
 {
     'name': 'Calendar ics-urls',
-    'version': '14.0.0.0.0',
-    # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
+    'version': '14.0.0.1.0',
+    'category': 'Tools',
     'summary': 'Subscription on calendar.ics-urls',
-    'category': 'Customizations',
-    'description': 'Adds and updates calendar objects according to an ics-url.',
-    #'sequence': '1'
+    'licence': 'AGPL-3',
+    'description': """
+Adds and updates calendar objects according to an ics-url
+
+""",
     'author': 'Vertel AB',
-    'website': 'https://vertel.se/apps/odoo-calendar/calendar-ics',
-    'images': ['/static/description/banner.png'], # 560x280 px.
-    'license': 'AGPL-3',
-    'contributor': '',
-    'maintainer': 'Vertel AB',
-    'repository': 'https://github.com/vertelab/odoo-calendar',
+    'website': 'http://www.vertel.se',
     'depends': ['calendar',],
     'external_dependencies': {
-#        'python': ['icalendar', 'urllib2'],
-        'python': ['icalendar', ],
+        'python': ['icalendar', 'urllib'],
     },
-    'data': [ 'res_partner_view.xml',
-    #'security/ir.model.access.csv',
-    'res_partner_data.xml'
+    'data': [
+        'views/res_partner_view.xml',
+        # 'views/calendar_view.xml',
+        #'security/ir.model.access.csv',
+        'data/res_partner_data.xml'
     ],
     'application': False,
     'installable': True,
-    'demo': ['calendar_ics_demo.xml',],
+    'demo': ['demo/calendar_ics_demo.xml',],
 }
 # vim:expandtab:smartindent:tabstop=4s:softtabstop=4:shiftwidth=4:

@@ -1,24 +1,3 @@
-# -*- coding: utf-8 -*-
-##############################################################################
-#
-#    Odoo SA, Open Source Management Solution, third party addon
-#    Copyright (C) 2022- Vertel AB (<https://vertel.se>).
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
-
 from odoo import models, fields, api, _
 from pytz import timezone
 from odoo.exceptions import except_orm, Warning, RedirectWarning
@@ -29,6 +8,8 @@ import re
 
 from odoo import http
 from odoo.http import request
+from urllib.request import urlopen
+import urllib
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -38,66 +19,10 @@ try:
 except ImportError:
     raise Warning('icalendar library missing, pip install icalendar')
 
-try:
-    import urllib2
-except ImportError:
-    raise Warning('urllib2 library missing, pip install urllib2')
-
-class res_partner_icalendar(http.Controller):
-#        http://partner/<res.partner>/calendar/[private.ics|freebusy.ics|public.ics]
-     #~ simple_blog_list = request.env['blog.post'].sudo().search([('blog_id', '=', simple_blog.id)], order='message_last_post desc')
-
-    #~ @http.route(['/partner/<model("res.partner"):partner>/calendar/private.ics'], type='http', auth="public", website=True)
-    #~ def icalendar_private(self, partner=False, **post):
-        #~ if partner:
-            #~ document = partner.sudo().get_ics_calendar(type='private').to_ical()
-            #~ return request.make_response(
-                #~ headers=[('WWW-Authenticate', 'Basic realm="MaxRealm"')]
-            #~ )
-        #~ else:
-            #~ raise Warning("Private failed")
-            #~ pass # Some error page
-
-    @http.route(['/partner/<model("res.partner"):partner>/calendar/freebusy.ics'], type='http', auth="public", website=True)
-    def icalendar_freebusy(self, partner=False, **post):
-        if partner:
-            #~ raise Warning("Public successfull %s" % partner.get_ics_calendar(type='public').to_ical())
-            #~ return partner.get_ics_calendar(type='public').to_ical()
-            document = partner.sudo().get_ics_calendar(type='freebusy').to_ical()
-            return request.make_response(
-                document,
-                headers=[
-                    ('Content-Disposition', 'attachment; filename="freebusy.ifb"'),
-                    ('Content-Type', 'text/calendar'),
-                    ('Content-Length', len(document)),
-                ]
-            )
-        else:
-            raise Warning()
-            pass # Some error page
-
-#    @http.route(['/partner/<model("res.partner"):partner>/calendar/public.ics'], type='http', auth="public", website=True)
-    @http.route(['/partner/<int:partner>/calendar/public.ics'], type='http', auth="public", website=True)
-    def icalendar_public(self, partner=None, **post):
-        if partner:
-            #~ raise Warning("Public successfull %s" % partner.get_ics_calendar(type='public').to_ical())
-            #~ return partner.sudo().get_ics_calendar(type='public')
-            document = request.env['res.partner'].sudo().browse(partner).get_ics_calendar(type='public')
-            return request.make_response(
-                document,
-                headers=[
-                    ('Content-Disposition', 'attachment; filename="public.ics"'),
-                    ('Content-Type', 'text/calendar'),
-                    ('Content-Length', len(document)),
-                ]
-            )
-        else:
-            raise Warning("Public failed")
-            pass # Some error page
 
 class res_partner(models.Model):
     _inherit = "res.partner"
-
+    
     ics_url  = fields.Char(string='Url',required=False)
     ics_active = fields.Boolean(string='Active',default=False)
     ics_nextdate = fields.Datetime(string="Next")
@@ -109,32 +34,29 @@ class res_partner(models.Model):
     ics_allday = fields.Boolean(string='All Day')
     ics_url_field = fields.Char(string='URL to the calendar', compute='create_ics_url')
 
-    @api.one
     def create_ics_url(self):
         self.ics_url_field = '%s/partner/%s/calendar/public.ics' % (self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id)
 
-    @api.v7
+    @api.model
     def ics_cron_job(self, cr, uid, context=None):
         _logger.debug('ics_cron_job')
         for ics in self.pool.get('res.partner').browse(cr, uid, self.pool.get('res.partner').search(cr, uid, [('ics_active','=',True)])):
-            if not ics.ics_nextdate or (ics.ics_nextdate < fields.Datetime.now()):
+            if not ics.ics_nextdate or (ics.ics_nextdate < fields.Datetime.today()):
                 ics.get_ics_events()
                 ics.ics_nextdate = fields.Datetime.to_string(fields.Datetime.from_string(ics.ics_nextdate or fields.Datetime.now()) + timedelta(minutes=int(ics.ics_frequency)))
                 _logger.info('Cron job for %s done' % ics.name)
 
-    @api.one
     def rm_ics_events(self):
         self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_subscription','=',True)]).unlink()
 
-    @api.one
     def get_ics_events(self):
         if (self.ics_url):
             try:
-                res = urllib2.urlopen(self.ics_url).read()
-            except urllib2.HTTPError as e:
+                res = urlopen(self.ics_url).read()
+            except urllib.error.HTTPError as e:
                 _logger.error('ICS a %s %s' % (e.code, e.reason))
                 return False
-            except urllib2.URLError as e:
+            except urllib.error.URLError as e:
                 _logger.error('ICS c %s %s' % (e.code, e.reason))
                 return False
             _logger.debug('ICS %s' % res)
@@ -142,10 +64,9 @@ class res_partner(models.Model):
             self.env['calendar.event'].search(['&',('partner_ids','in',self.id),('ics_subscription','=',True)]).unlink()
             #~ for event in self.env['calendar.event'].search([('ics_id','=',self.id)]):
                 #~ event.unlink()
-
+                
             self.env['calendar.event'].set_ics_event(res, self)
 
-    @api.multi
     def get_attendee_ids(self, event):
         #~ raise Warning('get_attendee_ids run')
         partner_ids = []
@@ -154,7 +75,7 @@ class res_partner(models.Model):
         if event_attendee_list:
             if not (type(event_attendee_list) is list):
                 event_attendee_list = [event_attendee_list]
-
+            
             for vAttendee in event_attendee_list:
                 _logger.debug('Attendee found %s' % vAttendee)
                 attendee_mailto = re.search('(:MAILTO:)([a-zA-Z0-9_@.\-]*)', vAttendee)
@@ -166,11 +87,11 @@ class res_partner(models.Model):
                 elif not attendee_mailto and not attendee_cn:
                     attendee_cn = vAttendee
                 _logger.debug('Attendee found %s' % attendee_cn)
-
+                
                 #~ raise Warning('%s %s' % (vAttendee, attendee_cn))
                 if attendee_mailto:
                     partner_result = self.env['res.partner'].search([('email','=',attendee_mailto)])
-
+                    
                     if not partner_result:
                         partner_id = self.env['res.partner'].create({
                             'email': attendee_mailto,
@@ -180,26 +101,26 @@ class res_partner(models.Model):
                         partner_id = partner_result[0]
                 elif attendee_cn:
                     partner_result = self.env['res.partner'].search([('name','=',attendee_cn)])
-
+                    
                     if not partner_result:
                         partner_id = self.env['res.partner'].create({
                             'name': attendee_cn or attendee_mailto,
                             })
                     else:
                         partner_id = partner_result[0]
-
+                
                 #~ self.env['calendar.attendee'].create({
                     #~ 'event_id': event_id.id,
                     #~ 'partner_id': partner_id.id or None,
                     #~ 'email': attendee_mailto or '',
                     #~ })
-
+                        
                 partner_ids.append(partner_id.id or None)
                 #~ attendee_mails.append(attendee_mailto or '')
-
+                
             return partner_ids
             #~ return [partner_ids, attendee_mails]
-
+            
     def get_ics_calendar(self,type='public'):
         calendar = Calendar()
         if type == 'private':
@@ -207,7 +128,7 @@ class res_partner(models.Model):
                 calendar.add_component(event.get_ics_file())
         elif type == 'freebusy':
             fc = FreeBusy()
-
+            
             organizer_add = self.name and ('CN=' + self.name) or ''
             if self.name and self.email:
                 organizer_add += ':'
@@ -228,33 +149,31 @@ class res_partner(models.Model):
                     #~ temporary_ics[0].add('url', self.ics_url_field, encode=0)
                     calendar.add_component(temporary_ics[0])
                     #~ calendar.add('vevent', temporary_ics[0], encode=0)
-
+            
                 #~ for attendees in event.attendee_ids:
                     #~ calendar.add('attendee', event.get_event_attendees(attendees), encode=0)
-
-        tmpCalendar = calendar.to_ical()
+                    
+        tmpCalendar = calendar.to_ical().decode("utf-8")
         tmpSearch = re.findall('RRULE:[^\n]*\\;[^\n]*', tmpCalendar)
-
+        
         for counter in range(len(tmpSearch)):
             tmpCalendar = tmpCalendar.replace(tmpSearch[counter], tmpSearch[counter].replace('\\;', ';', tmpSearch[counter].count('\\;')))
-
+        
         #~ raise Warning(tmpCalendar)
-
+        
         return tmpCalendar
-
-    @api.multi
-    def ics_mail(self,context=None):
-    #raise Warning('%s | %s' % (ids,picking))
+        
+    def ics_mail(self):
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
         #~ raise Warning("%s compose_form" % compose_form)
         mail= self.env['mail.compose.message'].create({
-            'template_id':self.env.ref('calendar_ics.email_ics_url').id,
+            'template_id':self.env.ref('calendar_ics.email_ics_url').id, 
             'model': 'res.partner',
             'res_id': self.id,
             })
         mail.write(mail.onchange_template_id( # gets defaults from template
                                 self.env.ref('calendar_ics.email_ics_url').id, mail.composition_mode,
-                                mail.model, mail.res_id,context=context
+                                mail.model, mail.res_id
                             )['value'])
         return {
                 'name': _('Compose Email'),
@@ -268,9 +187,9 @@ class res_partner(models.Model):
                 'target': 'new',
                 }
 
-        return {'value': {'partner_id': False}, 'warning': {'title': 'Hello', 'message': 'Hejsan'}}
-
-
+        # return {'value': {'partner_id': False}, 'warning': {'title': 'Hello', 'message': 'Hejsan'}}
+ 
+        
         #~ ics['freebusy'] = '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
 
     # vtodo, vjournal, vfreebusy
@@ -300,4 +219,3 @@ class res_partner(models.Model):
              #~ resources / rdate / rrule / x-prop
 
              #~ )
-
