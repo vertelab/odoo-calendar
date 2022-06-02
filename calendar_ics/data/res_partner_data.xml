@@ -24,6 +24,7 @@
       <field name="numbercall">-1</field>
       <field name="model_id" ref="base.model_res_partner"/>
       <field name="code">model.ics_cron_job()</field>
+      <field name="state">code</field>
     </record>
   </data>
 </odoo>

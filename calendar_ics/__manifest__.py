@@ -33,7 +33,7 @@ Adds and updates calendar objects according to an ics-url
     'website': 'http://www.vertel.se',
     'depends': ['calendar',],
     'external_dependencies': {
-        'python': ['icalendar', 'urllib'],
+        'python': ['icalendar'],
     },
     'data': [
         'views/res_partner_view.xml',

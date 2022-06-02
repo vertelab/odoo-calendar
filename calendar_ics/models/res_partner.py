@@ -37,10 +37,8 @@ class res_partner(models.Model):
     def create_ics_url(self):
         self.ics_url_field = '%s/partner/%s/calendar/public.ics' % (self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id)
 
-    @api.model
-    def ics_cron_job(self, cr, uid, context=None):
-        _logger.debug('ics_cron_job')
-        for ics in self.pool.get('res.partner').browse(cr, uid, self.pool.get('res.partner').search(cr, uid, [('ics_active','=',True)])):
+    def ics_cron_job(self):
+        for ics in self.env['res.partner'].browse(self.env['res.partner'].search([('ics_active','=',True)])):
             if not ics.ics_nextdate or (ics.ics_nextdate < fields.Datetime.today()):
                 ics.get_ics_events()
                 ics.ics_nextdate = fields.Datetime.to_string(fields.Datetime.from_string(ics.ics_nextdate or fields.Datetime.now()) + timedelta(minutes=int(ics.ics_frequency)))
