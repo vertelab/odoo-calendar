@@ -1,0 +1,28 @@
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.setings.view.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="40"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" style="background : url('/static/description/icon.png') no-repeat center;background-size:contain;" data-string="Calendar settings" string="Calendar settings" data-key="swedish_holidays">
+                    <h2>Import ICS into schedule and calendar</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">ICS URL</span>
+                                <div class="text-muted content-group mt16">
+                                    <field name="ics_url" class="text-left oe_inline" />
+                                    <button name="test" type="object" string="Test" style="margin-left:10px;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

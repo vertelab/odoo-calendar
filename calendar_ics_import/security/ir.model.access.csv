@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+import_holidays,import.holidays,model_import_holidays,,1,1,1,1
+import_holidays_settings,import.holidays.settings,model_import_holidays_settings,,1,1,1,1
