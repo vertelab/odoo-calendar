@@ -15,24 +15,21 @@ class ImportHolidays(models.Model):
     _inherit = 'calendar.event'
 
     @api.model
-    def _holiday_cron(self):
-        #_logger.warning(f"{self=}")
-        
+    def _holiday_cron(self):       
         url = self.env['ir.config_parameter'].sudo().get_param('holiday.url.ics')
-        #_logger.warning(f"{url=}")
         calendar = Calendar(requests.get(url).text)
-        
+        responsible_id = self.env['res.users'].search([('login', '=', 'holidays')])[0].id
+
         for event in list(calendar.timeline): 
-            event_xmlid = f"{IMPORT}.calendar_{event.uid.replace('.','_')}"
+            event_xmlid = f"{IMPORT}.calendar_{event.name.replace(' ', '_')}_{event.begin.date().strftime('%Y-%m-%d')}"
             try:
                 ref_try = self.env.ref(event_xmlid)
-                #_logger.warning(f"{event_xmlid=}")
-                #_logger.warning(f"{ref_try=}")
 
             except ValueError: 
                 event_id = self.env["calendar.event"].create({'name': event.name, 
                                                 'start': event.begin.date().strftime('%Y-%m-%d'), 
-                                                'stop': event.begin.date().strftime('%Y-%m-%d'), 'allday': 'True'})
+                                                'stop': event.begin.date().strftime('%Y-%m-%d'), 'allday': 'True',
+                                                'user_id': responsible_id})
 
                 external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
                                                 'name': event_xmlid.split('.')[-1], 
@@ -41,16 +38,13 @@ class ImportHolidays(models.Model):
                 
             for resource_calendar in self.env['resource.calendar'].search_read([], ['id', 'hours_per_day']):  
                 hours_week = (resource_calendar['hours_per_day'] * 5)
-                uid = f"{hours_week}_{event.uid}".replace('.','_')
+                uid = f"{hours_week}_{event.name.replace(' ', '_')}_{event.begin.date().strftime('%Y-%m-%d')}".replace('.','_')
                 leave_xmlid = f"{IMPORT}.leaves_{uid}"
-                #_logger.error(f"{event.name=}")
-                
+              
                 try:
                     ref_try = self.env.ref(leave_xmlid)
-                    #_logger.warning(f"{ref_try=}")
 
                 except ValueError: 
-                    #_logger.warning(f"hhehehehe")
                     leave_id = self.env["resource.calendar.leaves"].create({'name': event.name,
                                                     'calendar_id': resource_calendar['id'], 
                                                     'date_from': (event.begin.date() - datetime.timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S'), 
