@@ -11,7 +11,7 @@
     Currently it only allows for one URL containing an .ics file to be imported. 
     It updates monthly for new holidays so that you are always up to date.
 
-    Required python library: 'ics', just do "pip install ics" on your machine and you should be able to install it
+    Required python library: 'ics', just do "pip install ics" on your machine and you should be able to install the module.
     """,
     'data': [
         "views/res_config_settings.xml",
