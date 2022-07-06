@@ -19,5 +19,5 @@
     ],
     'external_dependencies': {
     'python': ['ics'],
-}
+    },
 }
