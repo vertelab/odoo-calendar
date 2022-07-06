@@ -3,6 +3,7 @@ import logging
 from multiprocessing.sharedctypes import Value
 from odoo import fields, models, api, _
 import time
+import requests
 
 _logger = logging.getLogger(__name__)
 IMPORT = '__import__'
@@ -11,9 +12,6 @@ class ResCalendarSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
     ics_url = fields.Char(string='Enter the URL of the ICS file', config_parameter='holiday.url.ics',)
-
-    def test_ics_url(self):
-        _logger.warning(self.ics_url)
         
     @api.model
     def create(self, vals_list):
@@ -28,11 +26,15 @@ class ResCalendarSettings(models.TransientModel):
                                     'name': ics_xmlid.split('.')[-1], 
                                     'model': 'ir.cron'})                               
 
-                self.env['ir.cron'].create([{'name': 'Update holidays URL: ' + ics_url,
-                                        'model_id': 330, 'user_id': 2, 'interval_number': 1,  
-                                        'interval_type': 'months', 'code': 'model._holiday_cron()', 
-                                        'numbercall': -1}]) 
-        else:
-            _logger.warning(f"{vals_list}")
+                cron_name = 'Update holidays URL: ' + ics_url
+                calendar_event_cron_model = self.env['ir.model'].search([('model', '=', 'calendar.event')]).id
 
+                if not self.env['ir.cron'].search([('name', '=', cron_name)]):
+                    self.env['ir.cron'].create([{'name': cron_name,
+                                            'model_id': calendar_event_cron_model, 'user_id': 2, 'interval_number': 1,  
+                                            'interval_type': 'months', 'code': 'model._holiday_cron()', 
+                                            'numbercall': -1}])
+
+                if not self.env['res.users'].search([('login', '=', "holidays")]):
+                    self.env['res.users'].sudo().create({'name': "Holidays", 'login': "holidays"})
         return res

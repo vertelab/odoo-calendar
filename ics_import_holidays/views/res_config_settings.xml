@@ -15,7 +15,6 @@
                                 <span class="o_form_label">ICS URL</span>
                                 <div class="text-muted content-group mt16">
                                     <field name="ics_url" class="text-left oe_inline" />
-                                    <button name="test_ics_url" type="object" string="Test the URL" style="margin-left:10px;"/>
                                 </div>
                             </div>
                         </div>

@@ -18,7 +18,8 @@ class ImportHolidays(models.Model):
     def _holiday_cron(self):       
         url = self.env['ir.config_parameter'].sudo().get_param('holiday.url.ics')
         calendar = Calendar(requests.get(url).text)
-        
+        responsible_id = self.env['res.users'].search([('login', '=', 'holidays')])[0].id
+
         for event in list(calendar.timeline): 
             event_xmlid = f"{IMPORT}.calendar_{event.name.replace(' ', '_')}_{event.begin.date().strftime('%Y-%m-%d')}"
             try:
@@ -27,7 +28,8 @@ class ImportHolidays(models.Model):
             except ValueError: 
                 event_id = self.env["calendar.event"].create({'name': event.name, 
                                                 'start': event.begin.date().strftime('%Y-%m-%d'), 
-                                                'stop': event.begin.date().strftime('%Y-%m-%d'), 'allday': 'True'})
+                                                'stop': event.begin.date().strftime('%Y-%m-%d'), 'allday': 'True',
+                                                'user_id': responsible_id})
 
                 external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
                                                 'name': event_xmlid.split('.')[-1], 
