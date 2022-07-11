@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="firebase_config_view_form" model="ir.ui.view">
+            <field name="name">firebase.config.form</field>
+            <field name="model">firebase.config</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="firebase_project_id"/>
+                            <field name="firebase_web_api_key"/>
+                            <field name="firebase_push_certificate_key"/>
+                            <field name="firebase_sender_id"/>
+                            <field name="firebase_admin_key_file"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="firebase_config_view_tree" model="ir.ui.view">
+            <field name="name">firebase.config.tree</field>
+            <field name="model">firebase.config</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="firebase_project_id"/>
+                    <field name="firebase_web_api_key"/>
+                    <field name="firebase_push_certificate_key"/>
+                    <field name="firebase_sender_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_firebase_config" model="ir.actions.act_window">
+            <field name="name">Firebase Config</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">firebase.config</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="firebase_config_view_tree"/>
+        </record>
+
+        <menuitem id="menu_firebase_config" action="action_firebase_config" parent="base.menu_ir_property"/>
+    </data>
+</odoo>

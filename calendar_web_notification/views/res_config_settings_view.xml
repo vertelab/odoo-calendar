@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="res_config_settings_view_form" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.event.push.notifications</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@id='multi_company']" position="after">
+                    <h2>Web Push Notifications</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                                <field name="firebase_enable_push_notifications"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="firebase_enable_push_notifications" class="oe_inline o_form_label"/>
+                                <div class="text-muted">
+                                    Enable push notifications and select a project.
+                                </div>
+                                <br/>
+                                <field name="firebase_config_id" class="oe_inline" required="1"/>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-lg-6 o_setting_box"
+                            attrs="{'invisible': [('firebase_enable_push_notifications', '=', False)]}"
+                            groups="base.group_no_one">
+   
+                            <div class="o_setting_right_pane">
+                                <div class="content-group">
+                                    <div class="mt16">
+                                        <label for="firebase_project_id" string="Project ID" class="col-3 col-lg-3 o_form_label"/>
+                                        <field name="firebase_project_id" class="oe_inline"/>
+                                    </div>
+                                    <div class="mt16">
+                                        <label for="firebase_web_api_key" string="Web API Key" class="col-3 col-lg-3 o_form_label"/>
+                                        <field name="firebase_web_api_key" class="oe_inline"/>
+                                    </div>
+                                    <div class="mt16">
+                                        <label for="firebase_push_certificate_key" string="Push Certificate Key ID" class="col-3 col-lg-3 o_form_label"/>
+                                        <field name="firebase_push_certificate_key" class="oe_inline"/>
+                                    </div>
+                                    <div class="mt16">
+                                        <label for="firebase_sender_id" string="Sender ID" class="col-3 col-lg-3 o_form_label"/>
+                                        <field name="firebase_sender_id" class="oe_inline"/>
+                                    </div>
+                                    <div class="mt16">
+                                        <label for="firebase_admin_key_file" string="Key File" class="col-3 col-lg-3 o_form_label"/>
+                                        <field name="firebase_admin_key_file" class="oe_inline"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
