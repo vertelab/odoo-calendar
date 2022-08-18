@@ -19,6 +19,12 @@ eves = {
     'Juldagen': 'Julafton',
 }
 
+<<<<<<< HEAD
+=======
+# https://www.helgdagar.nu/midsommar/midsommarafton-rod-dag
+
+
+>>>>>>> ff40e74a4ea1dab77dafe12d6571008ff5345fb2
 class ImportHolidays(models.Model):
     _inherit = 'calendar.event'
 
@@ -44,6 +50,7 @@ class ImportHolidays(models.Model):
                 external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
                                                 'name': event_xmlid.split('.')[-1], 
                                                 'model': 'calendar.event',
+<<<<<<< HEAD
                                                 'res_id': event_id.id
                                                 })
 
@@ -62,6 +69,17 @@ class ImportHolidays(models.Model):
                                                 'res_id': f"{eve_id.id}"
                                                 })
                     
+=======
+                                                'res_id': event_id.id})     
+                                                
+                if event.name in eves.keys():
+                        eve_id = self.env["calendar.event"].create({'name': eves[event.name],
+                                                    'user_id': responsible_id, 
+                                                    'start': (event_id.start - datetime.timedelta(day=1)).strftime('%Y-%m-%d %H:%M:%S'), 
+                                                    'stop': (event_id.stop - datetime.timedelta(day=1)).strftime('%Y-%m-%d %H:%M:%S')
+                                                    })
+                
+>>>>>>> ff40e74a4ea1dab77dafe12d6571008ff5345fb2
             for resource_calendar in self.env['resource.calendar'].search_read([], ['id', 'hours_per_day']):  
                 hours_week = (resource_calendar['hours_per_day'] * 5)
                 uid = f"{hours_week}_{event.name.replace(' ', '_')}_{event.begin.date().strftime('%Y-%m-%d')}".replace('.','_')
@@ -75,6 +93,12 @@ class ImportHolidays(models.Model):
                                                     'calendar_id': resource_calendar['id'], 
                                                     'date_from': (event.begin.date()).strftime('%Y-%m-%d %H:%M:%S'), 
                                                     'date_to': (event.begin.date() + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+                                                    })
+                    if event.name in eves.keys():
+                        eve_id = self.env["resource.calendar.leaves"].create({'name': eves[event.name],
+                                                    'calendar_id': resource_calendar['id'], 
+                                                    'date_from': (leave_id.date_from - datetime.timedelta(day=1)).strftime('%Y-%m-%d %H:%M:%S'), 
+                                                    'date_to': (leave_id.date_to - datetime.timedelta(day=1)).strftime('%Y-%m-%d %H:%M:%S')
                                                     })
 
                     external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
