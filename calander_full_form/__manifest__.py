@@ -21,15 +21,17 @@
 ##############################################################################
 
 {
-    'name': 'Calender Full Form',
+    'name': 'Calendar: Calender Full Form',
     'version': '14.0.0.0',
-    'category': 'Productivity/Calendar',
     'summary': 'To be able to open calendar form view instead of a popup.',
+    'category': 'Calendar',
+    'author': 'Vertel AB',
+    'website': 'https://vertel.se/apps/odoo-calendar/calender_full_form',
+    'license': 'AGPL-3'
+    https://github.com/vertelab/odoo-
     'description': """
         To be able to open calendar form view instead of a popup
     """,
-    'author': 'Vertel AB',
-    'website': 'https://www.vertel.se',
     'depends': ['calendar'],
     'data': [
         'views/calendar_view.xml'
