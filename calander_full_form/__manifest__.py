@@ -23,15 +23,19 @@
 {
     'name': 'Calendar: Calender Full Form',
     'version': '14.0.0.0',
+    # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'To be able to open calendar form view instead of a popup.',
     'category': 'Calendar',
-    'author': 'Vertel AB',
-    'website': 'https://vertel.se/apps/odoo-calendar/calender_full_form',
-    'license': 'AGPL-3'
-    https://github.com/vertelab/odoo-
     'description': """
         To be able to open calendar form view instead of a popup
     """,
+    'author': 'Vertel AB',
+    'website': 'https://vertel.se/apps/odoo-calendar/calender_full_form',
+    'images': ['static/description/banner.png'], # 560x280 px.
+    'license': 'AGPL-3'
+    'maintainer': 'Vertel AB',
+    'repository': 'https://github.com/vertelab/odoo-calendar',
+    #'sequence': '1',
     'depends': ['calendar'],
     'data': [
         'views/calendar_view.xml'
