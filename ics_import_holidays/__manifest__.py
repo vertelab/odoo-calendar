@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
@@ -19,40 +18,37 @@
 #    along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-#
-# https://www.odoo.com/documentation/14.0/reference/module.html
-#
 
 {
-    'name': 'Calendar: Extended Notifications',
+    'name': 'Calendar: Import holidays',
     'version': '14.0.0.0.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': """
-        Module extends functionality for calander events to send update emails when the event is deleted or changed.""",
+    'summary': 'Import holidays will update  monthly basis so you are always on the right ',
     'category': 'Productivity',
     'description': """
-        Long description of module's purpose
+    This is a module you can use to import holidays into the calendar and the resource calendar.
+    Currently it only allows for one URL containing an .ics file to be imported. 
+    It updates monthly for new holidays so that you are always up to date.
+
+    Required python library: 'ics', just do "pip install ics" on your machine and you should be able to install the module.
     """,
     #'sequence': '1',
     'author': 'Vertel AB',
-    'website': 'https://vertel.se/apps/odoo-calendar/extended_calendar_notifications',
+    'website': 'https://vertel.se/apps/odoo-calendar/ics_import_holidays',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
-    'depends': ['mail', 'base', 'calendar'],
-     #"external_dependencies": {
-     #   "bin": ["openssl",],
-     #   "python": ["acme_tiny", "IPy",],
-     #},
-    'data': [
-        'data/mail_template.xml'
+    'depends': [
+        'calendar', 
+        'hr',
     ],
-    'demo': [],
-    'application': False,
-    'installable': True,
-    'auto_install': False,
-    #"post_init_hook": "post_init_hook",
+    'data': [
+        "views/res_config_settings.xml",
+    ],
+    'external_dependencies': {
+    'python': ['ics'],
+    },
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
