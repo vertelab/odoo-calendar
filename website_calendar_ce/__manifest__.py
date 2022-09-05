@@ -28,13 +28,11 @@
     'description': """
     Allow clients to Schedule Bookings through your Website
     -------------------------------------------------------
-
     """,
-    #'sequence': '1',
     'sequence': '131',
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-calendar/website_calendar_ce',
-    'images': ['static/description/banner.png'], # 560x280 px.
+    'images': ['static/description/banner.png'],  # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
     'maintainer': 'Vertel AB',
@@ -57,7 +55,11 @@
     # 'qweb': [
     #     'static/src/xml/booking.xml',
     # ],
-
+    'external_dependencies': {
+        'python': [
+            'pandas'  # sudo pip3 install pandas
+        ]
+    },
     'installable': True,
     'application': True,
     'auto_install': False,
