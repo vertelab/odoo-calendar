@@ -29,7 +29,7 @@
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': """
         Module extends functionality for calander events to send update emails when the event is deleted or changed.""",
-    'category': 'Productivity',
+    'category': 'Calendar',
     'description': """
         Long description of module's purpose
     """,
