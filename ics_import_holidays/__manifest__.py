@@ -24,7 +24,7 @@
     'version': '14.0.0.0.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Import holidays will update  monthly basis so you are always on the right ',
-    'category': 'Productivity',
+    'category': 'Calendar',
     'description': """
     This is a module you can use to import holidays into the calendar and the resource calendar.
     Currently it only allows for one URL containing an .ics file to be imported. 
