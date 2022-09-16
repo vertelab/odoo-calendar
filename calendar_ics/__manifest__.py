@@ -22,7 +22,7 @@
 {
     'name': 'Calendar ics-urls',
     'version': '14.0.0.1.0',
-    'category': 'Tools',
+    'category': 'Calendar',
     'summary': 'Subscription on calendar.ics-urls',
     'licence': 'AGPL-3',
     'description': """
