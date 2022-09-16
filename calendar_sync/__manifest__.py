@@ -24,7 +24,7 @@
     'version': '14.0.0.0.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Syncs the Odoo calendar with other apps.',
-    'category': 'Productivity',
+    'category': 'Calendar',
     'description': """
         Sets up a REST API that enables Odoo to sync calendar events with other apps.
     """,
