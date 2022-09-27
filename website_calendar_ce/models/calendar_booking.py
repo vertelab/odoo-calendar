@@ -266,18 +266,20 @@ class CalendarBookingType(models.Model):
                         slot['employee_id'] = emp
                         break
 
-    def _get_booking_slots(self, timezone, employee=None):
+    def _get_booking_slots(self, timezone, employee=None, month=0):
         """ Fetch available slots to book an booking
             :param timezone: timezone string e.g.: 'Europe/Brussels' or 'Etc/GMT+1'
             :param employee: if set will only check available slots for this employee
             :returns: list of dicts (1 per month) containing available slots per day per week.
                       complex structure used to simplify rendering of template
+
+            TODO: this needs to be improved if it will be used
         """
         self.ensure_one()
         appt_tz = pytz.timezone(self.booking_tz)
         requested_tz = pytz.timezone(timezone)
-        first_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(hours=self.min_schedule_hours))
-        last_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(days=self.max_schedule_days))
+        first_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(months=month, hours=self.min_schedule_hours))
+        last_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(months=month, days=self.max_schedule_days))
 
         # Compute available slots (ordered)
         slots = self._slots_generate(first_day.astimezone(appt_tz), last_day.astimezone(appt_tz), timezone)
@@ -285,7 +287,7 @@ class CalendarBookingType(models.Model):
             self._slots_available(slots, first_day.astimezone(pytz.UTC), last_day.astimezone(pytz.UTC), employee)
 
         # Compute calendar rendering and inject available slots
-        today = requested_tz.fromutc(datetime.utcnow())
+        today = requested_tz.fromutc(datetime.utcnow() + relativedelta(months=month))
         start = today
         month_dates_calendar = cal.Calendar(0).monthdatescalendar
         months = []
@@ -323,7 +325,7 @@ class CalendarBookingType(models.Model):
                 'month': format_datetime(start, 'MMMM Y', locale=get_lang(self.env).code),
                 'weeks': dates
             })
-            start = start + relativedelta(months=1)
+            start = start + relativedelta(months=month + 1)
         return months
 
     def open_booking_wizard(self):

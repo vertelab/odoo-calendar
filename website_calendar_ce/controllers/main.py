@@ -92,6 +92,7 @@ class WebsiteCalendar(http.Controller):
         Slots = booking_type.sudo()._get_booking_slots(request.session['timezone'], Employee)
         return request.render("website_calendar_ce.booking", {
             'booking_type': booking_type,
+            'employee_id': Employee,
             'timezone': request.session['timezone'],
             'failed': failed,
             'slots': Slots,
@@ -297,3 +298,20 @@ class WebsiteCalendar(http.Controller):
             'title': title if title else _("Book meeting"),
         })
 
+    @http.route(['/booking/slots'], type='json', auth="public", website=True)
+    def toggle_booking_slots(self, booking_type=None, employee_id=None, month=0, description=None, title=None, **kwargs):
+        BookingType = request.env['calendar.booking.type'].sudo().browse(int(booking_type)) if booking_type else None
+        request.session['timezone'] = BookingType.booking_tz
+        Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
+        Slots = BookingType.sudo()._get_booking_slots(request.session['timezone'], Employee, int(month))
+
+        return request.env['ir.ui.view']._render_template("website_calendar_ce.booking_calendar", {
+            'booking_type': BookingType,
+            'employee_id': Employee,
+            'timezone': request.session['timezone'],
+            'slots': Slots,
+            'description': description if description else _(
+                "Fill your personal information in the form below, and confirm the booking. We'll send an invite to "
+                "your email address"),
+            'title': title if title else _("Book meeting"),
+        })

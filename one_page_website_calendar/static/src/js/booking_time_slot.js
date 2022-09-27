@@ -20,18 +20,6 @@ odoo.define('one_page_website_calendar.one_page_booking_slot', function (require
         },
 
         start: function () {
-
-              // params to query the booking slots for the booking type and employee
-            //~ var employee_id = $(".o_website_appointment_form select[name='employee_id']").val()
-            //~ throw 'Error1';
-            //~ var booking_type_id = $(".o_website_appointment_form select[name='booking_type_id']").val()
-            //~ throw 'Error2';
-            //~ this._getBookingSlots(booking_type_id, employee_id)
-            //~ throw 'Error2';
-
-            // toggle to next tab
-            //~ $('#start_booking').hide()
-            //~ $('#time_slot').show()
             var defs = [];
             defs.push(this._super.apply(this, arguments));
             return Promise.all(defs);
@@ -41,11 +29,8 @@ odoo.define('one_page_website_calendar.one_page_booking_slot', function (require
         _onCheckAvailability:  function (e) {
             // params to query the booking slots for the booking type and employee
             var employee_id = $(".o_website_appointment_form select[name='employee_id']").val()
-            //~ throw 'Error1';
             var booking_type_id = $(".o_website_appointment_form select[name='booking_type_id']").val()
-            //~ throw 'Error2';
             this._getBookingSlots(booking_type_id, employee_id)
-            //~ throw 'Error2';
 
             // toggle to next tab
             $('#start_booking').hide()
