@@ -336,7 +336,6 @@ class CalendarBookingType(models.Model):
             })
             start = start + relativedelta(months=1)
         self._sort_off_season_booking(months)
-        # print(months)
         return months
 
     def _sort_off_season_booking(self, months):
