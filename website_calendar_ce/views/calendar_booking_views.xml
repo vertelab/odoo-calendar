@@ -126,6 +126,14 @@
                                 </tree>
                             </field>
                         </page>
+                        <page string="Off-Seasons" name="off_seasons">
+                            <field name="booking_off_season">
+                                <tree editable="bottom">
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                </tree>
+                            </field>
+                        </page>
                         <page string="Questions" name="questions">
                             <field name="question_ids">
                                 <tree>
