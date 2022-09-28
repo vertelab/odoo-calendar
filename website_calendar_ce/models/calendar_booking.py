@@ -59,7 +59,8 @@ class CalendarBookingType(models.Model):
     booking_tz = fields.Selection(
         _tz_get, string='Timezone', required=True, default=lambda self: self.env.user.tz,
         help="Timezone where booking take place")
-    employee_ids = fields.Many2many('hr.employee', 'website_calendar_type_employee_rel', domain=[('user_id', '!=', False)], string='Employees')
+    employee_ids = fields.Many2many('hr.employee', 'website_calendar_type_employee_rel',
+                                    domain=[('user_id', '!=', False)], string='Employees')
     assignation_method = fields.Selection([
         ('random', 'Random'),
         ('chosen', 'Chosen by the Customer')], string='Assignation Method', default='random',
@@ -71,7 +72,7 @@ class CalendarBookingType(models.Model):
     def find_all_bookings(self):
         bookings = []
         for booking in self.env[self._name].sudo().search([('website_published', '=', True)]):
-            booking_line =  {}
+            booking_line = {}
             booking_line['id'] = booking.id
             booking_line['name'] = booking.name
             bookings.append(booking_line)
@@ -94,7 +95,8 @@ class CalendarBookingType(models.Model):
         return False
 
     def _compute_booking_count(self):
-        meeting_data = self.env['calendar.event'].read_group([('booking_type_id', 'in', self.ids)], ['booking_type_id'], ['booking_type_id'])
+        meeting_data = self.env['calendar.event'].read_group([('booking_type_id', 'in', self.ids)], ['booking_type_id'],
+                                                             ['booking_type_id'])
         mapped_data = {m['booking_type_id'][0]: m['booking_type_id_count'] for m in meeting_data}
         for booking_type in self:
             booking_type.booking_count = mapped_data.get(booking_type.id, 0)
@@ -129,10 +131,14 @@ class CalendarBookingType(models.Model):
             :return: [ {'slot': slot_record, <timezone>: (date_start, date_end), ...},
                       ... ]
         """
+
         def append_slot(day, slot):
-            local_start = appt_tz.localize(datetime.combine(day, time(hour=int(slot.hour), minute=int(round((slot.hour % 1) * 60)))))
+            local_start = appt_tz.localize(
+                datetime.combine(day, time(hour=int(slot.hour), minute=int(round((slot.hour % 1) * 60)))))
             local_end = appt_tz.localize(
-                datetime.combine(day, time(hour=int(slot.hour), minute=int(round((slot.hour % 1) * 60)))) + relativedelta(hours=self.booking_duration))
+                datetime.combine(day,
+                                 time(hour=int(slot.hour), minute=int(round((slot.hour % 1) * 60)))) + relativedelta(
+                    hours=self.booking_duration))
             slots.append({
                 self.booking_tz: (
                     local_start,
@@ -148,6 +154,7 @@ class CalendarBookingType(models.Model):
                 ),
                 'slot': slot,
             })
+
         appt_tz = pytz.timezone(self.booking_tz)
         requested_tz = pytz.timezone(timezone)
 
@@ -177,9 +184,11 @@ class CalendarBookingType(models.Model):
         def is_work_available(start_dt, end_dt, intervals):
             """ check if the slot is contained in the employee's work hours (defined by intervals)
             """
+
             def find_start_index():
                 """ find the highest index of intervals for which the start_date (element [0]) is before (or at) start_dt
                 """
+
                 def recursive_find_index(lower_bound, upper_bound):
                     if upper_bound - lower_bound <= 1:
                         if intervals[upper_bound][0] <= start_dt:
@@ -217,14 +226,15 @@ class CalendarBookingType(models.Model):
             end_dt = slot['UTC'][1]
 
             event_in_scope = lambda ev: (
-                fields.Date.to_date(ev.start) <= fields.Date.to_date(end_dt)
-                and fields.Date.to_date(ev.stop) >= fields.Date.to_date(start_dt)
+                    fields.Date.to_date(ev.start) <= fields.Date.to_date(end_dt)
+                    and fields.Date.to_date(ev.stop) >= fields.Date.to_date(start_dt)
             )
 
             for ev in events.filtered(event_in_scope):
                 if ev.allday:
                     # allday events are considered to take the whole day in the related employee's timezone
-                    event_tz = pytz.timezone(ev.event_tz or employee.user_id.tz or self.env.user.tz or slot['slot'].booking_type_id.booking_tz or 'UTC')
+                    event_tz = pytz.timezone(ev.event_tz or employee.user_id.tz or self.env.user.tz or slot[
+                        'slot'].booking_type_id.booking_tz or 'UTC')
                     ev_start_dt = datetime.combine(fields.Date.from_string(ev.start_date), time.min)
                     ev_stop_dt = datetime.combine(fields.Date.from_string(ev.stop_date), time.max)
                     ev_start_dt = event_tz.localize(ev_start_dt).astimezone(pytz.UTC).replace(tzinfo=None)
@@ -278,8 +288,10 @@ class CalendarBookingType(models.Model):
         self.ensure_one()
         appt_tz = pytz.timezone(self.booking_tz)
         requested_tz = pytz.timezone(timezone)
-        first_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(months=month, hours=self.min_schedule_hours))
-        last_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(months=month, days=self.max_schedule_days))
+        first_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(hours=self.min_schedule_hours))
+        last_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(days=self.max_schedule_days))
+
+        print(first_day, "====", last_day)
 
         # Compute available slots (ordered)
         slots = self._slots_generate(first_day.astimezone(appt_tz), last_day.astimezone(appt_tz), timezone)
@@ -287,8 +299,8 @@ class CalendarBookingType(models.Model):
             self._slots_available(slots, first_day.astimezone(pytz.UTC), last_day.astimezone(pytz.UTC), employee)
 
         # Compute calendar rendering and inject available slots
-        today = requested_tz.fromutc(datetime.utcnow() + relativedelta(months=month))
-        start = today
+        today = requested_tz.fromutc(datetime.utcnow())
+        start = today + relativedelta(months=month)
         month_dates_calendar = cal.Calendar(0).monthdatescalendar
         months = []
         while (start.year, start.month) <= (last_day.year, last_day.month):
@@ -325,7 +337,8 @@ class CalendarBookingType(models.Model):
                 'month': format_datetime(start, 'MMMM Y', locale=get_lang(self.env).code),
                 'weeks': dates
             })
-            start = start + relativedelta(months=month + 1)
+            start = start + relativedelta(months=1)
+        # print(months)
         return months
 
     def open_booking_wizard(self):
@@ -367,7 +380,8 @@ class CalendarBookingSlot(models.Model):
 
     def name_get(self):
         weekdays = dict(self._fields['weekday'].selection)
-        return self.mapped(lambda slot: (slot.id, "%s, %02d:%02d" % (weekdays.get(slot.weekday), int(slot.hour), int(round((slot.hour % 1) * 60)))))
+        return self.mapped(lambda slot: (
+            slot.id, "%s, %02d:%02d" % (weekdays.get(slot.weekday), int(slot.hour), int(round((slot.hour % 1) * 60)))))
 
 
 class CalendarBookingSlotWizard(models.TransientModel):
@@ -379,7 +393,6 @@ class CalendarBookingSlotWizard(models.TransientModel):
     booking_duration = fields.Char(string="Booking Duration", required=True)
     booking_id = fields.Many2one('calendar.booking.type', string="Booking", required=True)
 
-    
     monday = fields.Boolean(string="Monday", default=True)
     tuesday = fields.Boolean(string="Tuesday", default=True)
     wednesday = fields.Boolean(string="Wednesday", default=True)
@@ -443,18 +456,21 @@ class CalendarBookingQuestion(models.Model):
         ('select', 'Dropdown (one answer)'),
         ('radio', 'Radio (one answer)'),
         ('checkbox', 'Checkboxes (multiple answers)')], 'Question Type', default='char')
-    answer_ids = fields.Many2many('calendar.booking.answer', 'calendar_booking_question_answer_rel', 'question_id', 'answer_id', string='Available Answers')
+    answer_ids = fields.Many2many('calendar.booking.answer', 'calendar_booking_question_answer_rel', 'question_id',
+                                  'answer_id', string='Available Answers')
 
 
 class CalendarBookingAnswer(models.Model):
     _name = "calendar.booking.answer"
     _description = "Online Booking : Answers"
 
-    question_id = fields.Many2many('calendar.booking.question', 'calendar_booking_question_answer_rel', 'answer_id', 'question_id', string='Questions')
+    question_id = fields.Many2many('calendar.booking.question', 'calendar_booking_question_answer_rel', 'answer_id',
+                                   'question_id', string='Questions')
     name = fields.Char('Answer', translate=True, required=True)
+
 
 class CalendatEvent(models.Model):
     _inherit = 'calendar.event'
 
-    state = fields.Selection([('draft', 'Unconfirmed'), ('open', 'Confirmed')], string='Status', readonly=True, tracking=True, default='draft')
-
+    state = fields.Selection([('draft', 'Unconfirmed'), ('open', 'Confirmed')], string='Status', readonly=True,
+                             tracking=True, default='draft')
