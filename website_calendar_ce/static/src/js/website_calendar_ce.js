@@ -76,21 +76,27 @@ odoo.define('website_calendar_ce.select_booking_type', function (require) {
         },
 
         _onNextMonth: async function () {
-            this.month += 1
             var employee_id = $("input[name='employee_id']").val()
-            console.log("employee_id", employee_id)
             var booking_type_id = $("input[name='booking_type_id']").val()
             var self = this;
-            await this._rpc({
-                route: "/booking/slots",
-                params: {
-                    booking_type: booking_type_id,
-                    employee_id: employee_id,
-                    month: this.month,
-                },
-            }).then(res => {
-                $("#booking_calendar").replaceWith(res)
-            })
+
+            if (employee_id && booking_type_id) {
+                await this._rpc({
+                    route: "/booking/slots",
+                    params: {
+                        booking_type: booking_type_id,
+                        employee_id: employee_id,
+                        month: this.month + 1,
+                    },
+                }).then(res => {
+                    if (res == false) {
+                        alert("No more booking time")
+                    } else {
+                        this.month += 1
+                        $("#booking_calendar").replaceWith(res)
+                    }
+                })
+            }
         },
 
         _onPreviousMonth: async function () {

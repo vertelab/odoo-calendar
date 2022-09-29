@@ -125,7 +125,7 @@
 
     <template id="booking_calendar" name="Website Booking: Booking Calendars">
         <div class="row" id="booking_calendar">
-            <input type="hidden" name="employee_id" t-att-value="employee_id.id"/>
+            <input t-if="employee_id" type="hidden" name="employee_id" t-att-value="employee_id.id"/>
             <input type="hidden" name="booking_type_id" t-att-value="booking_type.id"/>
             <div t-foreach="slots" t-as="month" class="col-lg-6">
                 <h3 t-esc="month['month']"/>

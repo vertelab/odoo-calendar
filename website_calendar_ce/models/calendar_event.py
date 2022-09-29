@@ -21,7 +21,9 @@ from odoo import api, fields, models
 from odoo.addons.calendar.models.calendar_event import Meeting as MeetingOriginal
 
 import logging
+
 _logger = logging.getLogger(__name__)
+
 
 class Attendee(models.Model):
     """ Calendar Attendee Information """
@@ -54,7 +56,8 @@ class Meeting(models.Model):
                 user_id = values.get('user_id', defaults.get('user_id'))
                 if not defaults.get('activity_ids') and res_model_id and res_id:
                     if hasattr(self.env[self.env['ir.model'].sudo().browse(res_model_id).model], 'activity_ids'):
-                        meeting_activity_type = self.env['mail.activity.type'].search([('category', '=', 'meeting')], limit=1)
+                        meeting_activity_type = self.env['mail.activity.type'].search([('category', '=', 'meeting')],
+                                                                                      limit=1)
                         if meeting_activity_type:
                             activity_vals = {
                                 'res_model_id': res_model_id,
@@ -89,11 +92,16 @@ class Meeting(models.Model):
                 detached_events = event._apply_recurrence_values(recurrence_values)
                 detached_events.active = False
         if public_partner:
-            events.filtered(lambda event: event.start > fields.Datetime.now()).attendee_ids.filtered(lambda attendee: attendee.partner_id.id == public_partner.id)._send_mail_to_attendees('website_calendar_ce.calendar_template_meeting_invitation_public')
-            events.filtered(lambda event: event.start > fields.Datetime.now()).attendee_ids.filtered(lambda attendee: attendee.partner_id.id != public_partner.id)._send_mail_to_attendees('calendar.calendar_template_meeting_invitation')
+            events.filtered(lambda event: event.start > fields.Datetime.now()).attendee_ids.filtered(
+                lambda attendee: attendee.partner_id.id == public_partner.id)._send_mail_to_attendees(
+                'website_calendar_ce.calendar_template_meeting_invitation_public')
+            events.filtered(lambda event: event.start > fields.Datetime.now()).attendee_ids.filtered(
+                lambda attendee: attendee.partner_id.id != public_partner.id)._send_mail_to_attendees(
+                'calendar.calendar_template_meeting_invitation')
         else:
-            events.filtered(lambda event: event.start > fields.Datetime.now()).attendee_ids._send_mail_to_attendees('calendar.calendar_template_meeting_invitation')
-        events._sync_activities(fields={f for vals in vals_list for f in vals.keys() })
+            events.filtered(lambda event: event.start > fields.Datetime.now()).attendee_ids._send_mail_to_attendees(
+                'calendar.calendar_template_meeting_invitation')
+        events._sync_activities(fields={f for vals in vals_list for f in vals.keys()})
 
         # Notify attendees if there is an alarm on the created event, as it might have changed their
         # next event notification
