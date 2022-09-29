@@ -124,7 +124,9 @@
     </template>
 
     <template id="booking_calendar" name="Website Booking: Booking Calendars">
-        <div class="row">
+        <div class="row" id="booking_calendar">
+            <input t-if="employee_id" type="hidden" name="employee_id" t-att-value="employee_id.id"/>
+            <input type="hidden" name="booking_type_id" t-att-value="booking_type.id"/>
             <div t-foreach="slots" t-as="month" class="col-lg-6">
                 <h3 t-esc="month['month']"/>
                 <table class="table">
@@ -163,10 +165,6 @@
                 </table>
             </div>
         </div>
-        <p>
-            Time displayed in <strong t-esc="timezone"/>
- timezone
-        </p>
     </template>
 
     <template id="booking" name="Website Booking: Schedule Booking">
@@ -206,14 +204,32 @@
                         </p>
                     </div>
                     <div class="mb8">
-                        <t t-call="website.publish_management">
-                            <t t-set="object" t-value="booking_type"/>
-                            <t t-set="publish_edit" t-value="True"/>
-                            <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>
-                        </t>
+                        <div class="row">
+                            <div class="col-lg-5" style="text-align: start;margin: auto;">
+                                <a href="#" id="previous_month">
+                                    <i class="fa fa-fw o_button_icon fa-arrow-left"/>
+                                </a>
+                            </div>
+                            <div class="col-lg-5" style="text-align: end;margin: auto;">
+                                <a href="#" id="next_month">
+                                    <i class="fa fa-fw o_button_icon fa-arrow-right"/>
+                                </a>
+                            </div>
+                            <div class="col-lg-2">
+                                <t t-call="website.publish_management">
+                                    <t t-set="object" t-value="booking_type"/>
+                                    <t t-set="publish_edit" t-value="True"/>
+                                    <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>
+                                </t>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="clearfix"/>
                     <t t-call="website_calendar_ce.booking_calendar"/>
+                    <p>
+                        Time displayed in <strong t-esc="timezone"/> timezone
+                    </p>
                 </div>
             </div>
         </t>
