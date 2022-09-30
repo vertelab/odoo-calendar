@@ -150,7 +150,8 @@
                                     </div>
                                     <div class="dropdown-menu" role="menu">
                                         <t t-foreach="day['slots']" t-as="slot">
-                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>
+<!--                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>-->
+                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-att-data-booking-id="booking_type.id" t-att-data-booking-date-time="slot['datetime']" t-att-data-booking-hours="slot['hours']" t-att-data-employee-id="slot['employee_id']" t-att-data-description="description" t-att-data-title="title" t-esc="slot['hours']"/>
                                         </t>
                                     </div>
                                 </t>
@@ -230,6 +231,20 @@
                     <p>
                         Time displayed in <strong t-esc="timezone"/> timezone
                     </p>
+
+                    <div class="form-group row">
+                        <div class="col-md-8" id="selected_slots" style="margin: auto;"/>
+
+                        <div class="col-md-4" style="text-align: end;">
+<!--                            t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"-->
+                            <a class="dropdown-item" id="proceed_with_slot">
+                                <button type="submit" class="btn btn-primary">Proceed <span class="fa fa-arrow-right"/>
+                            </button>
+                            </a>
+
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </t>
@@ -254,7 +269,7 @@
                     <h2 class="o_page_header mt32" t-esc="title"/>
                     <p>
                         <span t-field="booking_type.name"/>
- on <strong t-esc="datetime_locale"/>
+ on <strong t-esc="start_datetime_locale"/> <span t-if="end_datetime_locale"> to <strong t-esc="end_datetime_locale"/> </span>
                     </p>
                     <p>
                         <span t-esc="description"/>
@@ -262,7 +277,8 @@
 
                     <form class="mt32 booking_submit_form" t-attf-action="/website/calendar/#{ slug(booking_type) }/submit?description=#{description}&amp;title=#{title}" method="POST">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                        <input type="hidden" name="datetime_str" t-att-value="datetime_str"/>
+                        <input type="hidden" name="start_datetime_str" t-att-value="start_datetime_str"/>
+                        <input type="hidden" name="end_datetime_str" t-att-value="end_datetime_str"/>
                         <input type="hidden" name="employee_id" t-att-value="employee_id"/>
                         <div class="form-group row col-xl-8 form-field">
                             <label for="name" class="col-md-4 col-form-label">Your Name</label>
@@ -397,7 +413,7 @@
                                     <label>When:</label>
                                 </div>
                                 <div class="col-md-10">
-                                    <t t-esc="datetime_start"/>
+                                    <t t-esc="datetime_start"/> <span t-if="datetime_stop">- <t t-esc="datetime_stop"/></span>
                                     <br/>
                                     <i class="text-muted">(timezone: <t t-esc="request.session.timezone"/>
 )</i>
