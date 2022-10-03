@@ -336,7 +336,6 @@ class CalendarBookingType(models.Model):
                 'weeks': dates
             })
             start = start + relativedelta(months=1)
-        # self._paginated_month(months, month + 1)
         return months
 
     def _get_paginated_booking_slots(self, timezone, employee=None, month=0):
