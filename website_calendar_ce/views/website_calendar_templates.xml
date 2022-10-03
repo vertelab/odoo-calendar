@@ -194,6 +194,15 @@
                             Please, select another date.
                         </p>
                     </div>
+                    <div t-if="failed=='datetime'" class="alert alert-danger mt16" role="alert">
+                        <p>
+                            <strong>Booking failed!</strong>
+                            You have likely selected an ending slot which is before the starting slot.
+                        </p>
+                        <p>
+                            Please, select another date.
+                        </p>
+                    </div>
                     <div t-if="failed=='partner'" class="alert alert-danger mt16" role="alert">
                         <p>
                             <strong>Booking failed!</strong>

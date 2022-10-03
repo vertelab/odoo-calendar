@@ -36,8 +36,7 @@ _logger = logging.getLogger(__name__)
 class WebsiteCalendar(http.Controller):
     @http.route([
         '/website/calendar/',
-        '/website/calendar/<model("calendar.booking.type"):booking_type>/',
-    ], type='http', auth="public", website=True)
+        '/website/calendar/<model("calendar.booking.type"):booking_type>/'], type='http', auth="public", website=True)
     def calendar_booking_choice(self, booking_type=None, employee_id=None, message=None, description=None, header=None,
                                 **kwargs):
         if not booking_type:
@@ -70,16 +69,16 @@ class WebsiteCalendar(http.Controller):
 
     @http.route(['/website/calendar/get_booking_info'], type='json', auth="public", methods=['POST'], website=True)
     def get_booking_info(self, booking_id, prev_emp=False, **kwargs):
-        Appt = request.env['calendar.booking.type'].browse(int(booking_id)).sudo()
+        booking_type_id = request.env['calendar.booking.type'].browse(int(booking_id)).sudo()
         result = {
-            'message_intro': Appt.message_intro,
-            'assignation_method': Appt.assignation_method,
+            'message_intro': booking_type_id.message_intro,
+            'assignation_method': booking_type_id.assignation_method,
         }
         if result['assignation_method'] == 'chosen':
             selection_template = http.request.env.ref('website_calendar_ce.employee_select')
             data = {
-                'booking_type': Appt,
-                'suggested_employees': Appt.employee_ids.name_get(),
+                'booking_type': booking_type_id,
+                'suggested_employees': booking_type_id.employee_ids.name_get(),
                 'selected_employee_id': prev_emp and int(prev_emp),
             }
             # TODO: I dislike using private function here, although no other function seems to work
@@ -93,43 +92,22 @@ class WebsiteCalendar(http.Controller):
                          description=None, **kwargs):
         request.session['timezone'] = timezone or booking_type.booking_tz
         if employee_id:
-            Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
+            employee_obj = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
         else:
-            Employee = booking_type.employee_ids[0]
+            employee_obj = booking_type.employee_ids[0]
 
-        Slots = booking_type.sudo()._get_paginated_booking_slots(request.session['timezone'], Employee)
+        slot_ids = booking_type.sudo()._get_paginated_booking_slots(request.session['timezone'], employee_obj)
         return request.render("website_calendar_ce.booking", {
             'booking_type': booking_type,
-            'employee_id': Employee,
+            'employee_id': employee_obj,
             'timezone': request.session['timezone'],
             'failed': failed,
-            'slots': Slots,
+            'slots': slot_ids,
             'description': description if description else _(
-                "Fill your personal information in the form below, and confirm the booking. We'll send an invite to your email address"),
+                "Fill your personal information in the form below, and confirm the booking. We'll send an invite to "
+                "your email address"),
             'title': title if title else _("Book meeting"),
         })
-
-    # @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/info'], type='http', auth="public",
-    #             website=True)
-    # def calendar_booking_form(self, booking_type, employee_id, date_time, description=None, title=None, **kwargs):
-    #     partner_data = {}
-    #     if request.env.user.partner_id != request.env.ref('base.public_partner'):
-    #         partner_data = request.env.user.partner_id.read(fields=['name', 'mobile', 'country_id', 'email'])[0]
-    #     day_name = format_datetime(datetime.strptime(date_time, dtf), 'EEE', locale=get_lang(request.env).code)
-    #     date_formated = format_datetime(datetime.strptime(date_time, dtf), locale=get_lang(request.env).code)
-    #     return request.render("website_calendar_ce.booking_form", {
-    #         'partner_data': partner_data,
-    #         'booking_type': booking_type,
-    #         'datetime': date_time,
-    #         'datetime_locale': day_name + ' ' + date_formated,
-    #         'datetime_str': date_time,
-    #         'employee_id': employee_id,
-    #         'countries': request.env['res.country'].search([]),
-    #         'description': description if description else _(
-    #             "Fill your personal information in the form below, and confirm the booking. We'll send an invite to "
-    #             "your email address"),
-    #         'title': title if title else _("Book meeting"),
-    #     })
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/info'], type='http', auth="public",
                 website=True)
@@ -163,101 +141,23 @@ class WebsiteCalendar(http.Controller):
                 'end_datetime_str': end_date,
             })
 
-        return request.render("website_calendar_ce.booking_form", vals)
+        employee = request.env['hr.employee'].sudo().browse(int(employee_id))
+        if employee.user_id and employee.user_id.partner_id:
+            if not employee.user_id.partner_id.calendar_verify_availability(fields.Datetime.from_string(start_date),
+                                                                            fields.Datetime.from_string(end_date)):
+                return request.redirect('/website/calendar/%s/booking?failed=employee' % booking_type.id)
 
-    # @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/submit'], type='http', auth="public",
-    #             website=True, methods=["POST"])
-    # def calendar_booking_submit(self, booking_type, datetime_str, employee_id, name, phone, email, country_id=False,
-    #                             comment=False, company=False, description=False, title=_("Book meeting"), **kwargs):
-    #     timezone = request.session['timezone']
-    #     tz_session = pytz.timezone(timezone)
-    #     date_start = tz_session.localize(fields.Datetime.from_string(datetime_str)).astimezone(pytz.utc)
-    #     date_end = date_start + relativedelta(hours=booking_type.booking_duration)
-    #
-    #     # check availability of the employee again (in case someone else booked while the client was entering the form)
-    #     Employee = request.env['hr.employee'].sudo().browse(int(employee_id))
-    #     if Employee.user_id and Employee.user_id.partner_id:
-    #         if not Employee.user_id.partner_id.calendar_verify_availability(date_start, date_end):
-    #             return request.redirect('/website/calendar/%s/booking?failed=employee' % booking_type.id)
-    #
-    #     country_id = int(country_id) if country_id else None
-    #     country_name = country_id and request.env['res.country'].browse(country_id).name or ''
-    #     partner = request.env['res.partner'].sudo().search([('email', '=like', email)], limit=1)
-    #     if partner:
-    #         if not partner.calendar_verify_availability(date_start, date_end):
-    #             return request.redirect('/website/calendar/%s/booking?failed=partner' % booking_type.id)
-    #         if not partner.mobile or len(partner.mobile) <= 5 and len(phone) > 5:
-    #             partner.write({'mobile': phone})
-    #         if not partner.country_id:
-    #             partner.country_id = country_id
-    #     else:
-    #         partner = partner.create({
-    #             'name': name,
-    #             'country_id': country_id,
-    #             'mobile': phone,
-    #             'email': email,
-    #         })
-    #
-    #     record_description = (_('Country: %s') + '\n\n' +
-    #                           _('Mobile: %s') + '\n\n' +
-    #                           _('Email: %s') + '\n\n') % (country_name, phone, email)
-    #     for question in booking_type.question_ids:
-    #         key = 'question_' + str(question.id)
-    #         if question.question_type == 'checkbox':
-    #             answers = question.answer_ids.filtered(lambda x: (key + '_answer_' + str(x.id)) in kwargs)
-    #             record_description += question.name + ': ' + ', '.join(answers.mapped('name')) + '\n'
-    #         elif kwargs.get(key):
-    #             if question.question_type == 'text':
-    #                 record_description += '\n* ' + question.name + ' *\n' + kwargs.get(key, False) + '\n\n'
-    #             else:
-    #                 record_description += question.name + ': ' + kwargs.get(key) + '\n\n'
-    #     if company:
-    #         record_description += _("Company: ") + company
-    #     if comment:
-    #         record_description += _("\n\nComment: ") + comment
-    #     if description:
-    #         record_description += _("\n\nDescription: ") + description
-    #     if title:
-    #         record_description += _("\n\nTitle: ") + title
-    #
-    #     categ_id = request.env.ref('website_calendar_ce.calendar_event_type_data_online_booking')
-    #     alarm_ids = booking_type.reminder_ids and [(6, 0, booking_type.reminder_ids.ids)] or []
-    #     partner_ids = list(set([Employee.user_id.partner_id.id] + [partner.id]))
-    #     public_partner = False
-    #     if not partner.user_id:
-    #         public_partner = partner
-    #     data = {
-    #         'state': 'open',
-    #         'name': _('%s with %s') % (booking_type.name, name),
-    #         # FIXME master
-    #         # we override here start_date(time) value because they are not properly
-    #         # recomputed due to ugly overrides in event.calendar (reccurrencies suck!)
-    #         #     (fixing them in stable is a pita as it requires a good rewrite of the
-    #         #      calendar engine)
-    #         'start_date': date_start.strftime(dtf),
-    #         'start': date_start.strftime(dtf),
-    #         'stop': date_end.strftime(dtf),
-    #         'allday': False,
-    #         'duration': booking_type.booking_duration,
-    #         'description': record_description,
-    #         'alarm_ids': alarm_ids,
-    #         'location': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}",
-    #         'partner_ids': [(4, pid, False) for pid in partner_ids],
-    #         'public_partner': public_partner,
-    #         'categ_ids': [(4, categ_id.id, False)],
-    #         'booking_type_id': booking_type.id,
-    #         'user_id': Employee.user_id.id,
-    #         'meeting_url': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}"
-    #     }
-    #     event = self._create_event(request, Employee, data)
-    #     event.attendee_ids.filtered(lambda attendee: attendee.partner_id.id == partner.id).write({'public_user': True})
-    #     event.attendee_ids.write({'state': 'accepted'})
-    #     return request.redirect('/website/calendar/view/' + event.access_token + '?message=new' + '&title=' + title)
+        if end_date and (datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S") > datetime.strptime(end_date, "%Y-%m-%d "
+                                                                                                          "%H:%M:%S")):
+            return request.redirect('/website/calendar/%s/booking?failed=datetime' % booking_type.id)
+
+        return request.render("website_calendar_ce.booking_form", vals)
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/submit'], type='http', auth="public",
                 website=True, methods=["POST"])
-    def calendar_booking_submit(self, booking_type, start_datetime_str, employee_id, name, phone, email, end_datetime_str=None, country_id=False,
-                                comment=False, company=False, description=False, title=_("Book meeting"), **kwargs):
+    def calendar_booking_submit(self, booking_type, start_datetime_str, employee_id, name, phone, email,
+                                end_datetime_str=None, country_id=False, comment=False, company=False,
+                                description=False, title=_("Book meeting"), **kwargs):
         timezone = request.session['timezone']
         tz_session = pytz.timezone(timezone)
         date_start = tz_session.localize(fields.Datetime.from_string(start_datetime_str)).astimezone(pytz.utc)
@@ -267,9 +167,9 @@ class WebsiteCalendar(http.Controller):
             date_end = date_start + relativedelta(hours=booking_type.booking_duration)
 
         # check availability of the employee again (in case someone else booked while the client was entering the form)
-        Employee = request.env['hr.employee'].sudo().browse(int(employee_id))
-        if Employee.user_id and Employee.user_id.partner_id:
-            if not Employee.user_id.partner_id.calendar_verify_availability(date_start, date_end):
+        hr_employee_id = request.env['hr.employee'].sudo().browse(int(employee_id))
+        if hr_employee_id.user_id and hr_employee_id.user_id.partner_id:
+            if not hr_employee_id.user_id.partner_id.calendar_verify_availability(date_start, date_end):
                 return request.redirect('/website/calendar/%s/booking?failed=employee' % booking_type.id)
 
         country_id = int(country_id) if country_id else None
@@ -314,7 +214,7 @@ class WebsiteCalendar(http.Controller):
 
         categ_id = request.env.ref('website_calendar_ce.calendar_event_type_data_online_booking')
         alarm_ids = booking_type.reminder_ids and [(6, 0, booking_type.reminder_ids.ids)] or []
-        partner_ids = list(set([Employee.user_id.partner_id.id] + [partner.id]))
+        partner_ids = list(set([hr_employee_id.user_id.partner_id.id] + [partner.id]))
         public_partner = False
         if not partner.user_id:
             public_partner = partner
@@ -338,7 +238,7 @@ class WebsiteCalendar(http.Controller):
             'public_partner': public_partner,
             'categ_ids': [(4, categ_id.id, False)],
             'booking_type_id': booking_type.id,
-            'user_id': Employee.user_id.id,
+            'user_id': hr_employee_id.user_id.id,
             'meeting_url': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}"
         }
         if end_datetime_str:
@@ -346,14 +246,14 @@ class WebsiteCalendar(http.Controller):
                 'allday': True,
                 'stop_date': date_end.strftime(dtf)
             })
-        event = self._create_event(request, Employee, data)
+        event = self._create_event(request, hr_employee_id, data)
         event.attendee_ids.filtered(lambda attendee: attendee.partner_id.id == partner.id).write({'public_user': True})
         event.attendee_ids.write({'state': 'accepted'})
         return request.redirect('/website/calendar/view/' + event.access_token + '?message=new' + '&title=' + title)
 
-    def _create_event(self, request, Employee, data):
+    def _create_event(self, request, hr_employee_id, data):
         return request.env['calendar.event'].sudo().with_context(
-            allowed_company_ids=Employee.user_id.company_ids.ids).create(data)
+            allowed_company_ids=hr_employee_id.user_id.company_ids.ids).create(data)
 
     @http.route(['/website/calendar/view/<string:access_token>'], type='http', auth="public", website=True)
     def calendar_booking_view(self, access_token, edit=False, message=False, description=False, title=False, **kwargs):
@@ -440,15 +340,16 @@ class WebsiteCalendar(http.Controller):
                              **kwargs):
         BookingType = request.env['calendar.booking.type'].sudo().browse(int(booking_type)) if booking_type else None
         request.session['timezone'] = BookingType.booking_tz
-        Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
-        Slots = BookingType.sudo()._get_paginated_booking_slots(request.session['timezone'], Employee, int(month))
+        hr_employee_id = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
+        slot_ids = BookingType.sudo()._get_paginated_booking_slots(
+            request.session['timezone'], hr_employee_id, int(month))
 
-        if Slots:
+        if slot_ids:
             return request.env['ir.ui.view']._render_template("website_calendar_ce.booking_calendar", {
                 'booking_type': BookingType,
-                'employee_id': Employee,
+                'employee_id': hr_employee_id,
                 'timezone': request.session['timezone'],
-                'slots': Slots,
+                'slots': slot_ids,
                 'description': description if description else _(
                     "Fill your personal information in the form below, and confirm the booking. We'll send an invite "
                     "to your email address"),

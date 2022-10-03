@@ -107,3 +107,17 @@
         display: none;
     }
 }
+
+.form-group {
+    .dropdown-item.active, .dropdown-item:active {
+        color: #FFFFFF;
+        text-decoration: none;
+        background-color: transparent !important;
+    }
+
+    .dropdown-item:hover, .dropdown-item:focus {
+        color: #16181b;
+        text-decoration: none;
+        background-color: transparent !important;
+    }
+}
