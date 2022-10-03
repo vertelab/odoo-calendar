@@ -24,24 +24,16 @@ odoo.define('one_page_website_calendar.one_page_booking_complete', function (req
         },
 
         _onSelectBookingTime: async function (event) {
-            console.log("_onSelectBookingTime")
-            console.log("_onSelectBookingTime")
-            console.log(event)
             const booking_type_id = $("#one_page_view_booking_availability input[name='booking_type_id']").val()
             const employee_id = $("#one_page_view_booking_availability input[name='employee_id']").val()
             const date_time = $(event.currentTarget.lastElementChild).val()
-            console.log(booking_type_id)
-            console.log(employee_id)
-            console.log(date_time)
-            // console.log(date_time)
+
             await this._getBookingSlotInfo(booking_type_id, employee_id, date_time)
 
             // toggle to next tab
             $('#time_slot').hide()
             $('#booking_confirmation').show()
         },
-        
-        
 
         _getBookingSlotInfo: async function (booking_type_id, employee_id, date_time) {
             await this._rpc({

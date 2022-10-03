@@ -79,8 +79,8 @@
                             <t t-esc="description"></t>
                         </div>
                         <t t-call="website_calendar_ce.employee_select"/>
-                        <div class="form-group row">
-                            <div class="offset-md-8 col-md-4">
+                        <div class="form-group row" style="text-align: end;">
+                            <div class="offset-md-8 col-md-6">
                                 <button type="submit" class="btn btn-primary">View Availabilities <span class="fa fa-arrow-right"/>
                                 </button>
                             </div>
@@ -124,7 +124,9 @@
     </template>
 
     <template id="booking_calendar" name="Website Booking: Booking Calendars">
-        <div class="row">
+        <div class="row" id="booking_calendar">
+            <input t-if="employee_id" type="hidden" name="employee_id" t-att-value="employee_id.id"/>
+            <input type="hidden" name="booking_type_id" t-att-value="booking_type.id"/>
             <div t-foreach="slots" t-as="month" class="col-lg-6">
                 <h3 t-esc="month['month']"/>
                 <table class="table">
@@ -148,7 +150,8 @@
                                     </div>
                                     <div class="dropdown-menu" role="menu">
                                         <t t-foreach="day['slots']" t-as="slot">
-                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>
+<!--                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>-->
+                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-att-data-booking-id="booking_type.id" t-att-data-booking-date-time="slot['datetime']" t-att-data-booking-hours="slot['hours']" t-att-data-employee-id="slot['employee_id']" t-att-data-description="description" t-att-data-title="title" t-esc="slot['hours']"/>
                                         </t>
                                     </div>
                                 </t>
@@ -163,10 +166,6 @@
                 </table>
             </div>
         </div>
-        <p>
-            Time displayed in <strong t-esc="timezone"/>
- timezone
-        </p>
     </template>
 
     <template id="booking" name="Website Booking: Schedule Booking">
@@ -195,6 +194,15 @@
                             Please, select another date.
                         </p>
                     </div>
+                    <div t-if="failed=='datetime'" class="alert alert-danger mt16" role="alert">
+                        <p>
+                            <strong>Booking failed!</strong>
+                            You have likely selected an ending slot which is before the starting slot.
+                        </p>
+                        <p>
+                            Please, select another date.
+                        </p>
+                    </div>
                     <div t-if="failed=='partner'" class="alert alert-danger mt16" role="alert">
                         <p>
                             <strong>Booking failed!</strong>
@@ -206,14 +214,46 @@
                         </p>
                     </div>
                     <div class="mb8">
-                        <t t-call="website.publish_management">
-                            <t t-set="object" t-value="booking_type"/>
-                            <t t-set="publish_edit" t-value="True"/>
-                            <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>
-                        </t>
+                        <div class="row">
+                            <div class="col-lg-5" style="text-align: start;margin: auto;">
+                                <a href="#" id="previous_month">
+                                    <i class="fa fa-fw o_button_icon fa-arrow-left"/>
+                                </a>
+                            </div>
+                            <div class="col-lg-5" style="text-align: end;margin: auto;">
+                                <a href="#" id="next_month">
+                                    <i class="fa fa-fw o_button_icon fa-arrow-right"/>
+                                </a>
+                            </div>
+                            <div class="col-lg-2">
+                                <t t-call="website.publish_management">
+                                    <t t-set="object" t-value="booking_type"/>
+                                    <t t-set="publish_edit" t-value="True"/>
+                                    <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>
+                                </t>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="clearfix"/>
                     <t t-call="website_calendar_ce.booking_calendar"/>
+                    <p>
+                        Time displayed in <strong t-esc="timezone"/> timezone
+                    </p>
+
+                    <div class="form-group row">
+                        <div class="col-md-8" id="selected_slots" style="margin: auto;"/>
+
+                        <div class="col-md-4" style="text-align: end;">
+<!--                            t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"-->
+                            <a class="dropdown-item" id="proceed_with_slot">
+                                <button type="submit" class="btn btn-primary">Proceed <span class="fa fa-arrow-right"/>
+                            </button>
+                            </a>
+
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </t>
@@ -238,7 +278,7 @@
                     <h2 class="o_page_header mt32" t-esc="title"/>
                     <p>
                         <span t-field="booking_type.name"/>
- on <strong t-esc="datetime_locale"/>
+ on <strong t-esc="start_datetime_locale"/> <span t-if="end_datetime_locale"> to <strong t-esc="end_datetime_locale"/> </span>
                     </p>
                     <p>
                         <span t-esc="description"/>
@@ -246,7 +286,8 @@
 
                     <form class="mt32 booking_submit_form" t-attf-action="/website/calendar/#{ slug(booking_type) }/submit?description=#{description}&amp;title=#{title}" method="POST">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                        <input type="hidden" name="datetime_str" t-att-value="datetime_str"/>
+                        <input type="hidden" name="start_datetime_str" t-att-value="start_datetime_str"/>
+                        <input type="hidden" name="end_datetime_str" t-att-value="end_datetime_str"/>
                         <input type="hidden" name="employee_id" t-att-value="employee_id"/>
                         <div class="form-group row col-xl-8 form-field">
                             <label for="name" class="col-md-4 col-form-label">Your Name</label>
@@ -381,7 +422,7 @@
                                     <label>When:</label>
                                 </div>
                                 <div class="col-md-10">
-                                    <t t-esc="datetime_start"/>
+                                    <t t-esc="datetime_start"/> <span t-if="datetime_stop">- <t t-esc="datetime_stop"/></span>
                                     <br/>
                                     <i class="text-muted">(timezone: <t t-esc="request.session.timezone"/>
 )</i>
