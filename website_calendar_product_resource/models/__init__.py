@@ -1,2 +1,4 @@
 from . import product
-from . import resource
+from . import calendar_booking
+
+# from . import resource

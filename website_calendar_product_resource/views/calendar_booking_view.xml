@@ -1,0 +1,30 @@
+<odoo>
+    <data>
+        <record id="calendar_booking_form_view" model="ir.ui.view">
+            <field name="name">calendar.booking.form.view</field>
+            <field name="model">calendar.booking.type</field>
+            <field name="inherit_id" ref="website_calendar_ce.calendar_booking_type_view_form"/>
+            <field name="arch" type="xml">
+                <field name="employee_ids" position="after">
+                    <separator string="Available Products"/>
+                    <field name="product_ids">
+                        <tree string="Products">
+                            <field name="name"/>
+                        </tree>
+                    </field>
+                </field>
+            </field>
+        </record>
+
+        <record id="calendar_event_form_view" model="ir.ui.view">
+            <field name="name">calendar.event.form.view</field>
+            <field name="model">calendar.event</field>
+            <field name="inherit_id" ref="website_calendar_ce.calendar_event_view_form_inherit_website_calendar"/>
+            <field name="arch" type="xml">
+                <field name="booking_type_id" position="after">
+                    <field name="product_id"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>
