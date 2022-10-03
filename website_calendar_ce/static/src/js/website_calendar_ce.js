@@ -130,12 +130,7 @@ odoo.define('website_calendar_ce.select_booking_type', function (require) {
             var description = $(event.target).data('description')
             var title = $(event.target).data('title')
 
-
-//            if (this.x_click === 2 || this.x_click < 0) {
-//                this.x_click = 0
-//            }
             if (this.x_click > 1) {
-                console.log("greater than 1")
                 this.starting_slot;
                 this.ending_slot;
                 this.x_click = 0
@@ -144,14 +139,8 @@ odoo.define('website_calendar_ce.select_booking_type', function (require) {
             if (this.x_click == 0) {
                 this.starting_slot = $(event.target).data('bookingDateTime')
             } else {
-                console.log("===")
                 this.ending_slot = $(event.target).data('bookingDateTime')
             }
-
-//             if (new Date(this.ending_slot) <= new Date(this.starting_slot)) {
-//                this.x_click = 1
-//                return alert("You cannot book between past slots")
-//            }
 
             this.x_click++
 
