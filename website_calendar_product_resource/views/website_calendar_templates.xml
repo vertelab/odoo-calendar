@@ -2,12 +2,12 @@
 <odoo>
 
     <!-- Assets -->
-<!--    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Online Booking">-->
-<!--        <xpath expr="." position="inside">-->
-<!--            <link rel="stylesheet" type="text/scss" href="/website_calendar_ce/static/src/scss/website_calendar_ce.scss" t-ignore="true"/>-->
-<!--            <script type="text/javascript" src="/website_calendar_ce/static/src/js/website_calendar_ce.js"/>-->
-<!--        </xpath>-->
-<!--    </template>-->
+    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Online Booking">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/scss" href="/website_calendar_ce/static/src/scss/website_calendar_ce.scss" t-ignore="true"/>
+            <script type="text/javascript" src="/website_calendar_product_resource/static/src/js/website_calendar_ce.js"/>
+        </xpath>
+    </template>
 
 <!--    <template id="assets_backend" inherit_id="website.assets_backend" name="Online Booking">-->
 <!--        <xpath expr="." position="inside">-->
@@ -59,11 +59,11 @@
                             You can schedule another booking from here.
                         </p>
                     </div>
-                    <form class="o_website_appoinment_form w-md-50" t-attf-action="/website/calendar/#{ slug(booking_type) }/booking" type="post">
+                    <form class="o_website_appointment_form w-md-50" t-attf-action="/website/calendar/product/#{ slug(booking_type) }/booking" type="post">
                         <div id="booking" class="form-group row">
                             <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
                             <div class="col-md-9">
-                                <select class="form-control" id="calendarType" t-att-disabled="len(suggested_booking_types)==1 and '1' or None">
+                                <select class="form-control" id="product_calendarType" t-att-disabled="len(suggested_booking_types)==1 and '1' or None">
                                     <t t-foreach="suggested_booking_types" t-as="cal">
                                         <option t-att-value="cal.id" t-att-selected="cal.id == booking_type.id and 'selected'">
                                             <t t-esc="cal.name"/>
@@ -78,7 +78,7 @@
                         <div name="description" class="form-group">
                             <t t-esc="description"></t>
                         </div>
-                        <t t-call="website_calendar_ce.employee_select"/>
+                        <t t-call="website_calendar_product_resource.product_select"/>
                         <div class="form-group row" style="text-align: end;">
                             <div class="offset-md-8 col-md-6">
                                 <button type="submit" class="btn btn-primary">View Availabilities <span class="fa fa-arrow-right"/>
@@ -92,8 +92,8 @@
         </t>
     </template>
 
-    <template id="employee_select" name="Website Booking: Booking Calendars">
-        <div name="employee_select" t-att-class="'form-group ' + (booking_type.assignation_method!='chosen' and 'o_hidden' or '')">
+    <template id="product_select" name="Website Booking: Booking Calendars">
+        <div name="product_select" t-att-class="'form-group ' + (booking_type.assignation_method!='chosen' and 'o_hidden' or '')">
             <label for="selectEmployee" class="col-md-4 col-form-label">With:</label>
             <div class="col-md-7">
                 <!-- do not add the disabled tag or it won't be submitted with the form -->
@@ -125,7 +125,7 @@
 
     <template id="booking_calendar" name="Website Booking: Booking Calendars">
         <div class="row" id="booking_calendar">
-            <input t-if="employee_id" type="hidden" name="employee_id" t-att-value="employee_id.id"/>
+            <input t-if="product_id" type="hidden" name="product_id" t-att-value="product_id.id"/>
             <input type="hidden" name="booking_type_id" t-att-value="booking_type.id"/>
             <div t-foreach="slots" t-as="month" class="col-lg-6">
                 <h3 t-esc="month['month']"/>
@@ -151,7 +151,7 @@
                                     <div class="dropdown-menu" role="menu">
                                         <t t-foreach="day['slots']" t-as="slot">
 <!--                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>-->
-                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-att-data-booking-id="booking_type.id" t-att-data-booking-date-time="slot['datetime']" t-att-data-booking-hours="slot['hours']" t-att-data-employee-id="slot['employee_id']" t-att-data-description="description" t-att-data-title="title" t-esc="slot['hours']"/>
+                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-att-data-booking-id="booking_type.id" t-att-data-booking-date-time="slot['datetime']" t-att-data-booking-hours="slot['hours']" t-att-data-product-id="product_id.id" t-att-data-description="description" t-att-data-title="title" t-esc="slot['hours']"/>
                                         </t>
                                     </div>
                                 </t>
@@ -216,12 +216,12 @@
                     <div class="mb8">
                         <div class="row">
                             <div class="col-lg-5" style="text-align: start;margin: auto;">
-                                <a href="#" id="previous_month">
+                                <a href="#" id="product_previous_month">
                                     <i class="fa fa-fw o_button_icon fa-arrow-left"/>
                                 </a>
                             </div>
                             <div class="col-lg-5" style="text-align: end;margin: auto;">
-                                <a href="#" id="next_month">
+                                <a href="#" id="product_next_month">
                                     <i class="fa fa-fw o_button_icon fa-arrow-right"/>
                                 </a>
                             </div>
@@ -236,7 +236,7 @@
 
                     </div>
                     <div class="clearfix"/>
-                    <t t-call="website_calendar_ce.booking_calendar"/>
+                    <t t-call="website_calendar_product_resource.booking_calendar"/>
                     <p>
                         Time displayed in <strong t-esc="timezone"/> timezone
                     </p>
@@ -284,11 +284,11 @@
                         <span t-esc="description"/>
                     </p>
 
-                    <form class="mt32 booking_submit_form" t-attf-action="/website/calendar/#{ slug(booking_type) }/submit?description=#{description}&amp;title=#{title}" method="POST">
+                    <form class="mt32 booking_submit_form" t-attf-action="/website/calendar/product/#{ slug(booking_type) }/submit?description=#{description}&amp;title=#{title}" method="POST">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                         <input type="hidden" name="start_datetime_str" t-att-value="start_datetime_str"/>
                         <input type="hidden" name="end_datetime_str" t-att-value="end_datetime_str"/>
-                        <input type="hidden" name="employee_id" t-att-value="employee_id"/>
+                        <input type="hidden" name="product_id" t-att-value="product_id"/>
                         <div class="form-group row col-xl-8 form-field">
                             <label for="name" class="col-md-4 col-form-label">Your Name</label>
                             <div class="col-md-8">
@@ -571,7 +571,7 @@
                         </t>
                     </div>
                     <div class="clearfix"/>
-                    <t t-call="website_calendar_ce.booking_calendar"/>
+                    <t t-call="website_calendar_product_resource.booking_calendar"/>
                 </div>
             </div>
         </t>
