@@ -57,7 +57,7 @@ class WebsiteCalendar(http.Controller):
         if product_id and int(product_id) in booking_type.sudo().product_ids.ids:
             suggested_products = request.env['product.product'].sudo().browse(int(product_id)).name_get()
         elif booking_type.assignation_method == 'chosen':
-            suggested_products = booking_type.sudo().employee_ids.name_get()
+            suggested_products = booking_type.sudo().product_ids.name_get()
         return request.render("website_calendar_product_resource.index", {
             'booking_type': booking_type,
             'suggested_booking_types': suggested_booking_types,
@@ -91,7 +91,7 @@ class WebsiteCalendar(http.Controller):
         if product_id:
             product_obj = request.env['product.product'].sudo().browse(int(product_id)) if product_id else None
         else:
-            product_obj = booking_type.employee_ids[0]
+            product_obj = booking_type.product_ids[0]
 
         slot_ids = booking_type.sudo()._get_paginated_product_booking_slots(request.session['timezone'], product_obj)
         return request.render("website_calendar_product_resource.booking", {
