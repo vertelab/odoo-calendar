@@ -20,13 +20,13 @@
 ##############################################################################
 
 {
-    'name': 'Calendar ics-urls',
+    'name': 'Calendar: ics-urls',
     'version': '14.0.0.1.0',
     'category': 'Calendar',
     'summary': 'Subscription on calendar.ics-urls',
     'licence': 'AGPL-3',
     'description': """
-        Adds and updates calendar objects according to an ics-url
+    Adds and updates calendar objects according to an ics-url
     """,
     'author': 'Vertel AB',
     'website': 'http://www.vertel.se',
