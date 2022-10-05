@@ -195,60 +195,53 @@ class WebsiteCalendar(http.Controller):
         #     if not hr_employee_id.user_id.partner_id.calendar_verify_availability(date_start, date_end):
         #         return request.redirect('/website/calendar/%s/booking?failed=employee' % booking_type.id)
 
-        # country_id = int(country_id) if country_id else None
-        # country_name = country_id and request.env['res.country'].browse(country_id).name or ''
-        # partner = request.env['res.partner'].sudo().search([('email', '=like', email)], limit=1)
-        # if partner:
-        #     if not partner.calendar_verify_availability(date_start, date_end):
-        #         return request.redirect('/website/calendar/%s/booking?failed=partner' % booking_type.id)
-        #     if not partner.mobile or len(partner.mobile) <= 5 and len(phone) > 5:
-        #         partner.write({'mobile': phone})
-        #     if not partner.country_id:
-        #         partner.country_id = country_id
-        # else:
-        #     partner = partner.create({
-        #         'name': name,
-        #         'country_id': country_id,
-        #         'mobile': phone,
-        #         'email': email,
-        #     })
-        #
-        # record_description = (_('Country: %s') + '\n\n' +
-        #                       _('Mobile: %s') + '\n\n' +
-        #                       _('Email: %s') + '\n\n') % (country_name, phone, email)
-        # for question in booking_type.question_ids:
-        #     key = 'question_' + str(question.id)
-        #     if question.question_type == 'checkbox':
-        #         answers = question.answer_ids.filtered(lambda x: (key + '_answer_' + str(x.id)) in kwargs)
-        #         record_description += question.name + ': ' + ', '.join(answers.mapped('name')) + '\n'
-        #     elif kwargs.get(key):
-        #         if question.question_type == 'text':
-        #             record_description += '\n* ' + question.name + ' *\n' + kwargs.get(key, False) + '\n\n'
-        #         else:
-        #             record_description += question.name + ': ' + kwargs.get(key) + '\n\n'
-        # if company:
-        #     record_description += _("Company: ") + company
-        # if comment:
-        #     record_description += _("\n\nComment: ") + comment
-        # if description:
-        #     record_description += _("\n\nDescription: ") + description
-        # if title:
-        #     record_description += _("\n\nTitle: ") + title
-        #
+        country_id = int(country_id) if country_id else None
+        country_name = country_id and request.env['res.country'].browse(country_id).name or ''
+        partner = request.env['res.partner'].sudo().search([('email', '=like', email)], limit=1)
+        if partner:
+            if not product_product_id.calendar_verify_product_availability(partner, date_start, date_end):
+                return request.redirect('/website/calendar/product/%s/booking?failed=product' % booking_type.id)
+            if not partner.mobile or len(partner.mobile) <= 5 and len(phone) > 5:
+                partner.write({'mobile': phone})
+            if not partner.country_id:
+                partner.country_id = country_id
+        else:
+            partner = partner.create({
+                'name': name,
+                'country_id': country_id,
+                'mobile': phone,
+                'email': email,
+            })
+
+        record_description = (_('Country: %s') + '\n\n' +
+                              _('Mobile: %s') + '\n\n' +
+                              _('Email: %s') + '\n\n') % (country_name, phone, email)
+        for question in booking_type.question_ids:
+            key = 'question_' + str(question.id)
+            if question.question_type == 'checkbox':
+                answers = question.answer_ids.filtered(lambda x: (key + '_answer_' + str(x.id)) in kwargs)
+                record_description += question.name + ': ' + ', '.join(answers.mapped('name')) + '\n'
+            elif kwargs.get(key):
+                if question.question_type == 'text':
+                    record_description += '\n* ' + question.name + ' *\n' + kwargs.get(key, False) + '\n\n'
+                else:
+                    record_description += question.name + ': ' + kwargs.get(key) + '\n\n'
+        if company:
+            record_description += _("Company: ") + company
+        if comment:
+            record_description += _("\n\nComment: ") + comment
+        if description:
+            record_description += _("\n\nDescription: ") + description
+        if title:
+            record_description += _("\n\nTitle: ") + title
+
         categ_id = request.env.ref('website_calendar_ce.calendar_event_type_data_online_booking')
         alarm_ids = booking_type.reminder_ids and [(6, 0, booking_type.reminder_ids.ids)] or []
         # partner_ids = list(set([request.env.user.partner_id.id] + [partner.id]))
-        public_partner = False
-        # if not partner.user_id:
-        #     public_partner = partner
+
         data = {
             'state': 'open',
             'name': _('%s with %s') % (booking_type.name, name),
-            # FIXME master
-            # we override here start_date(time) value because they are not properly
-            # recomputed due to ugly overrides in event.calendar (recurrences suck!)
-            #     (fixing them in stable is a pita as it requires a good rewrite of the
-            #      calendar engine)
             'start_date': date_start.strftime(dtf),
             'start': date_start.strftime(dtf),
             'stop': date_end.strftime(dtf),
@@ -257,13 +250,12 @@ class WebsiteCalendar(http.Controller):
             'description': '',  # record_description,
             'alarm_ids': alarm_ids,
             'location': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}",
-            'partner_ids': [(4, request.env.user.partner_id.id, False)],
-            # 'public_partner': public_partner,
+            'partner_ids': [(4, partner.id, False)],
             'categ_ids': [(4, categ_id.id, False)],
             'booking_type_id': booking_type.id,
             'user_id': request.env.user.id,
             'meeting_url': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}",
-            'product_id': product_product_id.id
+            'product_id': product_product_id.id,
         }
         if end_datetime_str:
             data.update({

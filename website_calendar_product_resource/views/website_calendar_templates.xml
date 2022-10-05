@@ -183,7 +183,7 @@
                         </li>
                     </ul>
                     <h1 class="o_page_header mt32">Booking Time</h1>
-                    <div t-if="failed=='employee'" class="alert alert-danger mt16" role="alert">
+                    <div t-if="failed=='product'" class="alert alert-danger mt16" role="alert">
                         <p>
                             <strong>Booking failed!</strong>
                             The selected timeslot is not available anymore.

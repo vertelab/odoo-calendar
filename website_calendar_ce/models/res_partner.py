@@ -19,7 +19,6 @@ from odoo import fields, models
 
 
 class Partner(models.Model):
-
     _inherit = "res.partner"
 
     def calendar_verify_availability(self, date_start, date_end):
@@ -28,9 +27,9 @@ class Partner(models.Model):
         if bool(self.env['calendar.event'].search_count([
             ('partner_ids', 'in', self.ids),
             '|', '&', ('start', '<', fields.Datetime.to_string(date_end)),
-                      ('stop', '>', fields.Datetime.to_string(date_start)),
-                 '&', ('allday', '=', True),
-                      '|', ('start_date', '=', fields.Date.to_string(date_end)),
-                           ('start_date', '=', fields.Date.to_string(date_start))])):
+            ('stop', '>', fields.Datetime.to_string(date_start)),
+            '&', ('allday', '=', True),
+            '|', ('start_date', '=', fields.Date.to_string(date_end)),
+            ('start_date', '=', fields.Date.to_string(date_start))])):
             return False
         return True

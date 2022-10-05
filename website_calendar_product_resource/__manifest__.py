@@ -37,6 +37,7 @@
     'repository': 'https://github.com/vertelab/odoo-calendar',
     'depends': ['product', 'resource', 'website_calendar_ce'],
     'data': [
+        "data/website_calendar_data.xml",
         "views/product_view.xml",
         # "views/resource_view.xml",
         "views/calendar_booking_view.xml",
