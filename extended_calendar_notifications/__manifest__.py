@@ -27,11 +27,10 @@
     'name': 'Calendar: Extended Notifications',
     'version': '14.0.0.0.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': """
-        Module extends functionality for calandar events to send update emails when the event is deleted or changed.""",
+    'summary': 'Module extends functionality for calandar events.',
     'category': 'Calendar',
     'description': """
-        Long description of module's purpose
+    Module extends functionality for calandar events to send update emails when the event is deleted or changed.
     """,
     #'sequence': '1',
     'author': 'Vertel AB',
