@@ -93,11 +93,15 @@ class WebsiteCalendar(http.Controller):
         else:
             product_obj = booking_type.product_ids[0]
 
-        slot_ids = booking_type.sudo()._get_paginated_product_booking_slots(request.session['timezone'], product_obj)
+        session = request.session
+        timezone = session.get('timezone')
+        if not timezone:
+            timezone = session.context.get('tz')
+        slot_ids = booking_type.sudo()._get_paginated_product_booking_slots(timezone, product_obj)
         return request.render("website_calendar_product_resource.booking", {
             'booking_type': booking_type,
             'product_id': product_obj,
-            'timezone': request.session['timezone'],
+            'timezone': timezone,
             'failed': failed,
             'slots': slot_ids,
             'description': _(
