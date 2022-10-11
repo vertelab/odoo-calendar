@@ -142,7 +142,6 @@
                                     </div>
                                     <div class="dropdown-menu" role="menu">
                                         <t t-foreach="day['slots']" t-as="slot">
-<!--                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>-->
                                             <a t-if='slot' role="menuitem" class="dropdown-item" t-att-data-booking-id="booking_type.id" t-att-data-booking-date-time="slot['datetime']" t-att-data-booking-hours="slot['hours']" t-att-data-product-id="product_id.id" t-att-data-description="description" t-att-data-title="title" t-esc="slot['hours']"/>
                                         </t>
                                     </div>

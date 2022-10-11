@@ -20,8 +20,6 @@ class BookingWebsiteSale(WebsiteSale):
     def calendar_booking_choice(self, product, booking_type=None, message=None, description=None, header=None,
                                 **kwargs):
         # sale_order_id = request.session['sale_order_id']
-        print(product)
-
         if not booking_type:
             country_code = request.session.geoip and request.session.geoip.get('country_code')
             if country_code:
@@ -48,7 +46,6 @@ class BookingWebsiteSale(WebsiteSale):
     @http.route(['/shop/<model("product.product"):product>/<model("calendar.booking.type"):booking_type>'], type='http',
                 auth="public", website=True, sitemap=True)
     def shop_product_booking(self, product, booking_type, category='', search='', failed=False, **kwargs):
-        print("booking_type", booking_type)
         booking_type = request.env['calendar.booking.type'].browse(int(booking_type))
         session = request.session
         timezone = session.get('timezone')
@@ -228,6 +225,7 @@ class BookingWebsiteSale(WebsiteSale):
             return request.env['ir.ui.view']._render_template("website_booking_checkout.product_booking_calendar", {
                 'booking_type': booking_type,
                 'product': product_product_id,
+                'product_id': product_product_id,
                 'timezone': request.session['timezone'],
                 'slots': slot_ids,
                 'description': description if description else _(

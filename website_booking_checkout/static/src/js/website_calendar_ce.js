@@ -1,24 +1,15 @@
 odoo.define('website_booking_checkout.booking_actions', function (require) {
     'use strict';
 
-
     var publicWidget = require('web.public.widget');
 
-    var core = require('web.core');
-    var config = require('web.config');
-    var publicWidget = require('web.public.widget');
-    var VariantMixin = require('sale.VariantMixin');
-    var wSaleUtils = require('website_sale.utils');
     const wUtils = require('website.utils');
-    require("web.zoomodoo");
-
 
     publicWidget.registry.WebsiteBookingCheckout = publicWidget.Widget.extend({
         selector: '.o_website_product_booking',
         events: {
-//            'change select[id="product_calendarType"]': "_onChangeProductBookingType",
-            'click #product_previous_month': '_onPreviousMonth',
-            'click #product_next_month': '_onNextMonth',
+            'click #product_previous_month': '_onPreviousBookingMonth',
+            'click #product_next_month': '_onNextBookingMonth',
             'click td.dropdown > div.dropdown-menu > a': '_HighlightMultipleBookingSlots',
             'click #proceed_with_booking': '_BookProduct'
         },
@@ -28,7 +19,6 @@ odoo.define('website_booking_checkout.booking_actions', function (require) {
          */
         init: function () {
             this._super.apply(this, arguments);
-//            this._onChangeProductBookingType = _.debounce(this._onChangeProductBookingType, 250);
             this.product_month = 0;
             this.x_click = 0;
             this.starting_slot;
@@ -45,44 +35,8 @@ odoo.define('website_booking_checkout.booking_actions', function (require) {
         //--------------------------------------------------------------------------
         // Handlers
         //--------------------------------------------------------------------------
-
-        /**
-         * On booking type change: adapt booking intro text and available
-         * employees (if option enabled)
-         *
-         * @override
-         * @param {Event} ev
-         */
-//        _onChangeProductBookingType: function (ev) {
-//            var bookingID = $(ev.target).val();
-//            console.log("bookingID", bookingID)
-//            var previousSelectedProductID = $(".o_website_appointment_form select[name='product_id']").val();
-//            console.log("previousSelectedProductID", previousSelectedProductID)
-//            var postURL = '/website/calendar/product/' + bookingID + '/booking';
-//            console.log("postURL", postURL)
-//            $(".o_website_appointment_form").attr('action', postURL);
-//            this._rpc({
-//                route: "/website/calendar/get_product_booking_info",
-//                params: {
-//                    booking_id: bookingID,
-//                    prev_emp: previousSelectedProductID,
-//                },
-//            }).then(function (data) {
-//                if (data) {
-//                    $('.o_calendar_intro').html(data.message_intro);
-//                    if (data.assignation_method === 'chosen') {
-//                        $(".o_website_appointment_form div[name='product_select']").replaceWith(data.product_selection_html);
-//                    } else {
-//                        $(".o_website_appointment_form div[name='product_select']").addClass('o_hidden');
-//                        $(".o_website_appointment_form select[name='product_id']").children().remove();
-//                    }
-//                }
-//            });
-//        },
-
-        _onNextMonth: async function () {
+        _onNextBookingMonth: async function () {
             var product_id = $("input[name='product_id']").val()
-            console.log("product_id", product_id)
             var booking_type_id = $("input[name='booking_type_id']").val()
             var self = this;
 
@@ -99,13 +53,13 @@ odoo.define('website_booking_checkout.booking_actions', function (require) {
                         alert("No more booking time")
                     } else {
                         this.product_month += 1
-                        $("#booking_calendar").replaceWith(res)
+                        $("#product_booking_calendar").replaceWith(res)
                     }
                 })
             }
         },
-//
-        _onPreviousMonth: async function () {
+
+        _onPreviousBookingMonth: async function () {
             var product_id = $("input[name='product_id']").val()
             var booking_type_id = $("input[name='booking_type_id']").val()
             if (this.product_month > 0) {
@@ -118,7 +72,7 @@ odoo.define('website_booking_checkout.booking_actions', function (require) {
                         month: this.product_month,
                     },
                 }).then(res => {
-                    $("#booking_calendar").replaceWith(res)
+                    $("#product_booking_calendar").replaceWith(res)
                 })
             } else {
                 alert("You cannot make booking for past months")
@@ -152,9 +106,6 @@ odoo.define('website_booking_checkout.booking_actions', function (require) {
             var clicked_slot = $(event.target)
             var product_id = $("input[name='product_id']").val()
             var booking_type_id = $("input[name='booking_type_id']").val()
-
-            console.log("product_id", product_id)
-            console.log("booking_id", booking_type_id)
 
             var params = {
                 'product_id': product_id,
