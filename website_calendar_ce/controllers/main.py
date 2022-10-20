@@ -94,7 +94,7 @@ class WebsiteCalendar(http.Controller):
         if employee_id:
             employee_obj = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
         else:
-            employee_obj = booking_type.employee_ids[0]
+            employee_obj = booking_type.sudo().employee_ids[0]
 
         slot_ids = booking_type.sudo()._get_paginated_booking_slots(request.session['timezone'], employee_obj)
         return request.render("website_calendar_ce.booking", {
