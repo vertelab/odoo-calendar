@@ -18,7 +18,7 @@
 
     <template id="assets_editor_inherit_website_calendar" inherit_id="website.assets_editor" name="website_calendar Assets Editor">
         <xpath expr="." position="inside">
-            <script type="text/javascript" src="website_calendar_ce/static/src/js/website_calendar.editor.js"></script>
+            <script type="text/javascript" src="website_calendar_ce/static/src/js/website_calendar.editor.js"/>
 
             <!-- <script type="text/javascript" src="/website_calendar_ce/static/src/js/booking_snippets_options.js"/> -->
 
@@ -35,13 +35,14 @@
     <template id="index" name="Website booking: Booking Page">
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar">
-                <div class="oe_structure container mb128 o_website_calendar_booking">
+                <div class="oe_structure"/>
+                <div class="container mb128 o_website_calendar_booking">
                     <ul class="wizard mt32 float-right">
-                        <li class="text-primary">Booking<span class="chevron"></span>
+                        <li class="text-primary">Booking<span class="chevron"/>
                         </li>
-                        <li class="text-muted">Time<span class="chevron"></span>
+                        <li class="text-muted">Time<span class="chevron"/>
                         </li>
-                        <li class="text-muted">Confirmation<span class="chevron"></span>
+                        <li class="text-muted">Confirmation<span class="chevron"/>
                         </li>
                     </ul>
                     <h1 t-if="header" class="o_page_header mt32">
@@ -59,7 +60,7 @@
                             You can schedule another booking from here.
                         </p>
                     </div>
-                    <form class="o_website_appoinment_form w-md-50" t-attf-action="/website/calendar/#{ slug(booking_type) }/booking" type="post">
+                    <form class="o_website_appointment_form w-md-50" t-attf-action="/website/calendar/#{ slug(booking_type) }/booking" type="post">
                         <div id="booking" class="form-group row">
                             <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
                             <div class="col-md-9">
@@ -73,10 +74,10 @@
                             </div>
                         </div>
                         <div name="header" class="form-group">
-                            <t t-esc="header"></t>
+                            <t t-esc="header"/>
                         </div>
                         <div name="description" class="form-group">
-                            <t t-esc="description"></t>
+                            <t t-esc="description"/>
                         </div>
                         <t t-call="website_calendar_ce.employee_select"/>
                         <div class="form-group row" style="text-align: end;">
@@ -88,6 +89,7 @@
                     </form>
                     <div t-raw="booking_type.message_intro" class="o_calendar_intro mb32"/>
                 </div>
+                <div class="oe_structure"/>
             </div>
         </t>
     </template>
@@ -96,7 +98,7 @@
         <div name="employee_select" t-att-class="'form-group ' + (booking_type.assignation_method!='chosen' and 'o_hidden' or '')">
             <label for="selectEmployee" class="col-md-4 col-form-label">With:</label>
             <div class="col-md-7">
-                <!-- do not add the disabled tag or it won't be submitted with the form -->
+                <!-- do not add the disabled tag "or" it won't be submitted with the form -->
                 <select class="form-control" name="employee_id" id="selectEmployee">
                     <t t-foreach="suggested_employees" t-as="emp">
                         <option t-att-value="emp[0]" t-att-selected="emp[0] == selected_employee_id and 'selected'">
@@ -150,8 +152,7 @@
                                     </div>
                                     <div class="dropdown-menu" role="menu">
                                         <t t-foreach="day['slots']" t-as="slot">
-<!--                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>-->
-                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-att-data-booking-id="booking_type.id" t-att-data-booking-date-time="slot['datetime']" t-att-data-booking-hours="slot['hours']" t-att-data-employee-id="slot['employee_id']" t-att-data-description="description" t-att-data-title="title" t-esc="slot['hours']"/>
+                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>
                                         </t>
                                     </div>
                                 </t>
@@ -161,7 +162,7 @@
                             </td>
                         </t>
                     </tr>
-                    <!--to fix bootstrap md height add empty tr so now each month has 6 weeks row -->
+                    <!--to fix bootstrap md height add empty "tr" so now each month has 6 weeks row -->
                     <tr t-if="len(month['weeks']) == 5" class="o_calendar_days"/>
                 </table>
             </div>
@@ -171,15 +172,16 @@
     <template id="booking" name="Website Booking: Schedule Booking">
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure"/>
                 <div class="oe_structure container mb128">
                     <ul class="wizard mt32 float-right">
                         <li>
                             <a t-attf-href="/website/calendar" class="text-success">Booking</a>
-                            <span class="chevron"></span>
+                            <span class="chevron"/>
                         </li>
-                        <li class="text-primary">Time<span class="chevron"></span>
+                        <li class="text-primary">Time<span class="chevron"/>
                         </li>
-                        <li class="text-muted">Confirmation<span class="chevron"></span>
+                        <li class="text-muted">Confirmation<span class="chevron"/>
                         </li>
                     </ul>
                     <h1 class="o_page_header mt32">Booking Time</h1>
@@ -237,24 +239,11 @@
                     </div>
                     <div class="clearfix"/>
                     <t t-call="website_calendar_ce.booking_calendar"/>
-                    <p>
+                    <p id="timezone">
                         Time displayed in <strong t-esc="timezone"/> timezone
                     </p>
-
-                    <div class="form-group row">
-                        <div class="col-md-8" id="selected_slots" style="margin: auto;"/>
-
-                        <div class="col-md-4" style="text-align: end;">
-<!--                            t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"-->
-                            <a class="dropdown-item" id="proceed_with_slot">
-                                <button type="submit" class="btn btn-primary">Proceed <span class="fa fa-arrow-right"/>
-                            </button>
-                            </a>
-
-
-                        </div>
-                    </div>
                 </div>
+                <div class="oe_structure"/>
             </div>
         </t>
     </template>
@@ -262,23 +251,24 @@
     <template id="booking_form" name="Website Booking: Your Data">
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure"/>
                 <div class="oe_structure container mb128 o_website_calendar_form">
                     <ul class="wizard mt32 float-right">
                         <li>
                             <a t-attf-href="/website/calendar" class="text-success">Booking</a>
-                            <span class="chevron"></span>
+                            <span class="chevron"/>
                         </li>
                         <li>
                             <a t-attf-href="/website/calendar/#{ slug(booking_type) }/booking" class="text-success">Time</a>
-                            <span class="chevron"></span>
+                            <span class="chevron"/>
                         </li>
-                        <li class="text-primary">Confirmation<span class="chevron"></span>
+                        <li class="text-primary">Confirmation<span class="chevron"/>
                         </li>
                     </ul>
                     <h2 class="o_page_header mt32" t-esc="title"/>
                     <p>
                         <span t-field="booking_type.name"/>
- on <strong t-esc="start_datetime_locale"/> <span t-if="end_datetime_locale"> to <strong t-esc="end_datetime_locale"/> </span>
+                        on <strong t-esc="datetime_str"/>
                     </p>
                     <p>
                         <span t-esc="description"/>
@@ -286,8 +276,7 @@
 
                     <form class="mt32 booking_submit_form" t-attf-action="/website/calendar/#{ slug(booking_type) }/submit?description=#{description}&amp;title=#{title}" method="POST">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                        <input type="hidden" name="start_datetime_str" t-att-value="start_datetime_str"/>
-                        <input type="hidden" name="end_datetime_str" t-att-value="end_datetime_str"/>
+                        <input type="hidden" name="datetime_str" t-att-value="datetime_str"/>
                         <input type="hidden" name="employee_id" t-att-value="employee_id"/>
                         <div class="form-group row col-xl-8 form-field">
                             <label for="name" class="col-md-4 col-form-label">Your Name</label>
@@ -384,11 +373,12 @@
                             <div class="offset-md-2 col-md-10">
                                 <button type="submit" class="btn btn-primary o_website_form_send float-right">Confirm Booking <span class="fa fa-arrow-right"/>
                                 </button>
-                                <span id="o_website_form_result"></span>
+                                <span id="o_website_form_result"/>
                             </div>
                         </div>
                     </form>
                 </div>
+                <div class="oe_structure"/>
             </div>
         </t>
     </template>
@@ -396,6 +386,7 @@
     <template id="booking_validated" name="Website Booking: Booking Confirmed">
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure"/>
                 <div class="oe_structure container mb128">
                     <h1 class="o_page_header">Booking: <span t-esc="title"/>
                     </h1>
@@ -406,8 +397,7 @@
                     </div>
                     <div class="alert alert-danger" t-if="message=='no-cancel'" role="alert">
                         <p>
-                            <strong>Your booking is in less than <t t-esc="event.booking_type_id.min_cancellation_hours"/>
- hours from now!</strong>
+                            <strong>Your booking is in less than <t t-esc="event.booking_type_id.min_cancellation_hours"/> hours from now!</strong>
                             <br/>
                             It's too late to cancel online, please contact the attendees another way if you really can't make it.
                         </p>
@@ -424,8 +414,7 @@
                                 <div class="col-md-10">
                                     <t t-esc="datetime_start"/> <span t-if="datetime_stop">- <t t-esc="datetime_stop"/></span>
                                     <br/>
-                                    <i class="text-muted">(timezone: <t t-esc="request.session.timezone"/>
-)</i>
+                                    <i class="text-muted">(timezone: <t t-esc="request.session.timezone"/>)</i>
                                 </div>
                             </div>
                             <div class="row">
@@ -434,9 +423,7 @@
                                 </div>
                                 <div class="col-md-10">
                                     <t t-esc="int(event.duration)"/>
-                                    <t t-if="event.duration % 1">:                                        <t t-esc="'%02d' % (int(event.duration % 1 * 60),)"/>
-                                    </t>
-                                hour<t t-if="event.duration>=2">s</t>
+                                    <t t-if="event.duration % 1">:<t t-esc="'%02d' % (int(event.duration % 1 * 60),)"/></t>hour<t t-if="event.duration>=2">s</t>
                                 </div>
                             </div>
                             <br/>
@@ -490,23 +477,22 @@
                         </div>
                         <div class="col-md-3">
                             <a role="button" class="btn btn-block btn-primary" t-attf-href="/website/calendar/ics/#{event.access_token}.ics">
-                                <i class="fa fa-fw fa-arrow-right"></i>Add to iCal/Outlook
+                                <i class="fa fa-fw fa-arrow-right"/>Add to iCal/Outlook
                             </a>
                             <a role="button" class="btn btn-primary btn-block" t-att-href="google_url">
-                                <i class="fa fa-fw fa-arrow-right"></i>Add to Google Calendar
+                                <i class="fa fa-fw fa-arrow-right"/>Add to Google Calendar
                             </a>
                             <t t-if="event.booking_type_id">
                                 <br/>
                                 <br/>
                                 <a role="button" class="btn btn-danger btn-block" t-attf-href="/website/calendar/cancel/#{event.access_token}">
-                                    <i class="fa fa-fw fa-times"></i>Cancel / Reschedule
+                                    <i class="fa fa-fw fa-times"/>Cancel / Reschedule
                                 </a>
                             </t>
                         </div>
-
                     </div>
-
                 </div>
+                <div class="oe_structure"/>
             </div>
         </t>
     </template>
@@ -514,6 +500,7 @@
     <template id="setup" name="Website Booking: Configure You Bookings">
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure"/>
                 <div class="oe_structure container mb128">
                     <h1 class="o_page_header">No bookings available!</h1>
                     <p groups="base.group_user">
@@ -522,6 +509,7 @@
                         an online booking.
                     </p>
                 </div>
+                <div class="oe_structure"/>
             </div>
         </t>
     </template>
@@ -530,15 +518,16 @@
     <template id="booking_snippet" name="Website Booking: Schedule Booking">
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure"/>
                 <div class="oe_structure container mb128">
                     <ul class="wizard mt32 float-right">
                         <li>
                             <a class="text-success">Booking</a>
-                            <span class="chevron"></span>
+                            <span class="chevron"/>
                         </li>
-                        <li class="text-primary">Time<span class="chevron"></span>
+                        <li class="text-primary">Time<span class="chevron"/>
                         </li>
-                        <li class="text-muted">Confirmation<span class="chevron"></span>
+                        <li class="text-muted">Confirmation<span class="chevron"/>
                         </li>
                     </ul>
                     <h1 class="o_page_header mt32">Booking Time</h1>
@@ -573,6 +562,7 @@
                     <div class="clearfix"/>
                     <t t-call="website_calendar_ce.booking_calendar"/>
                 </div>
+                <div class="oe_structure"/>
             </div>
         </t>
     </template>

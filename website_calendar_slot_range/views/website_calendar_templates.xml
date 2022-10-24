@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Online Booking">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/website_calendar_slot_range/static/src/js/website_calendar_ce.js"/>
+        </xpath>
+    </template>
+
+    <template id="website_calendar_slot_range_booking_calendar" inherit_id="website_calendar_ce.booking_calendar">
+        <xpath expr="//tr[hasclass('o_calendar_days')]" position="replace">
+            <tr t-foreach="month['weeks']" t-as="weeks" class="o_calendar_days">
+                <t t-foreach="weeks" t-as="day">
+                    <td t-attf-class="text-center#{day['slots'] and ' o_day dropdown' or ''} #{day['weekend_cls']} #{day['today_cls']}" t-attf-title="#{day['today_cls'] and 'Today' or ''}">
+                        <t t-if="day['slots']">
+                            <div class="dropdown-toggle o_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <strong>
+                                    <span t-esc="day['day'].day"/>
+                                </strong>
+                            </div>
+                            <div class="dropdown-menu" role="menu">
+                                <t t-foreach="day['slots']" t-as="slot">
+                                    <a t-if='slot' role="menuitem" class="dropdown-item" t-att-data-booking-id="booking_type.id" t-att-data-booking-date-time="slot['datetime']" t-att-data-booking-hours="slot['hours']" t-att-data-employee-id="slot['employee_id']" t-att-data-description="description" t-att-data-title="title" t-esc="slot['hours']"/>
+                                </t>
+                            </div>
+                        </t>
+                        <t t-if="not day['slots']">
+                            <div t-esc="day['day'].day" t-att-class="day['mute_cls']"/>
+                        </t>
+                    </td>
+                </t>
+            </tr>
+        </xpath>
+    </template>
+
+    <template id="website_calendar_slot_range_booking" inherit_id="website_calendar_ce.booking">
+        <xpath expr="//p[@id='timezone']" position="after">
+            <div class="form-group row">
+                <div class="col-md-8" id="selected_slots" style="margin: auto;"/>
+                <div class="col-md-4" style="text-align: end;">
+                    <a class="dropdown-item" id="proceed_with_slot">
+                        <button type="submit" class="btn btn-primary">Proceed <span class="fa fa-arrow-right"/>
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+
+    <template id="website_calendar_slot_range_booking_form" inherit_id="website_calendar_ce.booking_form">
+        <xpath expr="//div[@id='wrap']/div[hasclass('o_website_calendar_form')]/p[1]" position="replace">
+            <p>
+                <span t-field="booking_type.name"/> on <strong t-esc="start_datetime_locale"/> <span t-if="end_datetime_locale"> to <strong t-esc="end_datetime_locale"/> </span>
+            </p>
+        </xpath>
+         <xpath expr="//div[@id='wrap']//form[hasclass('booking_submit_form')]/input[@name='datetime_str']" position="replace">
+            <input type="hidden" name="start_datetime_str" t-att-value="start_datetime_str"/>
+        </xpath>
+        <xpath expr="//div[@id='wrap']//form[hasclass('booking_submit_form')]/input[@name='employee_id']" position="before">
+            <input type="hidden" name="end_datetime_str" t-att-value="end_datetime_str"/>
+        </xpath>
+    </template>
+</odoo>

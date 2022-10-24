@@ -111,20 +111,19 @@ class WebsiteCalendar(http.Controller):
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/info'], type='http', auth="public",
                 website=True)
-    def calendar_booking_form(self, booking_type, employee_id, start_date, end_date=None, description=None, title=None,
-                              **kwargs):
+    def calendar_booking_form(self, booking_type, employee_id, date_time, description=None, title=None, **kwargs):
         partner_data = {}
         if request.env.user.partner_id != request.env.ref('base.public_partner'):
             partner_data = request.env.user.partner_id.read(fields=['name', 'mobile', 'country_id', 'email'])[0]
-        start_day_name = format_datetime(datetime.strptime(start_date, dtf), 'EEE', locale=get_lang(request.env).code)
-        start_date_formatted = format_datetime(datetime.strptime(start_date, dtf), locale=get_lang(request.env).code)
+        day_name = format_datetime(datetime.strptime(date_time, dtf), 'EEE', locale=get_lang(request.env).code)
+        date_formated = format_datetime(datetime.strptime(date_time, dtf), locale=get_lang(request.env).code)
 
         vals = {
             'partner_data': partner_data,
             'booking_type': booking_type,
-            'start_datetime': start_date,
-            'start_datetime_locale': start_day_name + ' ' + start_date_formatted,
-            'start_datetime_str': start_date,
+            'datetime': date_time,
+            'datetime_locale': day_name + ' ' + date_formated,
+            'datetime_str': date_time,
             'employee_id': employee_id,
             'countries': request.env['res.country'].search([]),
             'description': description if description else _(
@@ -132,44 +131,21 @@ class WebsiteCalendar(http.Controller):
                 "your email address"),
             'title': title if title else _("Book meeting"),
         }
-        if end_date:
-            end_day_name = format_datetime(datetime.strptime(end_date, dtf), 'EEE', locale=get_lang(request.env).code)
-            end_date_formatted = format_datetime(datetime.strptime(end_date, dtf), locale=get_lang(request.env).code)
-            vals.update({
-                'end_datetime': end_date,
-                'end_datetime_locale': end_day_name + ' ' + end_date_formatted,
-                'end_datetime_str': end_date,
-            })
-
-        employee = request.env['hr.employee'].sudo().browse(int(employee_id))
-        if employee.user_id and employee.user_id.partner_id:
-            if not employee.user_id.partner_id.calendar_verify_availability(fields.Datetime.from_string(start_date),
-                                                                            fields.Datetime.from_string(end_date)):
-                return request.redirect('/website/calendar/%s/booking?failed=employee' % booking_type.id)
-
-        if end_date and (datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S") > datetime.strptime(end_date, "%Y-%m-%d "
-                                                                                                          "%H:%M:%S")):
-            return request.redirect('/website/calendar/%s/booking?failed=datetime' % booking_type.id)
-
         return request.render("website_calendar_ce.booking_form", vals)
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/submit'], type='http', auth="public",
                 website=True, methods=["POST"])
-    def calendar_booking_submit(self, booking_type, start_datetime_str, employee_id, name, phone, email,
-                                end_datetime_str=None, country_id=False, comment=False, company=False,
-                                description=False, title=_("Book meeting"), **kwargs):
+    def calendar_booking_submit(self, booking_type, datetime_str, employee_id, name, phone, email, country_id=False,
+                                comment=False, company=False, description=False, title=_("Book meeting"), **kwargs):
         timezone = request.session['timezone']
         tz_session = pytz.timezone(timezone)
-        date_start = tz_session.localize(fields.Datetime.from_string(start_datetime_str)).astimezone(pytz.utc)
-        if end_datetime_str:
-            date_end = tz_session.localize(fields.Datetime.from_string(end_datetime_str)).astimezone(pytz.utc)
-        else:
-            date_end = date_start + relativedelta(hours=booking_type.booking_duration)
+        date_start = tz_session.localize(fields.Datetime.from_string(datetime_str)).astimezone(pytz.utc)
+        date_end = date_start + relativedelta(hours=booking_type.booking_duration)
 
         # check availability of the employee again (in case someone else booked while the client was entering the form)
-        hr_employee_id = request.env['hr.employee'].sudo().browse(int(employee_id))
-        if hr_employee_id.user_id and hr_employee_id.user_id.partner_id:
-            if not hr_employee_id.user_id.partner_id.calendar_verify_availability(date_start, date_end):
+        Employee = request.env['hr.employee'].sudo().browse(int(employee_id))
+        if Employee.user_id and Employee.user_id.partner_id:
+            if not Employee.user_id.partner_id.calendar_verify_availability(date_start, date_end):
                 return request.redirect('/website/calendar/%s/booking?failed=employee' % booking_type.id)
 
         country_id = int(country_id) if country_id else None
@@ -214,7 +190,7 @@ class WebsiteCalendar(http.Controller):
 
         categ_id = request.env.ref('website_calendar_ce.calendar_event_type_data_online_booking')
         alarm_ids = booking_type.reminder_ids and [(6, 0, booking_type.reminder_ids.ids)] or []
-        partner_ids = list(set([hr_employee_id.user_id.partner_id.id] + [partner.id]))
+        partner_ids = list(set([Employee.user_id.partner_id.id] + [partner.id]))
         public_partner = False
         if not partner.user_id:
             public_partner = partner
@@ -238,15 +214,10 @@ class WebsiteCalendar(http.Controller):
             'public_partner': public_partner,
             'categ_ids': [(4, categ_id.id, False)],
             'booking_type_id': booking_type.id,
-            'user_id': hr_employee_id.user_id.id,
+            'user_id': Employee.user_id.id,
             'meeting_url': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}"
         }
-        if end_datetime_str:
-            data.update({
-                'allday': True,
-                'stop_date': date_end.strftime(dtf)
-            })
-        event = self._create_event(request, hr_employee_id, data)
+        event = self._create_event(request, Employee, data)
         event.attendee_ids.filtered(lambda attendee: attendee.partner_id.id == partner.id).write({'public_user': True})
         event.attendee_ids.write({'state': 'accepted'})
         return request.redirect('/website/calendar/view/' + event.access_token + '?message=new' + '&title=' + title)
