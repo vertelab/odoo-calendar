@@ -1,0 +1,94 @@
+<odoo>
+    <record id="ir_act_window_attendees_view" model="ir.actions.act_window">
+        <field name="name">Attendee View</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">calendar.attendee</field>
+        <field name="view_mode">tree,form</field>
+
+    </record>
+
+
+
+    <menuitem
+        id="menu_attendees_planning"
+        parent="calendar.mail_menu_calendar"
+        name="Attendees"
+        sequence="16"
+        action="ir_act_window_attendees_view"
+    />
+
+<record model="ir.ui.view" id="view_calender_attendee_tree">
+  <field name="name">calender_attendee_tree</field>
+  <field name="model">calendar.attendee</field>
+  <field name="type">tree</field>
+  <field name="arch" type="xml">
+    <tree string="Attendess">
+      <field name="common_name"/>
+      <field name="event_id" />
+      <field name="partner_id" />
+      <field name="user_id" />
+      <field name="email" />
+      <field name="state" />
+
+    </tree>
+
+  </field>
+</record>
+
+
+<record model="ir.ui.view" id="view_calender_attendee_form">
+  <field name="name">calender_attendee_form</field>
+  <field name="model">calendar.attendee</field>
+  <field name="type">form</field>
+  <field name="arch" type="xml">
+   
+    <form string="Attendess">
+        <sheet string="Attendess">
+        <group>
+            <field name="common_name"/>
+            <field name="event_id" />
+            <field name="partner_id" />
+            <field name="user_id" />
+            <field name="email" />
+            <field name="state" />
+        </group>
+        </sheet>
+    </form>
+   
+    
+  </field>
+</record>
+
+
+<!-- <record model="ir.ui.view" id="view_calender_attendee_calendar">
+  <field name="name">calender_attendee_form</field>
+  <field name="model">calendar.attendee</field>
+  <field name="type">calendar</field>
+  <field name="arch" type="xml">
+    <calendar string="Attendess">
+            <field name="common_name"/>
+            <field name="event_id" />
+            <field name="partner_id" />
+            <field name="user_id" />
+            <field name="email" />
+            <field name="state" />
+    </calendar>
+  </field>
+</record> -->
+
+
+
+<record id="calendar_attendee_search_view" model="ir.ui.view">
+        <field name="name">calendar.attendee.search.view</field>
+        <field name="model">calendar.attendee</field>
+        <field name="arch" type="xml">
+        <search string="Groups">           
+            <filter name="responsible" string="Responsible" context="{'group_by':'user_id'}"/>
+            <filter name="attendee" string="Attendee"  context="{'group_by':'partner_id'}"/>
+            <filter name="event" string="Event"  context="{'group_by':'event_id'}"/>
+        </search>   
+        </field>
+    </record>
+
+        
+</odoo>
