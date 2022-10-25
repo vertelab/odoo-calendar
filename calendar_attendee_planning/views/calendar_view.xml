@@ -3,11 +3,8 @@
         <field name="name">Attendee View</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">calendar.attendee</field>
-        <field name="view_mode">tree,form</field>
-
+        <field name="view_mode">tree,form,kanban,calendar</field>
     </record>
-
-
 
     <menuitem
         id="menu_attendees_planning"
@@ -17,78 +14,110 @@
         action="ir_act_window_attendees_view"
     />
 
-<record model="ir.ui.view" id="view_calender_attendee_tree">
-  <field name="name">calender_attendee_tree</field>
-  <field name="model">calendar.attendee</field>
-  <field name="type">tree</field>
-  <field name="arch" type="xml">
-    <tree string="Attendess">
-      <field name="common_name"/>
-      <field name="event_id" />
-      <field name="partner_id" />
-      <field name="user_id" />
-      <field name="email" />
-      <field name="state" />
-
-    </tree>
-
-  </field>
-</record>
+  <record model="ir.ui.view" id="view_calender_attendee_tree">
+    <field name="name">calender_attendee_tree</field>
+    <field name="model">calendar.attendee</field>
+    <field name="type">tree</field>
+    <field name="arch" type="xml">
+      <tree string="Attendees">
+        <field name="common_name"/>
+        <field name="event_id" />
+        <field name="partner_id" />
+        <field name="user_id" />
+        <field name="email" />
+        <field name="state" />
+      </tree>
+    </field>
+  </record>
 
 
-<record model="ir.ui.view" id="view_calender_attendee_form">
-  <field name="name">calender_attendee_form</field>
-  <field name="model">calendar.attendee</field>
-  <field name="type">form</field>
-  <field name="arch" type="xml">
-   
-    <form string="Attendess">
-        <sheet string="Attendess">
-        <group>
-            <field name="common_name"/>
-            <field name="event_id" />
-            <field name="partner_id" />
-            <field name="user_id" />
-            <field name="email" />
-            <field name="state" />
-        </group>
-        </sheet>
-    </form>
-   
-    
-  </field>
-</record>
+  <!-- <record model="ir.ui.view" id="view_calender_attendee_form">
+    <field name="name">calender_attendee_form</field>
+    <field name="model">calendar.attendee</field>
+    <field name="type">form</field>
+    <field name="arch" type="xml">
+      <form string="Attendees">
+          <sheet string="Attendes">
+            <group>
+                <field name="common_name" readonly="False"/>
+                <field name="event_id" readonly="False"/>
+                <field name="partner_id" readonly="False"/>
+                <field name="user_id" readonly="False"/>
+                <field name="email" readonly="False"/>
+                <field name="state" readonly="False"/>
+            </group>
+          </sheet>
+      </form>
+    </field>
+  </record> -->
 
 
-<!-- <record model="ir.ui.view" id="view_calender_attendee_calendar">
-  <field name="name">calender_attendee_form</field>
-  <field name="model">calendar.attendee</field>
-  <field name="type">calendar</field>
-  <field name="arch" type="xml">
-    <calendar string="Attendess">
-            <field name="common_name"/>
-            <field name="event_id" />
-            <field name="partner_id" />
-            <field name="user_id" />
-            <field name="email" />
-            <field name="state" />
-    </calendar>
-  </field>
-</record> -->
+  <record model="ir.ui.view" id="view_calender_attendee_kanban">
+    <field name="name">calender_attendee_kanban</field>
+    <field name="model">calendar.attendee</field>
+    <!-- <field name="type">calendar</field> -->
+    <field name="arch" type="xml">
+    <kanban class="o_kanban_mobile" create="false" group_create="false">
+          <templates>
+            <t t-name="kanban-box">
+              <div t-attf-class="oe_kanban_global_click">
+                  <div class="row mb4">
+                      <div class="col-6 o_kanban_record_headings">
+                          <strong>
+                              <span>
+                                  <field name="user_id"/>
+                              </span>
+                          </strong>
+                      </div>
+                      <!-- <div class="col-6 text-right">
+                        <span>
+                          <field name="email"/>
+                        </span>
+                      </div> -->
+                  </div>
+                  <div class="row">
+                      <div class="col-6">
+                          <span><field name="email"/></span>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <div class="col-6">
+                          <span><field name="state"/></span>
+                      </div>
+                  </div>
+              </div>
+            </t>
+        </templates>
+      </kanban>
+    </field>
+  </record>
 
+  <record id="view_calender_attendee_calendar" model="ir.ui.view">
+      <field name="name">calender.attendee.calendar</field>
+      <field name="model">calendar.attendee</field>
+      <field name="arch" type="xml">
+          <calendar date_stop="event_date_end" date_start="event_date_start" string="Events">
+              <field name="event_id"/>
+              <field name="state"/>
+          </calendar>
+      </field>
+  </record>
 
-
-<record id="calendar_attendee_search_view" model="ir.ui.view">
-        <field name="name">calendar.attendee.search.view</field>
-        <field name="model">calendar.attendee</field>
-        <field name="arch" type="xml">
-        <search string="Groups">           
+  <record id="calendar_attendee_search_view" model="ir.ui.view">
+    <field name="name">calendar.attendee.search.view</field>
+    <field name="model">calendar.attendee</field>
+    <field name="arch" type="xml">
+      <search string="filters_and_groups">           
+        <filter name="today" string="Today" domain="[('event_date_start', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0)),('event_date_start', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59))]" /> 
+        <filter name="this_week" string="This Week" domain="[('event_week', '&lt;=', (context_today()+relativedelta(weeks=0, weekday=-1)).strftime('%Y-%m-%d')), ('event_week', '&gt;=', (context_today()-relativedelta(weeks=1, weekday=0)).strftime('%Y-%m-%d'))]"/>
+        <group string="Group by">
             <filter name="responsible" string="Responsible" context="{'group_by':'user_id'}"/>
-            <filter name="attendee" string="Attendee"  context="{'group_by':'partner_id'}"/>
-            <filter name="event" string="Event"  context="{'group_by':'event_id'}"/>
-        </search>   
-        </field>
-    </record>
+            <filter name="attendee" string="Attendee" context="{'group_by':'partner_id'}"/>
+            <filter name="day" string="Day" context="{'group_by':'event_date_start'}"/>
+        </group> 
+      </search> 
+    </field>
+  </record>
 
         
 </odoo>
