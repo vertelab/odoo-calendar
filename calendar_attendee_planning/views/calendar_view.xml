@@ -31,25 +31,29 @@
   </record>
 
 
-  <!-- <record model="ir.ui.view" id="view_calender_attendee_form">
+  <record model="ir.ui.view" id="view_calender_attendee_form">
     <field name="name">calender_attendee_form</field>
     <field name="model">calendar.attendee</field>
     <field name="type">form</field>
     <field name="arch" type="xml">
       <form string="Attendees">
-          <sheet string="Attendes">
+          <sheet string="Attendees">
             <group>
+              <group>
                 <field name="common_name" readonly="False"/>
                 <field name="event_id" readonly="False"/>
                 <field name="partner_id" readonly="False"/>
                 <field name="user_id" readonly="False"/>
+              </group>
+              <group>
                 <field name="email" readonly="False"/>
                 <field name="state" readonly="False"/>
+              </group>
             </group>
           </sheet>
       </form>
     </field>
-  </record> -->
+  </record>
 
 
   <record model="ir.ui.view" id="view_calender_attendee_kanban">
@@ -108,7 +112,8 @@
     <field name="model">calendar.attendee</field>
     <field name="arch" type="xml">
       <search string="filters_and_groups">           
-        <filter name="today" string="Today" domain="[('event_date_start', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0)),('event_date_start', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59))]" /> 
+        <filter name="today" string="Today" domain="[('event_date_start', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0)),('event_date_start', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59))]" />
+        <filter name="tomorrow" string="Tomorrow" domain="[('event_date_start', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)),('event_date_start', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59) + datetime.timedelta(days=1))]" />
         <filter name="this_week" string="This Week" domain="[('event_week', '&lt;=', (context_today()+relativedelta(weeks=0, weekday=-1)).strftime('%Y-%m-%d')), ('event_week', '&gt;=', (context_today()-relativedelta(weeks=1, weekday=0)).strftime('%Y-%m-%d'))]"/>
         <group string="Group by">
             <filter name="responsible" string="Responsible" context="{'group_by':'user_id'}"/>
