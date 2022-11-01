@@ -3,7 +3,7 @@
         <field name="name">Attendee View</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">calendar.attendee</field>
-        <field name="view_mode">tree,form,kanban,calendar</field>
+        <field name="view_mode">tree,form,kanban,calendar,timeline</field>
     </record>
 
     <menuitem
@@ -45,7 +45,7 @@
                 <field name="partner_id" readonly="False"/>
                 <field name="user_id" readonly="False"/>
               </group>
-              <group>
+              <group name="contract_group">
                 <field name="email" readonly="False"/>
                 <field name="state" readonly="False"/>
               </group>
@@ -95,6 +95,52 @@
       </kanban>
     </field>
   </record>
+
+    <record id="calendar_time_timeline" model="ir.ui.view">
+        <field name="model">calendar.attendee</field>
+        <field name="type">timeline</field>
+        <field name="arch" type="xml">
+            <timeline
+                date_start="event_date_start"
+                date_stop="event_date_end"
+                default_group_by="partner_id"
+                event_open_popup="true"
+            >
+                <field name="user_id" />
+                <field name="duration" />
+<!--
+                colors="white: user_id == false; #2ecb71: kanban_state == 'done'; #ec7063: kanban_state == 'blocked'"
+-->
+                <templates>
+                    <t t-name="timeline-item">
+                        <div class="o_project_timeline_item">
+                            <img
+                                t-if="record.user_id"
+                                t-attf-src="/web/image/res.users/#{record.user_id[0]}/image_128/16x16"
+                                t-att-title="record.user_id[1]"
+                                width="16"
+                                height="16"
+                                class="mr8"
+                                alt="User"
+                            />
+                            <span name="display_name">
+                                <t t-esc="record.display_name" />
+                            </span>
+                            <small
+                                name="duration"
+                                class="text-info ml4"
+                                t-if="record.duration"
+                            >
+                                <t
+                                    t-esc="field_utils.format.float_time(record.duration)"
+                                />
+                            </small>
+                        </div>
+                    </t>
+                </templates>
+            </timeline>
+        </field>
+    </record>
 
   <record id="view_calender_attendee_calendar" model="ir.ui.view">
       <field name="name">calender.attendee.calendar</field>

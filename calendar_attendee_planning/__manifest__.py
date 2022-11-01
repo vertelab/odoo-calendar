@@ -35,7 +35,7 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
-    'depends': ['calendar','base'],
+    'depends': ['calendar','web_timeline'],
     'data': [
         'views/calendar_view.xml',
     ],

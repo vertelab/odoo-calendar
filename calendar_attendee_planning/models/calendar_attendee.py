@@ -13,6 +13,7 @@ class CalendarAttendee(models.Model):
     event_date_start = fields.Datetime(related='event_id.start', store=True)
     event_date_end = fields.Datetime(related='event_id.stop')
     event_week = fields.Char(compute='_compute_week_number', store=True)
+    duration = fields.Float(related="event_id.duration")
 
     @api.depends('event_date_start')
     def _compute_week_number(self):
