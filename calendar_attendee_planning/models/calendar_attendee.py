@@ -9,11 +9,23 @@ class CalendarAttendee(models.Model):
     _inherit = "calendar.attendee"
     _rec_name = 'event_id'
 
-    user_id = fields.Many2one(related='event_id.user_id', store=True, group_expand='_read_attendee_ids')
-    event_date_start = fields.Datetime(related='event_id.start', store=True)
-    event_date_end = fields.Datetime(related='event_id.stop')
-    event_week = fields.Char(compute='_compute_week_number', store=True)
-    duration = fields.Float(related="event_id.duration")
+    user_id = fields.Many2one(related='event_id.user_id', store=True, group_expand='_read_attendee_ids', readonly=False)
+    event_date_start = fields.Datetime(related='event_id.start', store=True, readonly=False)
+    event_date_end = fields.Datetime(related='event_id.stop', readonly=False)
+    event_week = fields.Char(compute='_compute_week_number', store=True, readonly=False)
+    duration = fields.Float(related="event_id.duration", readonly=False)
+    color = fields.Integer(compute='_compute_color_from_state', store=True, readonly=False)
+    attendee_id = fields.Many2one(comodel_name='res.partner', readonly=False)
+
+    @api.depends('state')
+    def _compute_color_from_state(self):
+        for rec in self:
+            if rec.state == 'declined':
+                rec.color = 1
+            elif rec.state == 'accepted':
+                rec.color = 4
+            elif rec.state == 'tentative':
+                rec.color = 2
 
     @api.depends('event_date_start')
     def _compute_week_number(self):
