@@ -35,7 +35,7 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
-    'depends': ['calendar','web_timeline'],
+    'depends': ['calendar','web_timeline', 'hr', 'hr_holidays'],
     'data': [
         'views/calendar_view.xml',
     ],
@@ -45,4 +45,3 @@
     'application': True,
     'auto_install': False,
 }
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

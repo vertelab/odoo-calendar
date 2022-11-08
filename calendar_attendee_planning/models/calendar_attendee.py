@@ -17,6 +17,11 @@ class CalendarAttendee(models.Model):
     color = fields.Integer(compute='_compute_color_from_state', store=True, readonly=False)
     attendee_id = fields.Many2one(comodel_name='res.partner', readonly=False)
 
+    # @api.depends('user_id.employee_id.leaves')
+    # def _change_state_from_hr_leaves(self):
+    #     for rec in self:
+    #         _logger.warning(f"BAPIDI {rec}")
+
     @api.depends('state')
     def _compute_color_from_state(self):
         for rec in self:
