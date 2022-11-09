@@ -10,10 +10,11 @@ class CalendarEventModify(models.Model):
 
     def create(self, vals_list):
         res = super().create(vals_list)
-        _logger.warning(f"BAPIDI {vals_list} {res}")
+        _logger.warning(f"BAPIDI {self} {vals_list} {res}")
+        # _logger.warning(f"calendar event {self.env['calendar.event'].search_read([('id', '=', res.id)],[])}")
         return res
         
     def write(self, vals):
         res = super().write(vals)
-        _logger.warning(f"BOPIDI {vals} {res}")
+        _logger.warning(f"BOPIDI {self} {vals} {res}")
         return res

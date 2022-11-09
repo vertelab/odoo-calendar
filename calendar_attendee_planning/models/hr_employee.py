@@ -8,4 +8,8 @@ _logger = logging.getLogger(__name__)
 class HREmployeeLeave(models.Model):
     _inherit = "hr.employee"
 
-    leaves = fields.One2many('hr.leave', 'employee_id', store=True)
+    leaves = fields.One2many('hr.leave', 'employee_id')
+
+    @api.onchange('leaves')
+    def check_validity(self):
+        _logger.warning('Leaves changed')

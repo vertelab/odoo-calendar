@@ -8,7 +8,10 @@ _logger = logging.getLogger(__name__)
 class HRLeaveWriteModify(models.Model):
     _inherit = "hr.leave"
 
-    def write(self, vals):
-        res = super().write(vals)
-        
-        return res
+    # def create(self, vals_list):
+    #     res = super(HRLeaveWriteModify, self).create(vals_list)
+    #     _logger.warning(f"HR LEAVE CREATE {res} {vals_list}")
+
+    # def write(self, vals):
+    #     res = super(HRLeaveWriteModify, self).write(vals)
+    #     _logger.warning(f"HR LEAVE WRITE {res} {vals}")
