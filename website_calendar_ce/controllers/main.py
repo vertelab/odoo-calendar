@@ -271,8 +271,8 @@ class WebsiteCalendar(http.Controller):
 
         return request.render("website_calendar_ce.booking_validated", {
             'event': event,
-            'datetime_start': date_start,
-            'datetime_stop': date_stop,
+            'datetime_start': str(date_start)[:-3],
+            'datetime_stop': str(date_stop)[:-3],
             'google_url': google_url,
             'message': message,
             'edit': edit,
