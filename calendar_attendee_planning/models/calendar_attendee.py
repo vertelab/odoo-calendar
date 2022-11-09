@@ -21,6 +21,10 @@ class CalendarAttendee(models.Model):
     @api.depends('event_date_start')
     def _check_if_during_contract(self):
         for rec in self:
+            if not (isinstance(rec.contract_id.date_end, (datetime.date)) or isinstance(rec.contract_id.date_start, (datetime.date))):
+                _logger.warning(f"date_end is bool")
+                break
+        
             if rec.event_date_start.date() <= rec.contract_id.date_end and rec.contract_id.date_start <= rec.event_date_end.date():
                 rec.state = 'accepted'
             else:
