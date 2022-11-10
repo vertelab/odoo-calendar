@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 import logging
+import datetime
 from datetime import date, datetime
 
 _logger = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class CalendarAttendee(models.Model):
     @api.depends('event_date_start')
     def _check_if_during_contract(self):
         for rec in self:
-            if not (isinstance(rec.contract_id.date_end, (datetime.date)) or isinstance(rec.contract_id.date_start, (datetime.date))):
+            if not (isinstance(rec.contract_id.date_end, date) or isinstance(rec.contract_id.date_start, date)):
                 _logger.warning(f"date_end is bool")
                 break
         
