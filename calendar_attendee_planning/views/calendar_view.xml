@@ -64,14 +64,14 @@
     <field name="model">calendar.attendee</field>
     <!-- <field name="type">calendar</field> -->
     <field name="arch" type="xml">
-      <kanban records_draggable="1" class="o_kanban_small_column" default_group_by="user_id">
+      <kanban records_draggable="1" class="o_kanban_small_column">
         <field name="user_id"/>
         <field name="email"/>
         <field name="state"/>
         <field name="color" invisible="1"/>
           <templates>
             <t t-name="kanban-box">
-              <div t-attf-class="oe_kanban_global_click oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}">
+              <div t-attf-class="oe_kanban_global_click oe_kanban_card oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}">
                   <div class="row mb4">
                       <div class="col-6 o_kanban_record_headings">
                           <strong>

@@ -16,8 +16,9 @@ class CalendarAttendee(models.Model):
     event_week = fields.Char(compute='_compute_week_number', store=True, readonly=False)
     duration = fields.Float(related="event_id.duration", readonly=False)
     color = fields.Integer(compute='_compute_color_from_state', store=True, readonly=False)
-    attendee_id = fields.Many2one(comodel_name='res.partner', readonly=False)
+    attendee_id = fields.Many2one(comodel_name='res.partner', store=True, readonly=False)
     is_during_contract = fields.Boolean(compute="_check_if_during_contract", store=True)
+    partner_id = fields.Many2one('res.partner', 'Contact', required=True, readonly=False, store=True)
 
     @api.depends('event_date_start')
     def _check_if_during_contract(self):
