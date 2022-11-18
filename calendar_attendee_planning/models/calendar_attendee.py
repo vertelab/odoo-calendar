@@ -17,22 +17,22 @@ class CalendarAttendee(models.Model):
     duration = fields.Float(related="event_id.duration", readonly=False)
     color = fields.Integer(compute='_compute_color_from_state', store=True, readonly=False)
     attendee_id = fields.Many2one(comodel_name='res.partner', store=True, readonly=False)
-    is_during_contract = fields.Boolean(compute="_check_if_during_contract", store=True)
+    # is_during_contract = fields.Boolean(compute="_check_if_during_contract", store=True)
     partner_id = fields.Many2one('res.partner', 'Contact', required=True, readonly=False)
     partner_skill_ids = fields.Many2many(related='partner_id.skill_ids', readonly=False)
     partner_allergy_ids = fields.Many2many(related='partner_id.allergy_ids', readonly=False)
 
-    @api.depends('event_date_start')
-    def _check_if_during_contract(self):
-        for rec in self:
-            if not (isinstance(rec.contract_id.date_end, date) or isinstance(rec.contract_id.date_start, date)):
-                _logger.warning(f"date_end is bool")
-                break
+    # @api.depends('event_date_start')
+    # def _check_if_during_contract(self):
+    #     for rec in self:
+    #         if not (isinstance(rec.contract_id.date_end, date) or isinstance(rec.contract_id.date_start, date)):
+    #             _logger.warning(f"date_end is bool")
+    #             break
         
-            if rec.event_date_start.date() <= rec.contract_id.date_end and rec.contract_id.date_start <= rec.event_date_end.date():
-                rec.state = 'accepted'
-            else:
-                rec.state = 'declined'
+    #         if rec.event_date_start.date() <= rec.contract_id.date_end and rec.contract_id.date_start <= rec.event_date_end.date():
+    #             rec.state = 'accepted'
+    #         else:
+    #             rec.state = 'declined'
                 # _logger.warning(f"{type(rec.event_date_start)} {type(rec.contract_id.date_end)}")
 # if leave['request_date_from'] <= (event.start + datetime.timedelta(hours=event.duration)).date() and event.start.date() <= leave['request_date_to']:
 
@@ -41,7 +41,7 @@ class CalendarAttendee(models.Model):
     # def _change_state_from_hr_leaves(self):
     #     _logger.warning(f"BAPIDI ")
 
-    @api.depends('state', 'is_during_contract')
+    @api.depends('state')
     def _compute_color_from_state(self):
         for rec in self:
             if rec.state == 'declined':

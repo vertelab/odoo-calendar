@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
 import logging
+import datetime
 from datetime import date, datetime
 
 _logger = logging.getLogger(__name__)
@@ -8,6 +9,23 @@ _logger = logging.getLogger(__name__)
 class HRLeaveWriteModify(models.Model):
     _inherit = "hr.leave"
 
+    @api.model
+    def create(self, vals_list):
+        res = super().create(vals_list)
+        _logger.warning(vals_list)
+
+        partner_id = res.employee_id.user_partner_id.id
+        partner_in_attendees = self.env['calendar.attendee'].search([('partner_id', '=', partner_id)]).ids
+        # _logger.warning(partner_in_attendees)
+        for calendar_attendee_id in partner_in_attendees:
+            attendee = self.env['calendar.attendee'].browse(calendar_attendee_id) 
+            # _logger.warning(attendee)
+
+            for rec in attendee:
+                if rec.event_date_start <= res.date_to and res.date_from <= rec.event_date_end:
+                    rec.write({'state': 'declined'})
+                    
+        return res
     # def create(self, vals_list):
     #     res = super(HRLeaveWriteModify, self).create(vals_list)
     #     _logger.warning(f"HR LEAVE CREATE {res} {vals_list}")
