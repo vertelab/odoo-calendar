@@ -58,7 +58,37 @@ class CalendarAttendee(models.Model):
             rec.event_week = datetime.strptime('%s-%s-%s' % (date.today().year, datetime.date(rec.event_date_start).isocalendar()[1], 1), '%G-%V-%u').strftime('%Y-%m-%d')
             # rec.event_week = datetime.date(rec.event_date_start).isocalendar()[1]
 
+    # @api.depends('event_id.start', 'event_id.stop')
+    # def _check_employee_availability_date_leaves(self):
+    #     for rec in self:
+    #         _logger.warning(f"hewwo {rec}")
+
+    # @api.onchange('partner_id')
+    # def _check_employee_availability_partner_id(self):
+    #     for rec in self:
+    #         _logger.warning(f"hewwo {rec}")
+        
     def _read_attendee_ids(self, custom, domain, order):
         employees = self.env['res.users'].search([])
         return employees
         
+    def write(self, vals):
+        res = super(CalendarAttendee, self).write(vals)
+
+        if vals.get('partner_id',) or vals.get('event_date_start',):
+            partner = self.env['res.partner'].browse(self.partner_id.id)
+            employee_id = partner.user_ids[0].employee_id[0].id
+
+            leave_periods = self.env['hr.leave'].search([('employee_id', '=', employee_id)]).ids
+
+            for leave_id in leave_periods:
+                leave = self.env['hr.leave'].browse(leave_id)
+                # try:
+                if leave.date_from <= self.event_date_end and self.event_date_start <= leave.date_to:
+                    self.write({'state': 'declined'})
+                    break
+                else:
+                    self.write({'state': 'accepted'})
+
+        _logger.warning(f' BYPIDI WRITE {self} {vals} {res}')
+        return res

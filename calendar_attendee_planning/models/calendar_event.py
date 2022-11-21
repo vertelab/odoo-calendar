@@ -10,7 +10,7 @@ class CalendarEventModify(models.Model):
 
     def create(self, vals_list):
         res = super().create(vals_list)
-        _logger.warning(f"BAPIDI {self} {vals_list} {res}")
+        #_logger.warning(f"BAPIDI {self} {vals_list} {res}")
         # for vals in vals_list:
             # res = super().create(vals)
             # _logger.warning(f"BAPIDI {self} {vals} {res}")
@@ -24,7 +24,7 @@ class CalendarEventModify(models.Model):
     #consider what to do about returning res in the middle of loop
     def write(self, vals):
         res = super().write(vals)
-        _logger.warning(f"BOPIDI {res} {vals} {res}")
+        #_logger.warning(f"BOPIDI {res} {vals} {res}")
 
         # for cal in self:
         #     res = super().write(cal)
