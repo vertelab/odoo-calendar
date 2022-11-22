@@ -94,8 +94,8 @@
                 </div>
                 <div class="row">
                   <div class="col-12" name="allergiesandskills">
-                    <field name="partner_skill_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
-                    <field name="partner_allergy_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                    <!-- <field name="partner_skill_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                    <field name="partner_allergy_ids" widget="many2many_tags" options="{'color_field': 'color'}"/> -->
                   </div>
                 </div>
               </div>

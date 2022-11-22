@@ -35,7 +35,7 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
-    'depends': ['calendar','web_timeline', 'hr', 'hr_holidays', 'contract_allergic', 'contract_cleaner'],
+    'depends': ['calendar','web_timeline', 'hr', 'hr_holidays'],
     'data': [
         'views/calendar_view.xml',
     ],
