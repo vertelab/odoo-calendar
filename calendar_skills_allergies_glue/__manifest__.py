@@ -9,7 +9,7 @@
     """,
     'author': 'Vertel AB',
     'website': 'http://www.vertel.se',
-    'depends': ['calendar_attendee_planning', 'contract_allergic', 'contract_cleaner', 'contract'],
+    'depends': ['calendar_attendee_planning', 'contract_attendee', 'contract_allergic', 'contract_cleaner', 'contract'],
     'data': [
         'views/calendar_view.xml',
     ],
