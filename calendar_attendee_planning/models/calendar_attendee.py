@@ -3,6 +3,7 @@ from odoo import models, fields, api
 import logging
 import datetime
 from datetime import date, datetime
+import numpy as np
 
 _logger = logging.getLogger(__name__)
 
@@ -73,22 +74,39 @@ class CalendarAttendee(models.Model):
         return employees
         
     def write(self, vals):
-        res = super(CalendarAttendee, self).write(vals)
+        for rec in self:
+            res = super(CalendarAttendee, rec).write(vals)
+            if vals.get('partner_id',) or vals.get('event_date_start',):
+                partner = self.env['res.partner'].browse(self.partner_id.id)
+                #fix error that triggers when partner does not have employee id
+                employee_id = partner.user_ids[0].employee_id[0].id
 
-        if vals.get('partner_id',) or vals.get('event_date_start',):
-            partner = self.env['res.partner'].browse(self.partner_id.id)
-            employee_id = partner.user_ids[0].employee_id[0].id
+                leave_periods = self.env['hr.leave'].search([('employee_id', '=', employee_id)]).ids
 
-            leave_periods = self.env['hr.leave'].search([('employee_id', '=', employee_id)]).ids
+                for leave_id in leave_periods:
+                    leave = self.env['hr.leave'].browse(leave_id)
+                    # try:
+                    if leave.date_from <= self.event_date_end and self.event_date_start <= leave.date_to:
+                        self.write({'state': 'declined'})
+                        break
+                    else:
+                        self.write({'state': 'accepted'})
 
-            for leave_id in leave_periods:
-                leave = self.env['hr.leave'].browse(leave_id)
-                # try:
-                if leave.date_from <= self.event_date_end and self.event_date_start <= leave.date_to:
-                    self.write({'state': 'declined'})
-                    break
-                else:
-                    self.write({'state': 'accepted'})
+                # workday_length = partner.user_ids[0].employee_id[0].resource_calendar_id.hours_per_day
+                # workdays = partner.user_ids[0].employee_id[0].resource_calendar_id.attendance_ids
+                # today_int = datetime.today().weekday()
 
-        _logger.warning(f' BYPIDI WRITE {self} {vals} {res}')
+                # for day in workdays:
+                #     _logger.warning(f"for loop {day.dayofweek} {today_int}")
+                #     if int(day.dayofweek) == int(today_int):
+                #          _logger.warning(f"{self.event_date_start.time()} {datetime.time(hour=day.hour_from)}")
+                #         if self.event_date_start.time() >= datetime.time(hour=day.hour_from) and self.event_date_end.time() <= datetime.time(hour=day.hour_to):
+                #             # _logger.warning('inside the last if')
+                #             rec.write({'state': 'accepted'})
+                #             break
+                #         else:
+                #             rec.write({'state': 'declined'})
+
+
+            _logger.warning(f' BYPIDI WRITE {self} {vals} {res}')
         return res
