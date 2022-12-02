@@ -8,12 +8,12 @@ _logger = logging.getLogger(__name__)
 class CalendarEventModify(models.Model):
     _inherit = "calendar.event"
 
-
+    # @api.model
     # def create(self, vals_list):
-    #     _logger.warning(vals_list)
     #     res = super().create(vals_list)
-        
+    #     _logger.warning(vals_list)
     #     return res
+        
 #     def create(self, vals_list):
 #         res = super().create(vals_list)
 #         #_logger.warning(f"BAPIDI {self} {vals_list} {res}")
@@ -28,9 +28,12 @@ class CalendarEventModify(models.Model):
 #         return res
         
 #     #consider what to do about returning res in the middle of loop
-#     def write(self, vals):
-#         res = super().write(vals)
-#         #_logger.warning(f"BOPIDI {res} {vals} {res}")
+    def write(self, vals):
+        if 'active' in vals.keys() and vals['active'] == False:
+            vals['attendee_ids'] = [(5, 0, 0)]
+            _logger.warning(f"CALENDAR EVENT WRITE {self} {vals}")
+
+        res = super().write(vals)
 
 #         # for cal in self:
 #         #     res = super().write(cal)
@@ -38,7 +41,7 @@ class CalendarEventModify(models.Model):
 #             # if cal.recurrence_id != False and cal.contract_id == False:
 #             #     cal.contract_id = cal.recurrence_id.base_event_id.contract_id.id
         
-#         return res  
+        return res  
 
 # # class CalendarRecurrenceModify(models.Model):
 # #     _inherit = "calendar.recurrence"
