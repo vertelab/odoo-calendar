@@ -8,6 +8,12 @@ _logger = logging.getLogger(__name__)
 class CalendarEventModify(models.Model):
     _inherit = "calendar.event"
 
+
+    # def create(self, vals_list):
+    #     _logger.warning(vals_list)
+    #     res = super().create(vals_list)
+        
+    #     return res
 #     def create(self, vals_list):
 #         res = super().create(vals_list)
 #         #_logger.warning(f"BAPIDI {self} {vals_list} {res}")

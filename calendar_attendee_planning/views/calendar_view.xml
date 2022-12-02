@@ -51,6 +51,8 @@
               <group name="contract_group">
                 <field name="email" readonly="False"/>
                 <field name="state" readonly="False"/>
+                <field name="event_date_start" readonly="False"/>
+                <field name="event_date_end" readonly="False"/>
               </group>
             </group>
           </sheet>
@@ -80,6 +82,11 @@
                 <div class="row" name="event_start">
                     <div class="col-12">
                         <span><field name="event_date_start"/></span>
+                    </div>
+                </div>
+                <div class="row" name="event_stop">
+                    <div class="col-12">
+                        <span><field name="event_date_end"/></span>
                     </div>
                 </div>
                 <div class="row" name="state">
