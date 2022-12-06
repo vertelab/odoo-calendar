@@ -31,7 +31,7 @@ class CalendarEventModify(models.Model):
     def write(self, vals):
         if 'active' in vals.keys() and vals['active'] == False:
             vals['attendee_ids'] = [(5, 0, 0)]
-            _logger.warning(f"CALENDAR EVENT WRITE {self} {vals}")
+            # _logger.warning(f"CALENDAR EVENT WRITE {self} {vals}")
 
         res = super().write(vals)
 

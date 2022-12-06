@@ -3,6 +3,7 @@ from odoo import models, fields, api
 import logging
 import datetime
 from datetime import date, datetime, timedelta
+from odoo.exceptions import UserError
 import pytz
 import numpy as np
 
@@ -82,7 +83,11 @@ class CalendarAttendee(models.Model):
 
             partner = self.env['res.partner'].browse(self.partner_id.id)
             #fix error that triggers when partner does not have employee id
-            employee_id = partner.user_ids[0].employee_id[0].id
+            try:
+                employee_id = partner.user_ids[0].employee_id[0].id
+            except IndexError:
+                # _logger.warning('hello')
+                raise UserError('Attendee must be an employee')
 
             leave_periods = self.env['hr.leave'].search([('employee_id', '=', employee_id)]).ids
 
