@@ -124,38 +124,34 @@ class CalendarAttendee(models.Model):
                 #     write_state = 'declined'
 
                 # workday_length = partner.user_ids[0].employee_id[0].resource_calendar_id.hours_per_day
+                current_tz = pytz.timezone('UTC')
                 workdays = partner.user_ids[0].employee_id[0].resource_calendar_id.attendance_ids
                 today_int = datetime.today().weekday()
-                work_intervals = partner.user_ids[0].employee_id[0].resource_calendar_id[0]._work_intervals(self.event_date_start.astimezone(pytz.timezone('UTC')), 
-                                                                                                            self.event_date_end.astimezone(pytz.timezone('UTC')))
+                work_intervals = partner.user_ids[0].employee_id[0].resource_calendar_id[0]._work_intervals(self.event_date_start.astimezone(current_tz), 
+                                                                                                            self.event_date_end.astimezone(current_tz))
 
-                current_tz = pytz.timezone('UTC')
+                
                 if len(work_intervals._items) != 0:
-                    state_bool = True
+                    acceptable_count = 0
                     for count, interval in enumerate(work_intervals._items[0]):
                         # _logger.warning(count)
                         # _logger.warning(interval)
                         if count == 0:
+                            # _logger.warning(f"Timezone shenanigans incoming {self.event_date_start} {interval} {current_tz.localize(self.event_date_start) >= interval} {current_tz.localize(self.event_date_end) <= interval}")
                             if current_tz.localize(self.event_date_start) >= interval:
+                                acceptable_count += 1
                                 # _logger.warning("A")
                                 continue
-                            else:
-                                state_bool = False
-                                # _logger.warning("B")
-                                # _logger.warning(current_tz.localize(self.event_date_start))
-                                # _logger.warning(interval)
-                                break
 
                         if count == 1:
+                            # _logger.warning(f"Timezone shenanigans incoming {self.event_date_start} {interval} {current_tz.localize(self.event_date_start) >= interval} {current_tz.localize(self.event_date_end) <= interval}")
                             if current_tz.localize(self.event_date_end) <= interval:
+                                acceptable_count += 1
                                 # _logger.warning("C")
                                 continue
-                            else:
-                                # _logger.warning("D")
-                                state_bool = False
-                                break
 
-                    if not state_bool:
+                    # _logger.warning(f"{acceptable_count}")
+                    if acceptable_count != 0:
                         filtered = list(filter(lambda day: int(day.dayofweek) == int(today_int), workdays))
                         # _logger.warning(self.event_date_start.hour)
                         # _logger.warning(filtered[0].hour_to)
@@ -163,13 +159,20 @@ class CalendarAttendee(models.Model):
                         # _logger.warning(filtered[1].hour_from)
                         hour_to_datetime = current_tz.localize(self.event_date_start.replace(hour=int(filtered[0].hour_to)))
                         hour_from_datetime = current_tz.localize(self.event_date_end.replace(hour=int(filtered[0].hour_from)))
-                        if current_tz.localize(self.event_date_start) <= hour_to_datetime:
+                        # _logger.warning(f"Timezone shenanigans IF {hour_to_datetime} {hour_from_datetime}")
+                        if acceptable_count == 2:
+                            self.write({'state': 'accepted'})
+                            write_state = 'accepted'
+                        elif acceptable_count == 1:
                             self.write({'state': 'tentative'})
                             write_state = 'tentative'
-                        else:
-                            self.write({'state': 'declined'})
-                            write_state = 'declined'
-                            # _logger.warning("E")
+                        # else:
+                        #     self.write({'state': 'declined'})
+                        #     write_state = 'declined'
+                        #     # _logger.warning("E")
+                    else:
+                        self.write({'state': 'declined'})
+                        write_state = 'declined'
                 else:
                     # _logger.warning(current_tz.localize(self.event_date_start))
                     # filtered = list(filter(lambda day: int(day.dayofweek) == int(today_int), workdays))

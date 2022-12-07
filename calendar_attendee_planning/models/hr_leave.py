@@ -31,7 +31,7 @@ class HRLeaveWriteModify(models.Model):
         res = super().write(vals_list)
         # _logger.warning(vals_list)
 
-        partner_id = res.employee_id.user_partner_id.id
+        partner_id = self.employee_id.user_partner_id.id
         partner_in_attendees = self.env['calendar.attendee'].search([('partner_id', '=', partner_id)]).ids
         # _logger.warning(partner_in_attendees)
         for calendar_attendee_id in partner_in_attendees:
@@ -39,7 +39,7 @@ class HRLeaveWriteModify(models.Model):
             # _logger.warning(attendee)
 
             for rec in attendee:
-                if rec.event_date_start <= res.date_to and res.date_from <= rec.event_date_end:
+                if rec.event_date_start <= self.date_to and self.date_from <= rec.event_date_end:
                     rec.write({'state': 'declined'})
                     
         return res
