@@ -13,6 +13,15 @@ class CalendarAttendee(models.Model):
     _inherit = "calendar.attendee"
     _rec_name = 'event_id'
 
+    @api.model
+    def _show_all_partners(self,stages,domain,order):
+        partners = self.env['res.partner']
+        manager_children = [partner.user_partner_id for partner in self.env.user.employee_id.child_ids if partner.user_partner_id is not False]
+        for partner in manager_children:
+            partners += partner
+
+        return partners
+
     user_id = fields.Many2one(related='event_id.user_id', store=True, group_expand='_read_attendee_ids', readonly=False)
     event_date_start = fields.Datetime(related='event_id.start', store=True, readonly=False)
     event_date_end = fields.Datetime(related='event_id.stop', readonly=False)
@@ -21,9 +30,10 @@ class CalendarAttendee(models.Model):
     color = fields.Integer(compute='_compute_color_from_state', store=True, readonly=False)
     attendee_id = fields.Many2one(comodel_name='res.partner', store=True, readonly=False)
     # is_during_contract = fields.Boolean(compute="_check_if_during_contract", store=True)
-    partner_id = fields.Many2one('res.partner', 'Contact', required=True, readonly=False)
+    partner_id = fields.Many2one('res.partner', 'Contact', required=True, readonly=False, group_expand='_show_all_partners')
     # partner_skill_ids = fields.Many2many(related='partner_id.skill_ids', readonly=False)
     # partner_allergy_ids = fields.Many2many(related='partner_id.allergy_ids', readonly=False)
+
 
     # @api.depends('event_date_start')
     # def _check_if_during_contract(self):
