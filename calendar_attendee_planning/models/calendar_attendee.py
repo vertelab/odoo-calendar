@@ -107,6 +107,7 @@ class CalendarAttendee(models.Model):
                 if leave.date_from <= self.event_date_end and self.event_date_start <= leave.date_to:
                     self.write({'state': 'declined'})
                     write_state = 'declined'
+                    _logger.warning("Checkpoint Alpha write")
                     break
                 else:
                     self.write({'state': 'accepted'})
@@ -136,11 +137,12 @@ class CalendarAttendee(models.Model):
                 # workday_length = partner.user_ids[0].employee_id[0].resource_calendar_id.hours_per_day
                 current_tz = pytz.timezone('UTC')
                 workdays = partner.user_ids[0].employee_id[0].resource_calendar_id.attendance_ids
-                today_int = datetime.today().weekday()
+
+                event_day = self.event_date_start.weekday()
+
                 work_intervals = partner.user_ids[0].employee_id[0].resource_calendar_id[0]._work_intervals(self.event_date_start.astimezone(current_tz), 
                                                                                                             self.event_date_end.astimezone(current_tz))
-
-                
+                _logger.warning(f"work_intervals: {work_intervals._items}")                                                                                                           
                 if len(work_intervals._items) != 0:
                     acceptable_count = 0
                     for count, interval in enumerate(work_intervals._items[0]):
@@ -162,13 +164,21 @@ class CalendarAttendee(models.Model):
 
                     # _logger.warning(f"{acceptable_count}")
                     if acceptable_count != 0:
-                        filtered = list(filter(lambda day: int(day.dayofweek) == int(today_int), workdays))
+                        filtered = list(filter(lambda day: int(day.dayofweek) == int(event_day), workdays))
+                        # _logger.warning(f"WORKDAYS: {workdays}")
+                        # _logger.warning(f"event_day: {event_day}")
+                        # for day in workdays:
+                        #     _logger.warning(f"DAYOFWEEK: {day.dayofweek}")
+                        # _logger.warning(f"ATTENDEE CREATE FILTERED: {filtered}")
                         # _logger.warning(self.event_date_start.hour)
                         # _logger.warning(filtered[0].hour_to)
                         # _logger.warning(self.event_date_end.hour)
                         # _logger.warning(filtered[1].hour_from)
-                        hour_to_datetime = current_tz.localize(self.event_date_start.replace(hour=int(filtered[0].hour_to)))
-                        hour_from_datetime = current_tz.localize(self.event_date_end.replace(hour=int(filtered[0].hour_from)))
+                        try:
+                            hour_to_datetime = current_tz.localize(self.event_date_start.replace(hour=int(filtered[0].hour_to)))
+                            hour_from_datetime = current_tz.localize(self.event_date_end.replace(hour=int(filtered[0].hour_from)))
+                        except IndexError:
+                            raise UserWarning('hour_to_datetime is pointing at empty list')
                         # _logger.warning(f"Timezone shenanigans IF {hour_to_datetime} {hour_from_datetime}")
                         if acceptable_count == 2:
                             self.write({'state': 'accepted'})
@@ -183,12 +193,14 @@ class CalendarAttendee(models.Model):
                     else:
                         self.write({'state': 'declined'})
                         write_state = 'declined'
+                        _logger.warning("Checkpoint Beta write")
                 else:
                     # _logger.warning(current_tz.localize(self.event_date_start))
-                    # filtered = list(filter(lambda day: int(day.dayofweek) == int(today_int), workdays))
+                    # filtered = list(filter(lambda day: int(day.dayofweek) == int(event_day), workdays))
 
                     self.write({'state': 'declined'})
                     write_state = 'declined'
+                    _logger.warning("Checkpoint Gamma write")
                     # _logger.warning(f"F {write_state}")
 
             attendee_ids = self.event_id.attendee_ids
