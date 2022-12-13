@@ -27,7 +27,7 @@ class HRLeaveWriteModify(models.Model):
                     if rec.event_date_start <= res.date_to and res.date_from <= rec.event_date_end:
                         rec.write({'state': 'declined'})
                 except TypeError as e:
-                    _logger.warning(f"One of the current logged in users calendar.attendees lacks a start or stop date.  {e}")
+                    raise UserWarning(f"One of the current logged in users calendar.attendees lacks a start or stop date.  {e}")
                     
         return res
 
@@ -48,7 +48,7 @@ class HRLeaveWriteModify(models.Model):
                     if rec.event_date_start <= self.date_to and self.date_from <= rec.event_date_end:
                         rec.write({'state': 'declined'})
                 except TypeError as e:
-                    _logger.warning(f"One of the current logged in users calendar.attendees lacks a start or stop date. {e}")
+                    raise UserWarning(f"One of the current logged in users calendar.attendees lacks a start or stop date. {e}")
                     
         return res
 

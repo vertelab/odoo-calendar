@@ -34,7 +34,7 @@ class CalendarEventModify(models.Model):
             # _logger.warning(f"CALENDAR EVENT WRITE {self} {vals}")
 
         res = super().write(vals)
-
+        _logger.warning(f"calendar event vals {vals}")
 #         # for cal in self:
 #         #     res = super().write(cal)
 #         #     _logger.warning(f"BOPIDI {cal} {vals} {res}")
