@@ -14,16 +14,19 @@ class HRLeaveWriteModify(models.Model):
         res = super().create(vals_list)
         # _logger.warning(vals_list)
 
-        partner_id = res.employee_id.user_partner_id.id
-        partner_in_attendees = self.env['calendar.attendee'].search([('partner_id', '=', partner_id)]).ids
-        # _logger.warning(partner_in_attendees)
-        for calendar_attendee_id in partner_in_attendees:
-            attendee = self.env['calendar.attendee'].browse(calendar_attendee_id) 
-            # _logger.warning(attendee)
+        try:
+            partner_id = res.employee_id.user_partner_id.id
+            partner_in_attendees = self.env['calendar.attendee'].search([('partner_id', '=', partner_id)]).ids
+            # _logger.warning(partner_in_attendees)
+            for calendar_attendee_id in partner_in_attendees:
+                attendee = self.env['calendar.attendee'].browse(calendar_attendee_id) 
+                # _logger.warning(attendee)
 
-            for rec in attendee:
-                if rec.event_date_start <= res.date_to and res.date_from <= rec.event_date_end:
-                    rec.write({'state': 'declined'})
+                for rec in attendee:
+                    if rec.event_date_start <= res.date_to and res.date_from <= rec.event_date_end:
+                        rec.write({'state': 'declined'})
+        except AttributeError as e:
+            _logger.warning(f"hr_leave tried looking for events, none existed {e}")
                     
         return res
 
@@ -31,16 +34,19 @@ class HRLeaveWriteModify(models.Model):
         res = super().write(vals_list)
         # _logger.warning(vals_list)
 
-        partner_id = self.employee_id.user_partner_id.id
-        partner_in_attendees = self.env['calendar.attendee'].search([('partner_id', '=', partner_id)]).ids
-        # _logger.warning(partner_in_attendees)
-        for calendar_attendee_id in partner_in_attendees:
-            attendee = self.env['calendar.attendee'].browse(calendar_attendee_id) 
-            # _logger.warning(attendee)
+        try:
+            partner_id = self.employee_id.user_partner_id.id
+            partner_in_attendees = self.env['calendar.attendee'].search([('partner_id', '=', partner_id)]).ids
+            # _logger.warning(partner_in_attendees)
+            for calendar_attendee_id in partner_in_attendees:
+                attendee = self.env['calendar.attendee'].browse(calendar_attendee_id) 
+                # _logger.warning(attendee)
 
-            for rec in attendee:
-                if rec.event_date_start <= self.date_to and self.date_from <= rec.event_date_end:
-                    rec.write({'state': 'declined'})
+                for rec in attendee:
+                    if rec.event_date_start <= self.date_to and self.date_from <= rec.event_date_end:
+                        rec.write({'state': 'declined'})
+        except AttributeError as e:
+            _logger.warning(f"hr_leave tried looking for events, none existed {e}")
                     
         return res
 
