@@ -51,6 +51,8 @@
               <group name="contract_group">
                 <field name="email" readonly="False"/>
                 <field name="state" readonly="False"/>
+                <field name="event_date_start" readonly="False"/>
+                <field name="event_date_end" readonly="False"/>
               </group>
             </group>
           </sheet>
@@ -64,38 +66,47 @@
     <field name="model">calendar.attendee</field>
     <!-- <field name="type">calendar</field> -->
     <field name="arch" type="xml">
-      <kanban records_draggable="1" class="o_kanban_small_column" default_group_by="user_id">
+      <kanban records_draggable="1" default_group_by="partner_id">
         <field name="user_id"/>
         <field name="email"/>
         <field name="state"/>
         <field name="color" invisible="1"/>
           <templates>
             <t t-name="kanban-box">
-              <div t-attf-class="oe_kanban_global_click oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}">
-                  <div class="row mb4">
-                      <div class="col-6 o_kanban_record_headings">
-                          <strong>
-                              <span>
-                                  <field name="partner_id"/>
-                              </span>
-                          </strong>
-                      </div>
-                      <!-- <div class="col-6 text-right">
-                        <span>
-                          <field name="email"/>
-                        </span>
-                      </div> -->
+              <div t-attf-class="oe_kanban_global_click oe_kanban_card oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}">
+                <div class="row mb4" name="title_wrapper">
+                    <div class="col-12 o_kanban_record_headings" name="title">
+                    <!-- an xpath from contract_attendee occurs to this div, probably a bad idea? -->
+                    </div>
+                </div>
+                <div class="row" name="event_start">
+                    <div class="col-12">
+                        <field name="event_date_start"/>
+                        to
+                        <field name="event_date_end"/>
+                    </div>
+                </div>
+                <!-- <div class="row" name="event_stop">
+                    <div class="col-12">
+                       <field name="event_date_end"/>
+                    </div>
+                </div> -->
+                <!-- <div class="row" name="state">
+                    <div class="col-12">
+                        <span><field name="state"/></span>
+                    </div>
+                </div> -->
+                <!-- <div class="row" name="attendee">
+                  <div class="col-12">
+                    <span><field name="partner_id"/></span>
                   </div>
-                  <div class="row">
-                      <div class="col-6">
-                          <span><field name="email"/></span>
-                      </div>
+                </div> -->
+                <div class="row">
+                  <div class="col-12" name="allergiesandskills">
+                    <!-- <field name="partner_skill_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                    <field name="partner_allergy_ids" widget="many2many_tags" options="{'color_field': 'color'}"/> -->
                   </div>
-                  <div class="row">
-                      <div class="col-6">
-                          <span><field name="state"/></span>
-                      </div>
-                  </div>
+                </div>
               </div>
             </t>
         </templates>
