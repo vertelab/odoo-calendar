@@ -7,6 +7,9 @@ from odoo import fields, models
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
+    is_booking = fields.Boolean(string="Can be Booked")
+    allow_booking_range = fields.Boolean(string="Allow Booking Range")
+
     def _get_bookings(self):
         for rec in self:
             event_ids = self.env['calendar.event'].search([('product_id.id', '=', rec.product_variant_id.id)])

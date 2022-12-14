@@ -62,6 +62,7 @@ odoo.define('website_booking_checkout.booking_actions', function (require) {
         _onPreviousBookingMonth: async function () {
             var product_id = $("input[name='product_id']").val()
             var booking_type_id = $("input[name='booking_type_id']").val()
+
             if (this.product_month > 0) {
                 this.product_month -= 1
                 await this._rpc({
@@ -80,26 +81,38 @@ odoo.define('website_booking_checkout.booking_actions', function (require) {
         },
 
         _HighlightMultipleBookingSlots: function (event) {
-            if (this.x_click > 1) {
-                this.starting_slot;
-                this.ending_slot;
-                this.x_click = 0
-            }
+            var allow_booking_range = $("input[name='allow_booking_range']").val()
 
-            if (this.x_click == 0) {
+            if (allow_booking_range) {
+                if (this.x_click > 1) {
+                    this.starting_slot;
+                    this.ending_slot;
+                    this.x_click = 0
+                }
+
+                if (this.x_click == 0) {
+                    this.starting_slot = $(event.target).data('bookingDateTime')
+                } else {
+                    this.ending_slot = $(event.target).data('bookingDateTime')
+                }
+
+                this.x_click++
+
+                if (this.starting_slot && this.ending_slot){
+                    $("#selected_slots").html('You have selected slots between: <strong>' + this.starting_slot + '</strong> --- <strong>' + this.ending_slot + '</strong>')
+                }
+                else if(this.starting_slot && typeof(this.ending_slot) === "undefined") {
+                    $("#selected_slots").html('You have selected: <strong>' + this.starting_slot + '</strong>')
+                }
+            }
+            else {
                 this.starting_slot = $(event.target).data('bookingDateTime')
-            } else {
-                this.ending_slot = $(event.target).data('bookingDateTime')
+                this.ending_slot = null;
+                if (this.starting_slot) {
+                    $("#selected_slots").html('You have selected: <strong>' + this.starting_slot + '</strong>')
+                }
             }
 
-            this.x_click++
-
-            if (this.starting_slot && this.ending_slot){
-                $("#selected_slots").html('You have selected slots between: <strong>' + this.starting_slot + '</strong> --- <strong>' + this.ending_slot + '</strong>')
-            }
-            else if(this.starting_slot && typeof(this.ending_slot) === "undefined") {
-                $("#selected_slots").html('You have selected: <strong>' + this.starting_slot + '</strong>')
-            }
         },
 
         _BookProduct: function (event) {
@@ -111,7 +124,10 @@ odoo.define('website_booking_checkout.booking_actions', function (require) {
                 'product_id': product_id,
                 'booking_type_id': booking_type_id,
                 'start_date': this.starting_slot,
-                'end_date': this.ending_slot,
+            }
+
+            if (this.ending_slot != 'undefined' && this.ending_slot != '' && this.ending_slot != null) {
+                params['end_date'] = this.ending_slot
             }
 
             if (this.starting_slot) {

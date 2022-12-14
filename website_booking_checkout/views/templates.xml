@@ -119,6 +119,7 @@
         <div class="row" id="product_booking_calendar">
             <input t-if="product_id" type="hidden" name="product_id" t-att-value="product.id"/>
             <input type="hidden" name="booking_type_id" t-att-value="booking_type.id"/>
+            <input type="hidden" name="allow_booking_range" t-att-value="product.allow_booking_range"/>
             <div t-foreach="slots" t-as="month" class="col-lg-6">
                 <h3 t-esc="month['month']"/>
                 <table class="table">
@@ -160,12 +161,10 @@
     </template>
 
     <template id="cart" inherit_id="website_sale.cart" name="Shopping Cart">
-        <xpath expr="//div[@id='wrap']/div[hasclass('oe_website_sale')]//div[hasclass('oe_cart')]/div[1]/div[1]/t[@t-call='website_sale.cart_lines']" position="after">
-            <p>
-                <span>You have selected a booking period of </span>
-                <strong><span t-esc="start_date"/></strong> -
-                <strong><span t-esc="end_date"/></strong>
-            </p>
+        <xpath expr="//div[@id='wrap']/div[hasclass('oe_website_sale')]//div[@id='o_cart_summary']" position="after">
+            <t t-if="error">
+                <span style="color: #d9534f; font-size: 20px">You need to select a booking time for your order</span>
+            </t>
         </xpath>
     </template>
 
@@ -174,12 +173,9 @@
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure container mb128 o_website_calendar_booking">
                     <ul class="wizard mt32 float-right">
-                        <li class="text-primary">Booking<span class="chevron"></span>
-                        </li>
-                        <li class="text-muted">Time<span class="chevron"></span>
-                        </li>
-                        <li class="text-muted">Confirmation<span class="chevron"></span>
-                        </li>
+                        <li class="text-primary">Booking<span class="chevron"/></li>
+                        <li class="text-muted">Time<span class="chevron"/></li>
+                        <li class="text-muted">Confirmation<span class="chevron"/></li>
                     </ul>
                     <h1 t-if="header" class="o_page_header mt32">
                         <t t-esc="header"/>
@@ -196,7 +192,7 @@
                             You can schedule another booking from here.
                         </p>
                     </div>
-                    <form class="o_website_appoinment_form w-md-50" t-attf-action="/shop/#{ slug(product) }/#{ slug(booking_type) }" type="post">
+                    <form class="o_website_appointment_form w-md-50" t-attf-action="/shop/#{ slug(product) }/#{ slug(booking_type) }" type="post">
                         <div id="booking" class="form-group row">
                             <label for="calendarType" class="col-md-3 col-form-label">Booking Type</label>
                             <div class="col-md-9">
@@ -235,6 +231,20 @@
              <a t-if="has_products" role="button" class="btn btn-primary btn-lg mt16 d-block d-sm-inline-block" t-attf-href="/shop/#{ slug(product_on_order) }/booking-type"><i class="fa fa-shopping-cart"/> Proceed to Booking</a>
              <p t-if="has_products">You have added an item to cart. Delete the item in the cart if you want to change your item</p>
              <a t-else="" role="button" id="add_to_cart" class="btn btn-primary btn-lg mt16 js_check_product a-submit d-block d-sm-inline-block" href="#"><i class="fa fa-shopping-cart"/> Add to Cart</a>
+         </xpath>
+    </template>
+
+     <template id="cart_lines" inherit_id="website_sale.cart_lines">
+         <xpath expr="//table[@id='cart_products']//t[@t-foreach='website_sale_order.website_order_line']/tr[1]/td[hasclass('td-product_name')]/div[1]" position="replace">
+             <div>
+                 <t t-call="website_sale.cart_line_product_link">
+                     <strong t-field="line.name_short" />
+                 </t>
+             </div>
+             <t t-if="line.sale_order_booking_id">
+
+                 <i t-field="line.sale_order_booking_id.start_date" style="font-size:13px;"/> - <i t-field="line.sale_order_booking_id.end_date" style="font-size:13px;"/>
+             </t>
          </xpath>
     </template>
 

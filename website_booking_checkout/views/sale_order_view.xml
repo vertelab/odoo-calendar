@@ -7,15 +7,24 @@
             <field name="arch" type="xml">
                 <xpath expr="//page[last()]" position="after">
                     <page string="Booking Info">
-                        <group>
-                            <group>
+<!--                        <group>-->
+<!--                            <group>-->
+<!--                                <field name="booking_type_id"/>-->
+<!--                            </group>-->
+<!--                            <group>-->
+<!--                                <field name="start_date"/>-->
+<!--                                <field name="end_date"/>-->
+<!--                            </group>-->
+<!--                        </group>-->
+                        <field name="sale_order_booking_id">
+                            <tree editable="bottom">
                                 <field name="booking_type_id"/>
-                            </group>
-                            <group>
                                 <field name="start_date"/>
                                 <field name="end_date"/>
-                            </group>
-                        </group>
+                                <field name="sale_order_id"/>
+                                <field name="sale_order_line_id"/>
+                            </tree>
+                        </field>
                     </page>
                 </xpath>
             </field>

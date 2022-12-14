@@ -16,7 +16,7 @@ _logger = logging.getLogger(__name__)
 class BookingWebsiteSale(WebsiteSale):
 
     @http.route([
-        '/shop/<model("product.product"):product>/booking-type/'], type='http', auth="public", website=True)
+        '/shop/<model("product.product"):product>/booking-type'], type='http', auth="public", website=True)
     def calendar_booking_choice(self, product, booking_type=None, message=None, description=None, header=None,
                                 **kwargs):
         # sale_order_id = request.session['sale_order_id']
@@ -70,7 +70,7 @@ class BookingWebsiteSale(WebsiteSale):
 
     @http.route(['/shop/booking/update'], type='http', auth="public", website=True)
     def booking_update(self, product_id=None, start_date=None, end_date=None, booking_type_id=None, **kw):
-        timezone = request.session['timezone']
+        timezone = request.session.context.get('tz')  # request.session.get('timezone')
         tz_session = pytz.timezone(timezone)
         sale_order_id = request.session['sale_order_id']
         start_date = tz_session.localize(fields.Datetime.from_string(start_date)).astimezone(pytz.utc)
@@ -81,11 +81,20 @@ class BookingWebsiteSale(WebsiteSale):
             end_date = start_date + timedelta(hours=booking_type_id.booking_duration)
         if sale_order_id and booking_type_id and start_date:
             sale_id = request.env['sale.order'].browse(int(sale_order_id))
-            sale_id.write({
-                'booking_type_id': booking_type_id,
+            sale_order_line = sale_id.order_line.filtered(lambda x: x.product_id.id == int(product_id))
+            # sale_id.write({
+            #     'booking_type_id': booking_type_id,
+            #     'start_date': start_date.strftime(dtf),
+            #     'end_date': end_date.strftime(dtf),
+            # })
+            booking_vals = {
                 'start_date': start_date.strftime(dtf),
                 'end_date': end_date.strftime(dtf),
-            })
+                'sale_order_id': sale_id.id,
+                'sale_order_line_id': sale_order_line.id,
+                'booking_type_id': booking_type_id.id
+            }
+            sale_id._create_booking(booking_vals)
             return request.redirect("/shop/cart")
         return request.redirect("/shop")
 
@@ -118,7 +127,10 @@ class BookingWebsiteSale(WebsiteSale):
 
         # return request.redirect("/shop/cart")
         product_id = request.env["product.product"].browse(int(product_id))
-        return request.redirect(f"/shop/{product_id.id}/booking-type")
+        if product_id.is_booking:
+            return request.redirect(f"/shop/{product_id.id}/booking-type")
+        else:
+            return request.redirect("/shop/cart")
 
     @http.route(['/shop/confirmation'], type='http', auth="public", website=True, sitemap=False)
     def payment_confirmation(self, **post):
@@ -141,22 +153,24 @@ class BookingWebsiteSale(WebsiteSale):
         data = {
             'state': 'open',
             'name': _('%s with %s') % (sale_order.name, sale_order.partner_id.name),
-            'start_date': sale_order.start_date.strftime(dtf),
-            'start': sale_order.start_date.strftime(dtf),
-            'stop': sale_order.end_date.strftime(dtf),
-            'allday': False,
-            'duration': sale_order.booking_type_id.booking_duration,
-            'description': '',  # record_description,
-            'alarm_ids': sale_order.booking_type_id.reminder_ids.ids,
-            # 'location': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}",
-            'partner_ids': [(4, sale_order.partner_id.id, False)],
-            'booking_type_id': sale_order.booking_type_id.id,
             'user_id': request.env.user.id,
-            'product_id': sale_order.order_line[0].product_id.id,
+            'allday': False,
+            'partner_ids': [(4, sale_order.partner_id.id, False)],
         }
-        event = request.env['calendar.event'].sudo().with_context(
-            allowed_company_ids=request.env.user.company_ids.ids).create(data)
-        return event
+        for booking_line in sale_order.sale_order_booking_id.filtered(lambda order: order.sale_order_line_id):
+            data.update({
+                'start_date': booking_line.start_date.strftime(dtf),
+                'start': booking_line.start_date.strftime(dtf),
+                'stop': booking_line.end_date.strftime(dtf),
+                'duration': booking_line.booking_type_id.booking_duration,
+                'alarm_ids': booking_line.booking_type_id.reminder_ids.ids,
+                # 'location': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}",
+                'booking_type_id': booking_line.booking_type_id.id,
+                'product_id': booking_line.sale_order_line_id.product_id.id,
+            })
+            request.env['calendar.event'].sudo().with_context(
+                allowed_company_ids=request.env.user.company_ids.ids).create(data)
+        return True
 
     @http.route(['/shop/cart'], type='http', auth="public", website=True, sitemap=False)
     def cart(self, access_token=None, revive='', **post):
@@ -189,12 +203,9 @@ class BookingWebsiteSale(WebsiteSale):
 
         values.update({
             'website_sale_order': order,
-            'start_date': fields.Datetime.context_timestamp(order, order.start_date).strftime(
-                dtf) if order.start_date else False,
-            'end_date': fields.Datetime.context_timestamp(order, order.end_date).strftime(
-                dtf) if order.end_date else False,
             'date': fields.Date.today(),
             'suggested_products': [],
+            'error': post.get('error', False)
         })
         if order:
             order.order_line.filtered(lambda l: not l.product_id.active).unlink()
@@ -206,9 +217,6 @@ class BookingWebsiteSale(WebsiteSale):
         if post.get('type') == 'popover':
             # force no-cache so IE11 doesn't cache this XHR
             return request.render("website_sale.cart_popover", values, headers={'Cache-Control': 'no-cache'})
-
-        if order.order_line and not order.start_date:
-            return request.redirect(f"/shop/{order.order_line[0].product_id.id}/booking-type")
 
         return request.render("website_sale.cart", values)
 
@@ -246,9 +254,9 @@ class BookingWebsiteSale(WebsiteSale):
             request.session['sale_order_id'] = None
             order = request.website.sale_get_order()
         product_values = self._prepare_product_values(product, category, search, **kwargs)
-        if order.order_line:
+        if order.order_line and product.product_variant_id in order.order_line.mapped('product_id'):
             product_values.update({
-                'product_on_order': order.order_line[0].product_id,
+                'product_on_order': product.product_variant_id,
                 'has_products': True
             })
 
@@ -271,6 +279,10 @@ class BookingWebsiteSale(WebsiteSale):
 
         values = self.checkout_values(**post)
 
+        if order.order_line and (no_related_booking := self._validate_cart_items(order)):
+            return request.redirect(
+                "/shop/cart?error=1")
+
         if post.get('express'):
             return request.redirect('/shop/confirm_order')
 
@@ -279,7 +291,9 @@ class BookingWebsiteSale(WebsiteSale):
         # Avoid useless rendering if called in ajax
         if post.get('xhr'):
             return 'ok'
-
-        if order.order_line and not order.start_date:
-            return request.redirect(f"/shop/{order.order_line[0].product_id}/booking-type")
         return request.render("website_sale.checkout", values)
+
+    def _validate_cart_items(self, order):
+        bookable_order_line = order.order_line.filtered(lambda line: line.product_id.is_booking)
+        no_rel_booking_order_line = bookable_order_line.filtered(lambda sale_line: not sale_line.sale_order_booking_id)
+        return no_rel_booking_order_line
