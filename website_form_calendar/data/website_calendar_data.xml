@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record id="calendar.model_calendar_event" model="ir.model">
+            <field name="website_form_key">create_calendar</field>
+            <field name="website_form_default_field_id" ref="calendar.field_calendar_event__description" />
+            <field name="website_form_access">True</field>
+            <field name="website_form_label">Create a Booking</field>
+        </record>
+
+        <function model="ir.model.fields" name="formbuilder_whitelist">
+            <value>calendar.event</value>
+            <value eval="[
+                'name',
+                'email',
+                'description',
+                'booking_type_id',
+            ]"/>
+        </function>
+
+</odoo>

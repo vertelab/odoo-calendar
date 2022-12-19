@@ -1,0 +1,194 @@
+<odoo>
+    <record id="ir_act_window_attendees_view" model="ir.actions.act_window">
+        <field name="name">Attendee View</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">calendar.attendee</field>
+        <field name="view_mode">tree,form,kanban,calendar,timeline</field>
+    </record>
+
+    <menuitem
+        id="menu_attendees_planning"
+        parent="calendar.mail_menu_calendar"
+        name="Attendees"
+        sequence="16"
+        action="ir_act_window_attendees_view"
+    />
+
+  <record model="ir.ui.view" id="view_calender_attendee_tree">
+    <field name="name">calender_attendee_tree</field>
+    <field name="model">calendar.attendee</field>
+    <field name="type">tree</field>
+    <field name="arch" type="xml">
+      <tree string="Attendees" 
+      decoration-success="state == 'accepted'" 
+      decoration-danger="state == 'declined'" 
+      decoration-warning="state == 'tentative'">
+        <field name="common_name"/>
+        <field name="event_id" />
+        <field name="partner_id" />
+        <field name="user_id" />
+        <field name="email" />
+        <field name="state" />
+      </tree>
+    </field>
+  </record>
+
+
+  <record model="ir.ui.view" id="view_calender_attendee_form">
+    <field name="name">calender_attendee_form</field>
+    <field name="model">calendar.attendee</field>
+    <field name="type">form</field>
+    <field name="arch" type="xml">
+      <form string="Attendees">
+          <sheet string="Attendees">
+            <group>
+              <group>
+                <field name="common_name" readonly="False"/>
+                <field name="event_id" readonly="False"/>
+                <field name="partner_id" readonly="False"/>
+                <field name="user_id" readonly="False"/>
+              </group>
+              <group name="contract_group">
+                <field name="email" readonly="False"/>
+                <field name="state" readonly="False"/>
+                <field name="event_date_start" readonly="False"/>
+                <field name="event_date_end" readonly="False"/>
+              </group>
+            </group>
+          </sheet>
+      </form>
+    </field>
+  </record>
+
+
+  <record model="ir.ui.view" id="view_calender_attendee_kanban">
+    <field name="name">calender_attendee_kanban</field>
+    <field name="model">calendar.attendee</field>
+    <!-- <field name="type">calendar</field> -->
+    <field name="arch" type="xml">
+      <kanban records_draggable="1" default_group_by="partner_id">
+        <field name="user_id"/>
+        <field name="email"/>
+        <field name="state"/>
+        <field name="color" invisible="1"/>
+          <templates>
+            <t t-name="kanban-box">
+              <div t-attf-class="oe_kanban_global_click oe_kanban_card oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}">
+                <div class="row mb4" name="title_wrapper">
+                    <div class="col-12 o_kanban_record_headings" name="title">
+                    <!-- an xpath from contract_attendee occurs to this div, probably a bad idea? -->
+                    </div>
+                </div>
+                <div class="row" name="event_start">
+                    <div class="col-12">
+                        <field name="event_date_start"/>
+                        to
+                        <field name="event_date_end"/>
+                    </div>
+                </div>
+                <!-- <div class="row" name="event_stop">
+                    <div class="col-12">
+                       <field name="event_date_end"/>
+                    </div>
+                </div> -->
+                <!-- <div class="row" name="state">
+                    <div class="col-12">
+                        <span><field name="state"/></span>
+                    </div>
+                </div> -->
+                <!-- <div class="row" name="attendee">
+                  <div class="col-12">
+                    <span><field name="partner_id"/></span>
+                  </div>
+                </div> -->
+                <div class="row">
+                  <div class="col-12" name="allergiesandskills">
+                    <!-- <field name="partner_skill_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                    <field name="partner_allergy_ids" widget="many2many_tags" options="{'color_field': 'color'}"/> -->
+                  </div>
+                </div>
+              </div>
+            </t>
+        </templates>
+      </kanban>
+    </field>
+  </record>
+
+    <record id="calendar_time_timeline" model="ir.ui.view">
+        <field name="model">calendar.attendee</field>
+        <field name="type">timeline</field>
+        <field name="arch" type="xml">
+            <timeline
+                date_start="event_date_start"
+                date_stop="event_date_end"
+                default_group_by="partner_id"
+                event_open_popup="true"
+            >
+                <field name="user_id" />
+                <field name="duration" />
+<!--
+                colors="white: user_id == false; #2ecb71: kanban_state == 'done'; #ec7063: kanban_state == 'blocked'"
+-->
+                <templates>
+                    <t t-name="timeline-item">
+                        <div class="o_project_timeline_item">
+                            <img
+                                t-if="record.user_id"
+                                t-attf-src="/web/image/res.users/#{record.user_id[0]}/image_128/16x16"
+                                t-att-title="record.user_id[1]"
+                                width="16"
+                                height="16"
+                                class="mr8"
+                                alt="User"
+                            />
+                            <span name="display_name">
+                                <t t-esc="record.display_name" />
+                            </span>
+                            <small
+                                name="duration"
+                                class="text-info ml4"
+                                t-if="record.duration"
+                            >
+                                <t
+                                    t-esc="field_utils.format.float_time(record.duration)"
+                                />
+                            </small>
+                        </div>
+                    </t>
+                </templates>
+            </timeline>
+        </field>
+    </record>
+
+  <record id="view_calender_attendee_calendar" model="ir.ui.view">
+      <field name="name">calender.attendee.calendar</field>
+      <field name="model">calendar.attendee</field>
+      <field name="arch" type="xml">
+          <calendar date_stop="event_date_end" date_start="event_date_start" string="Events" color="color">
+              <field name="event_id"/>
+              <field name="state" filters="1"/>
+              <field name="partner_id" filters="1"/>
+              <field name="user_id" filters="1"/>
+          </calendar>
+      </field>
+  </record>
+
+  <record id="calendar_attendee_search_view" model="ir.ui.view">
+    <field name="name">calendar.attendee.search.view</field>
+    <field name="model">calendar.attendee</field>
+    <field name="arch" type="xml">
+      <search string="filters_and_groups">           
+        <filter name="today" string="Today" domain="[('event_date_start', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0)),('event_date_start', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59))]" />
+        <filter name="tomorrow" string="Tomorrow" domain="[('event_date_start', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)),('event_date_start', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59) + datetime.timedelta(days=1))]" />
+        <filter name="this_week" string="This Week" domain="[('event_week', '&lt;=', (context_today()+relativedelta(weeks=0, weekday=-1)).strftime('%Y-%m-%d')), ('event_week', '&gt;=', (context_today()-relativedelta(weeks=1, weekday=0)).strftime('%Y-%m-%d'))]"/>
+        <group string="Group by">
+            <filter name="responsible" string="Responsible" context="{'group_by':'user_id'}"/>
+            <filter name="attendee" string="Attendee" context="{'group_by':'partner_id'}"/>
+            <filter name="day" string="Day" context="{'group_by':'event_date_start'}"/>
+        </group> 
+      </search> 
+    </field>
+  </record>
+
+        
+</odoo>

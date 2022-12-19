@@ -19,6 +19,7 @@ eves = {
     'Juldagen': 'Julafton',
 }
 
+
 class ImportHolidays(models.Model):
     _inherit = 'calendar.event'
 
@@ -60,8 +61,8 @@ class ImportHolidays(models.Model):
                                                 'name': eve_xmlid.split('.')[-1], 
                                                 'model': 'calendar.event',
                                                 'res_id': f"{eve_id.id}"
-                                                })
-                    
+                                                })  
+                                                
             for resource_calendar in self.env['resource.calendar'].search_read([], ['id', 'hours_per_day']):  
                 hours_week = (resource_calendar['hours_per_day'] * 5)
                 uid = f"{hours_week}_{event.name.replace(' ', '_')}_{event.begin.date().strftime('%Y-%m-%d')}".replace('.','_')

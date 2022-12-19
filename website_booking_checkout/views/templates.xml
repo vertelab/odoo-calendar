@@ -1,0 +1,251 @@
+<odoo>
+    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Online Booking">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/website_booking_checkout/static/src/js/website_calendar_ce.js"/>
+        </xpath>
+    </template>
+
+    <template id="product_booking" name="Product Booking" track="1">
+        <t t-call="website.layout">
+            <t t-set="additional_title" t-value="product.name" />
+            <div itemscope="itemscope" itemtype="http://schema.org/Product" id="wrap" class="js_sale">
+                <section class="container py-2 oe_website_sale">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a t-att-href="keep(category=0)">Products</a>
+                                </li>
+                                <li t-if="category" class="breadcrumb-item">
+                                    <a t-att-href="keep('/shop/category/%s' % slug(category), category=0)" t-field="category.name" />
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    <span t-field="product.name" />
+                                </li>
+                            </ol>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="form-inline justify-content-end">
+                                <t t-call="website_sale.search">
+                                    <t t-set="search" t-value="False"/>
+                                </t>
+                                <t t-call="website_sale.pricelist_list">
+                                    <t t-set="_classes" t-valuef="ml-2"/>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="wrap" class="o_website_product_booking">
+                        <div class="oe_structure container mb128">
+                            <ul class="wizard mt32 float-right">
+                                <li>
+                                    <a t-attf-href="/shop/#{ slug(product) }/booking-type" class="text-success">Booking</a>
+                                    <span class="chevron"></span>
+                                </li>
+                                <li class="text-primary">Time<span class="chevron"></span>
+                                </li>
+                                <li class="text-muted">Confirmation<span class="chevron"></span>
+                                </li>
+                            </ul>
+                            <h1 class="o_page_header mt32">Booking Time</h1>
+                            <div t-if="failed=='product'" class="alert alert-danger mt16" role="alert">
+                                <p>
+                                    <strong>Booking failed!</strong>
+                                    The selected timeslot is not available anymore.
+                                    Someone has booked the same time slot a few
+                                    seconds before you.
+                                </p>
+                                <p>
+                                    Please, select another date.
+                                </p>
+                            </div>
+                            <div t-if="failed=='datetime'" class="alert alert-danger mt16" role="alert">
+                                <p>
+                                    <strong>Booking failed!</strong>
+                                    You have likely selected an ending slot which is before the starting slot.
+                                </p>
+                                <p>
+                                    Please, select another date.
+                                </p>
+                            </div>
+                            <div t-if="failed=='partner'" class="alert alert-danger mt16" role="alert">
+                                <p>
+                                    <strong>Booking failed!</strong>
+                                    The selected timeslot is not available.
+                                    It appears you already have another meeting with us at that date.
+                                </p>
+                                <p>
+                                    Please, select another date.
+                                </p>
+                            </div>
+                            <div class="mb8">
+                                <div class="row">
+                                    <div class="col-lg-6" style="text-align: start;margin: auto;">
+                                        <a href="#" id="product_previous_month">
+                                            <i class="fa fa-fw o_button_icon fa-arrow-left"/>
+                                        </a>
+                                    </div>
+                                    <div class="col-lg-6" style="text-align: end;margin: auto;">
+                                        <a href="#" id="product_next_month">
+                                            <i class="fa fa-fw o_button_icon fa-arrow-right"/>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <t t-call="website_booking_checkout.product_booking_calendar"/>
+                            <p>
+                                Time displayed in <strong t-esc="timezone"/> timezone
+                            </p>
+
+                            <div class="form-group row">
+                                <div class="col-md-8" id="selected_slots" style="margin: auto;"/>
+
+                                <div class="col-md-4" style="text-align: end;">
+                                    <a class="dropdown-item" id="proceed_with_booking">
+                                        <button class="btn btn-primary">Proceed <span class="fa fa-arrow-right"/>
+                                    </button>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <template id="product_booking_calendar" name="Website Booking: Booking Calendars">
+        <div class="row" id="product_booking_calendar">
+            <input t-if="product_id" type="hidden" name="product_id" t-att-value="product.id"/>
+            <input type="hidden" name="booking_type_id" t-att-value="booking_type.id"/>
+            <input type="hidden" name="allow_booking_range" t-att-value="product.allow_booking_range"/>
+            <div t-foreach="slots" t-as="month" class="col-lg-6">
+                <h3 t-esc="month['month']"/>
+                <table class="table">
+                    <tr class="active">
+                        <th class="text-center">Mon</th>
+                        <th class="text-center">Tue</th>
+                        <th class="text-center">Wed</th>
+                        <th class="text-center">Thu</th>
+                        <th class="text-center">Fri</th>
+                        <th class="text-center">Sat</th>
+                        <th class="text-center">Sun</th>
+                    </tr>
+                    <tr t-foreach="month['weeks']" t-as="weeks" class="o_calendar_days">
+                        <t t-foreach="weeks" t-as="day">
+                            <td t-attf-class="text-center#{day['slots'] and ' o_day dropdown' or ''} #{day['weekend_cls']} #{day['today_cls']}" t-attf-title="#{day['today_cls'] and 'Today' or ''}">
+                                <t t-if="day['slots']">
+                                    <div class="dropdown-toggle o_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <strong>
+                                            <span t-esc="day['day'].day"/>
+                                        </strong>
+                                    </div>
+                                    <div class="dropdown-menu" role="menu">
+                                        <t t-foreach="day['slots']" t-as="slot">
+                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-att-data-booking-id="booking_type.id" t-att-data-booking-date-time="slot['datetime']" t-att-data-booking-hours="slot['hours']" t-att-data-product-id="product_id.id" t-att-data-description="description" t-att-data-title="title" t-esc="slot['hours']"/>
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-if="not day['slots']">
+                                    <div t-esc="day['day'].day" t-att-class="day['mute_cls']"/>
+                                </t>
+                            </td>
+                        </t>
+                    </tr>
+                    <!--to fix bootstrap md height add empty tr so now each month has 6 weeks row -->
+                    <tr t-if="len(month['weeks']) == 5" class="o_calendar_days"/>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <template id="cart" inherit_id="website_sale.cart" name="Shopping Cart">
+        <xpath expr="//div[@id='wrap']/div[hasclass('oe_website_sale')]//div[@id='o_cart_summary']" position="after">
+            <t t-if="error">
+                <span style="color: #d9534f; font-size: 20px">You need to select a booking time for your order</span>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="product_booking_type" name="Website booking: Booking Page">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure container mb128 o_website_calendar_booking">
+                    <ul class="wizard mt32 float-right">
+                        <li class="text-primary">Booking<span class="chevron"/></li>
+                        <li class="text-muted">Time<span class="chevron"/></li>
+                        <li class="text-muted">Confirmation<span class="chevron"/></li>
+                    </ul>
+                    <h1 t-if="header" class="o_page_header mt32">
+                        <t t-esc="header"/>
+                    </h1>
+                    <h1 t-else="" class="o_page_header mt32">
+                        Schedule an Booking
+                    </h1>
+                    <div t-if="description" class="col-md-9">
+                        <t t-esc="description"/>
+                    </div>
+                    <div t-if="message=='cancel'" class="alert alert-danger mt16" role="alert">
+                        <p>
+                            <strong>Booking canceled!</strong>
+                            You can schedule another booking from here.
+                        </p>
+                    </div>
+                    <form class="o_website_appointment_form w-md-50" t-attf-action="/shop/#{ slug(product) }/#{ slug(booking_type) }" type="post">
+                        <div id="booking" class="form-group row">
+                            <label for="calendarType" class="col-md-3 col-form-label">Booking Type</label>
+                            <div class="col-md-9">
+                                <select class="form-control" id="calendarType" t-att-disabled="len(suggested_booking_types)==1 and '1' or None">
+                                    <t t-foreach="suggested_booking_types" t-as="cal">
+                                        <option t-att-value="cal.id" t-att-selected="cal.id == booking_type.id and 'selected'">
+                                            <t t-esc="cal.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                        </div>
+                        <div name="header" class="form-group">
+                            <t t-esc="header"></t>
+                        </div>
+                        <div name="description" class="form-group">
+                            <t t-esc="description"></t>
+                        </div>
+                        <div class="form-group row" style="text-align: end;">
+                            <div class="offset-md-8 col-md-6">
+                                <button type="submit" class="btn btn-primary">View Availabilities <span class="fa fa-arrow-right"/>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div t-raw="booking_type.message_intro" class="o_calendar_intro mb32"/>
+                </div>
+            </div>
+        </t>
+    </template>
+
+
+
+    <template id="product_quantity" inherit_id="website_sale.product">
+         <xpath expr="//a[@id='add_to_cart']" position="replace">
+             <a t-if="has_products" role="button" class="btn btn-primary btn-lg mt16 d-block d-sm-inline-block" t-attf-href="/shop/#{ slug(product_on_order) }/booking-type"><i class="fa fa-shopping-cart"/> Proceed to Booking</a>
+             <p t-if="has_products">You have added an item to cart. Delete the item in the cart if you want to change your item</p>
+             <a t-else="" role="button" id="add_to_cart" class="btn btn-primary btn-lg mt16 js_check_product a-submit d-block d-sm-inline-block" href="#"><i class="fa fa-shopping-cart"/> Add to Cart</a>
+         </xpath>
+    </template>
+
+     <template id="cart_lines" inherit_id="website_sale.cart_lines">
+         <xpath expr="//table[@id='cart_products']//t[@t-foreach='website_sale_order.website_order_line']/tr[1]/td[hasclass('td-product_name')]/div[1]" position="replace">
+             <div>
+                 <t t-call="website_sale.cart_line_product_link">
+                     <strong t-field="line.name_short" />
+                 </t>
+             </div>
+             <t t-if="line.sale_order_booking_id">
+
+                 <i t-field="line.sale_order_booking_id.start_date" style="font-size:13px;"/> - <i t-field="line.sale_order_booking_id.end_date" style="font-size:13px;"/>
+             </t>
+         </xpath>
+    </template>
+
+</odoo>

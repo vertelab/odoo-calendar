@@ -97,6 +97,7 @@ class WebsiteCalendar(http.Controller):
             Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
         else:
             Employee = random.choice(booking_type.sudo().employee_ids)
+            _logger.warning(f"{employee_id} {Employee}")      
         return request.render("website_calendar_ce.booking", {
             'booking_type': booking_type,
             'timezone': request.session['timezone'],
