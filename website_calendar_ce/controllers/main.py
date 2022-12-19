@@ -17,6 +17,7 @@
 
 
 from datetime import datetime
+import random
 from dateutil.relativedelta import relativedelta
 import pytz
 from babel.dates import format_datetime, format_date
@@ -90,23 +91,30 @@ class WebsiteCalendar(http.Controller):
         request.session['timezone'] = timezone or booking_type.booking_tz
         Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
         Slots = booking_type.sudo()._get_booking_slots(request.session['timezone'], Employee)
+
+        
+        if  employee_id:
+            Employee = request.env['hr.employee'].sudo().browse(int(employee_id)) if employee_id else None
+        else:
+            Employee = random.choice(booking_type.sudo().employee_ids)
         return request.render("website_calendar_ce.booking", {
             'booking_type': booking_type,
             'timezone': request.session['timezone'],
             'failed': failed,
             'slots': Slots,
             'description': description if description else _("Fill your personal information in the form below, and confirm the booking. We'll send an invite to your email address"),
-            'title': title if title else _("Book meeting"),
+            'title': title if title else _("Book meeting"),   
         })
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/info'], type='http', auth="public", website=True)
     def calendar_booking_form(self, booking_type, employee_id, date_time, description=None, title=None, **kwargs):
-        partner_data = {}
-        if request.env.user.partner_id != request.env.ref('base.public_partner'):
+       partner_data = {}
+       if request.env.user.partner_id != request.env.ref('base.public_partner'):
             partner_data = request.env.user.partner_id.read(fields=['name', 'mobile', 'country_id', 'email'])[0]
-        day_name = format_datetime(datetime.strptime(date_time, dtf), 'EEE', locale=get_lang(request.env).code)
-        date_formated = format_datetime(datetime.strptime(date_time, dtf), locale=get_lang(request.env).code)
-        return request.render("website_calendar_ce.booking_form", {
+            day_name = format_datetime(datetime.strptime(date_time, dtf), 'EEE', locale=get_lang(request.env).code)
+            date_formated = format_datetime(datetime.strptime(date_time, dtf), locale=get_lang(request.env).code)
+            
+            return request.render("website_calendar_ce.booking_form", {
             'partner_data': partner_data,
             'booking_type': booking_type,
             'datetime': date_time,
