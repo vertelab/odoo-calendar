@@ -36,6 +36,7 @@ class CalendarAttendee(models.Model):
     partner_id = fields.Many2one('res.partner', 'Contact', required=True, readonly=False, group_expand='_show_all_partners')
     # partner_skill_ids = fields.Many2many(related='partner_id.skill_ids', readonly=False)
     # partner_allergy_ids = fields.Many2many(related='partner_id.allergy_ids', readonly=False)
+    hr_leave_id = fields.Many2one(comodel_name='hr.leave')
 
 
     # @api.depends('event_date_start')
@@ -90,7 +91,6 @@ class CalendarAttendee(models.Model):
         return employees
         
     def write(self, vals):
-
         old_overlap = None
         if 'event_date_start' in vals:
             old_overlap = self.check_overlapping()
@@ -238,12 +238,16 @@ class CalendarAttendee(models.Model):
         own_state = 'accepted'
         declined = {
                     'state': 'declined',
-                    'state_msg': 'Attendee is already booked on a contracted calendar event within the same time frame.'
+                    'state_msg': 'Attendee is already booked on another contracted calendar event that overlaps the current time.'
                     }
         tentative = {
                     'state': 'tentative',
-                    'state_msg': 'Attendee is already booked on a regular calendar event within the same time frame.'
+                    'state_msg': 'Attendee is already booked on another regular calendar event that overlaps the current time.'
                     }
+        msg_1 = 'Attendee is on leave and cannot be booked on events in the current time period.'
+        msg_2 = 'Attendee is on leave and cannot be booked on events in the current time period. Attendee is also booked on another contracted calendar event that overlaps the current time.'
+        msg_3 = 'Attendee is on leave and cannot be booked on events in the current time period. Attendee is also booked on another regular calendar event that overlaps the current time.'
+
 
         if overlapping_events:
             for event in overlapping_events:
@@ -251,7 +255,17 @@ class CalendarAttendee(models.Model):
                 if event.attendee_ids.id:
 
                     if event.attendee_ids.state != 'declined':
-                        event.attendee_ids.write(declined)
+                        if event.attendee_ids.check_time_off():
+                            event.attendee_ids.write({'state': 'declined','state_msg': msg_2})
+                        else:
+                            event.attendee_ids.write(declined)
+
+                    elif event.attendee_ids.state_msg == msg_1:
+                        event.attendee_ids.state_msg = msg_2
+
+                    # elif not event.attendee_ids.check_time_off():
+                    #     if event.attendee_ids.state_msg == msg_2:
+                    #         event.attendee_ids.state_msg = msg_1
 
                     elif old:
                         if event.attendee_ids.state == 'declined':
@@ -270,8 +284,21 @@ class CalendarAttendee(models.Model):
             elif own_state == 'tentative' and self.state != 'tentative':
                 self.write(tentative)
 
-        elif self.state != 'accepted':
+        elif not self.check_time_off() and self.state != 'accepted':
             self.state = 'accepted'
+
+        if self.check_time_off():
+            if self.state != 'declined':
+                self.state = 'declined'
+                self.state_msg = msg_1
+            elif self.state == 'declined' and own_state != 'declined' and self.state_msg != msg_1:
+                self.state_msg = msg_1
+
+            if own_state == 'declined' and self.state_msg != msg_2:
+                self.state_msg = msg_2
+            elif own_state == 'tentative' and self.state_msg != msg_3:
+                self.state_msg = msg_3
+
 
 
     def check_overlapping(self):
@@ -299,3 +326,30 @@ class CalendarAttendee(models.Model):
                     ('id', '!=', self.event_id.id),
                     ])
         return overlapping_events
+
+
+    def check_time_off(self):
+        for participant in self:
+
+            leaves = self.env['hr.leave'].search([
+               ('employee_id.user_partner_id.id','=',participant.partner_id.id),
+            ])
+
+            declined = False
+            for leave in leaves:
+                if self.event_date_start > leave.date_from:
+                    if self.event_date_start < leave.date_to:
+                        declined = True
+                elif self.event_date_end > leave.date_from:
+                    if self.event_date_end < leave.date_to:
+                        declined = True
+                elif self.event_date_start >= leave.date_from:
+                    if self.event_date_end <= leave.date_to:
+                        declined = True
+                elif self.event_date_start <= leave.date_from:
+                    if self.event_date_end >= leave.date_to:
+                        declined = True
+                
+                if declined == True:
+                    return True
+            return False
