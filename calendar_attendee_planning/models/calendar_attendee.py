@@ -116,32 +116,32 @@ class CalendarAttendee(models.Model):
 
         if overlapping_events:
             for event in overlapping_events:
+                for attendee_event in event.attendee_ids:
+                    if attendee_event.id:
 
-                if event.attendee_ids.id:
+                        if attendee_event.state != 'declined':
+                            if attendee_event.time_off():
+                                attendee_event.write({'state': 'declined','state_msg': msg_4})
+                            else:
+                                attendee_event.write({'state': 'declined','state_msg': msg_1})
 
-                    if event.attendee_ids.state != 'declined':
-                        if event.attendee_ids.time_off():
-                            event.attendee_ids.write({'state': 'declined','state_msg': msg_4})
-                        else:
-                            event.attendee_ids.write({'state': 'declined','state_msg': msg_1})
+                        elif attendee_event.state_msg == msg_3:
+                            attendee_event.state_msg = msg_4
+                        
+                        elif attendee_event.state_msg == msg_6:
+                            attendee_event.state_msg = msg_7
 
-                    elif event.attendee_ids.state_msg == msg_3:
-                        event.attendee_ids.state_msg = msg_4
-                    
-                    elif event.attendee_ids.state_msg == msg_6:
-                        event.attendee_ids.state_msg = msg_7
+                        elif old:
+                            if attendee_event.state == 'declined':
+                                attendee_event.write({'state': 'accepted','state_msg': ''})
+                                #attendee_event.state = 'accepted'
 
-                    elif old:
-                        if event.attendee_ids.state == 'declined':
-                            event.attendee_ids.write({'state': 'accepted','state_msg': ''})
-                            #event.attendee_ids.state = 'accepted'
+                        if own_state != 'declined':
+                            own_state = 'declined'
 
-                    if own_state != 'declined':
-                        own_state = 'declined'
-
-                else:
-                    if own_state != 'declined':
-                        own_state = 'tentative'
+                    else:
+                        if own_state != 'declined':
+                            own_state = 'tentative'
 
             if self.work_interval() and own_state == 'declined' and self.state != 'declined':
                 self.write({'state': 'declined','state_msg': msg_1})
@@ -164,7 +164,7 @@ class CalendarAttendee(models.Model):
                 self.state_msg = msg_7
             elif own_state == 'declined' and self.state_msg != msg_1 and self.lunch_period():
                 self.write({'state': 'declined','state_msg': msg_1})
-		
+        
         elif self.time_off():
             if self.state != 'declined':
                 self.write({'state': 'declined','state_msg': msg_3})
@@ -288,3 +288,11 @@ class CalendarAttendee(models.Model):
                         elif eventstart_int >= lunch_start and eventend_int <= lunch_stop:
                             return True
         return False
+
+    def test(self):
+        # ('partner_id','=',self.partner_id.id),
+        mysearch = self.search([('event_date_start','>=',datetime.now())])
+        _logger.warning(f"{mysearch=}")
+        for record in mysearch:
+            overlap = record.check_overlapping()
+            self.set_state(overlap)
