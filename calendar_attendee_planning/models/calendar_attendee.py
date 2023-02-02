@@ -96,7 +96,8 @@ class CalendarAttendee(models.Model):
 
         res = super().write(vals)
         new_overlap = self.check_overlapping()
-        self.set_state(new_overlap)
+        if len(new_overlap) != 0:
+            self.set_state(new_overlap)
         if old_overlap:
             self.set_state(old_overlap,True)
         
@@ -143,6 +144,7 @@ class CalendarAttendee(models.Model):
                         if own_state != 'declined':
                             own_state = 'tentative'
 
+
             if self.work_interval() and own_state == 'declined' and self.state != 'declined':
                 self.write({'state': 'declined','state_msg': msg_1})
 
@@ -178,6 +180,7 @@ class CalendarAttendee(models.Model):
 
 
     def check_overlapping(self):
+        overlapping_events = []
         for participant in self:
             overlapping_events = self.env['calendar.event'].search([
                     '&',
@@ -201,6 +204,7 @@ class CalendarAttendee(models.Model):
                     ('partner_id', '=', participant.partner_id.id),
                     ('id', '!=', self.event_id.id),
                     ])
+            
         return overlapping_events
 
 
@@ -234,23 +238,28 @@ class CalendarAttendee(models.Model):
     def work_interval(self):
         current_tz = pytz.timezone('UTC')
         for participant in self:
-            work_intervals = participant.partner_id.user_ids[0].employee_id[0].resource_calendar_id[0]._work_intervals(participant.event_date_start.astimezone(current_tz), 
-                                                                                                                        participant.event_date_end.astimezone(current_tz))
+            try:
+                work_intervals = participant.partner_id.user_ids[0].employee_id[0].resource_calendar_id[0]._work_intervals(participant.event_date_start.astimezone(current_tz), 
+                                                                                                                            participant.event_date_end.astimezone(current_tz))
 
-            if work_intervals._items:
-                interval_start = work_intervals._items[0][0]
-                interval_stop = work_intervals._items[0][1]
+                if work_intervals._items:
+                    interval_start = work_intervals._items[0][0]
+                    interval_stop = work_intervals._items[0][1]
 
-                if self.event_date_start.astimezone(current_tz) == interval_start and self.event_date_end.astimezone(current_tz) == interval_stop:
-                    return True
+                    if self.event_date_start.astimezone(current_tz) == interval_start and self.event_date_end.astimezone(current_tz) == interval_stop:
+                        return True
+                    else:
+                        return False
                 else:
                     return False
-            else:
-                return False
-
+            except IndexError:
+                continue
 
     def lunch_period(self):
-        tz = self.partner_id.user_ids[0].employee_id.resource_calendar_id.tz
+        try:
+            tz = self.partner_id.user_ids[0].employee_id.resource_calendar_id.tz
+        except IndexError:
+            return
         current_tz = pytz.timezone(tz)
         eventstart = self.event_date_start.astimezone(current_tz)
         eventend = self.event_date_end.astimezone(current_tz)
