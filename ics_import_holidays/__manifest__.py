@@ -40,10 +40,7 @@
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
-    'depends': [
-        'calendar', 
-        'hr',
-    ],
+    'depends': ['calendar', 'hr',],
     'data': [
         "views/res_config_settings.xml",
     ],
