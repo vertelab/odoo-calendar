@@ -11,7 +11,7 @@ IMPORT = '__import__'
 class ResCalendarSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    ics_url = fields.Char(string='Enter the URL of the ICS file', config_parameter='holiday.url.ics',)
+    ics_url = fields.Char(string='Enter the URL of the ICS file', config_parameter='holiday.url.ics')
         
     @api.model
     def create(self, vals_list):
@@ -28,6 +28,7 @@ class ResCalendarSettings(models.TransientModel):
 
                 cron_name = 'Update holidays URL: ' + ics_url
                 calendar_event_cron_model = self.env['ir.model'].search([('model', '=', 'calendar.event')]).id
+                _logger.error(f"{calendar_event_cron_model=}")
 
                 if not self.env['ir.cron'].search([('name', '=', cron_name)]):
                     self.env['ir.cron'].create([{'name': cron_name,
