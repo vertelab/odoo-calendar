@@ -28,7 +28,6 @@ class ResCalendarSettings(models.TransientModel):
 
                 cron_name = 'Update holidays URL: ' + ics_url
                 calendar_event_cron_model = self.env['ir.model'].search([('model', '=', 'calendar.event')]).id
-                _logger.error(f"{calendar_event_cron_model=}")
 
                 if not self.env['ir.cron'].search([('name', '=', cron_name)]):
                     self.env['ir.cron'].create([{'name': cron_name,
@@ -39,3 +38,5 @@ class ResCalendarSettings(models.TransientModel):
                 if not self.env['res.users'].search([('login', '=', "holidays")]):
                     self.env['res.users'].sudo().create({'name': "Holidays", 'login': "holidays"})
         return res
+    
+    
