@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name': 'Calendar: Calendar Attendee Planning',
+    'name': 'Calendar: Attendee Planning',
     'version': '14.0.0.0.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Adds attendee views to the calendar',
@@ -29,7 +29,7 @@
     Adds attendee views to the calendar
 """,
     'author': 'Vertel AB',
-    'website': 'https://vertel.se/apps/odoo-calendar/website_calendar_ce',
+    'website': 'https://vertel.se/apps/odoo-calendar/calendar_attendee_planning',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
