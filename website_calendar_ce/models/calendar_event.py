@@ -17,7 +17,7 @@
 
 
 import uuid
-from odoo import api, fields, models
+from odoo import api, fields, models, SUPERUSER_ID
 from odoo.addons.calendar.models.calendar_event import Meeting as MeetingOriginal
 
 import logging
@@ -139,3 +139,11 @@ class Meeting(models.Model):
     def _generate_access_token(self):
         for event in self:
             event.access_token = self._default_access_token()
+
+    def _send_mail_to_appointed_partner(self, partner_id):
+        template_id = self.env.ref('website_calendar_ce.calendar_template_meeting_booked', raise_if_not_found=False)
+        if template_id:
+            template_id.with_context(
+                partner_id=partner_id,
+            ).with_user(SUPERUSER_ID).send_mail(self.id, force_send=True)
+

@@ -40,6 +40,7 @@
     'depends': ['calendar_sms', 'hr', 'website', 'mail'],
     'data': [
         'data/website_calendar_data.xml',
+        'data/mail.xml',
         'views/calendar_views.xml',
         'views/calendar_booking_views.xml',
         'views/website_calendar_templates.xml',

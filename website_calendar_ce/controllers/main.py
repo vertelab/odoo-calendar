@@ -137,7 +137,7 @@ class WebsiteCalendar(http.Controller):
                 website=True, methods=["POST"])
     def calendar_booking_submit(self, booking_type, datetime_str, employee_id, name, phone, email, country_id=False,
                                 comment=False, company=False, description=False, title=_("Book meeting"), **kwargs):
-        timezone = request.session['timezone']
+        timezone = booking_type.booking_tz
         tz_session = pytz.timezone(timezone)
         date_start = tz_session.localize(fields.Datetime.from_string(datetime_str)).astimezone(pytz.utc)
         date_end = date_start + relativedelta(hours=booking_type.booking_duration)
@@ -220,6 +220,7 @@ class WebsiteCalendar(http.Controller):
         event = self._create_event(request, Employee, data)
         event.attendee_ids.filtered(lambda attendee: attendee.partner_id.id == partner.id).write({'public_user': True})
         event.attendee_ids.write({'state': 'accepted'})
+        event._send_mail_to_appointed_partner(Employee.user_id.partner_id)
         return request.redirect('/website/calendar/view/' + event.access_token + '?message=new' + '&title=' + title)
 
     def _create_event(self, request, hr_employee_id, data):
@@ -268,6 +269,7 @@ class WebsiteCalendar(http.Controller):
             params.update(location=event.location.replace('\n', ' '))
         encoded_params = url_encode(params)
         google_url = 'https://www.google.com/calendar/render?' + encoded_params
+
 
         return request.render("website_calendar_ce.booking_validated", {
             'event': event,
