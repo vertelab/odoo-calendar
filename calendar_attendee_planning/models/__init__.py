@@ -1,1 +1,1 @@
-from . import calendar_attendee, hr_leave, calendar_event
+from . import calendar_attendee, hr_leave, calendar_event, hr_employee

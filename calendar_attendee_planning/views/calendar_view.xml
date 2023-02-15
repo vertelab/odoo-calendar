@@ -46,11 +46,12 @@
                 <field name="common_name" readonly="False"/>
                 <field name="event_id" readonly="False"/>
                 <field name="partner_id" readonly="False"/>
+                <field name="email" readonly="False"/>
                 <field name="user_id" readonly="False"/>
               </group>
               <group name="contract_group">
-                <field name="email" readonly="False"/>
-                <field name="state" readonly="False"/>
+                <field name="state" readonly="True"/>
+                <field name ="state_msg" readonly="True"/>
                 <field name="event_date_start" readonly="False"/>
                 <field name="event_date_end" readonly="False"/>
               </group>
@@ -71,9 +72,10 @@
         <field name="email"/>
         <field name="state"/>
         <field name="color" invisible="1"/>
+        <field name="state_msg" invisible="1"/>
           <templates>
             <t t-name="kanban-box">
-              <div t-attf-class="oe_kanban_global_click oe_kanban_card oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}">
+              <div t-attf-class="oe_kanban_global_click oe_kanban_card oe_kanban_color_#{kanban_getcolor(record.color.raw_value)}" data-toggle="tooltip" t-att-title="record.state_msg.raw_value">
                 <div class="row mb4" name="title_wrapper">
                     <div class="col-12 o_kanban_record_headings" name="title">
                     <!-- an xpath from contract_attendee occurs to this div, probably a bad idea? -->

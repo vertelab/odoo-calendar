@@ -17,7 +17,7 @@
    id="SVGRoot"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="banner_560x280.svg"
-   inkscape:export-filename="/usr/share/odoo-calendar/extended_calendar_notifications/static/description/banner.png"
+   inkscape:export-filename="/usr/share/odoo-calendar/ics_import_holidays/static/description/banner.png"
    inkscape:export-xdpi="92.61972"
    inkscape:export-ydpi="92.61972">
   <defs
@@ -39,14 +39,14 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="376.79595"
-     inkscape:cy="43.191238"
+     inkscape:cx="243.79595"
+     inkscape:cy="162.19124"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1881"
      inkscape:window-height="773"
-     inkscape:window-x="210"
+     inkscape:window-x="39"
      inkscape:window-y="105"
      inkscape:window-maximized="0">
     <inkscape:grid
@@ -121,11 +121,11 @@
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:15px;line-height:125%;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu, Normal';text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.99999994px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="359.0531"
-       y="54.822594"
+       y="68.822594"
        id="text2035"><tspan
          sodipodi:role="line"
          x="362.13309"
-         y="54.822594"
+         y="68.822594"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:26.66666603px;font-family:Ubuntu;-inkscape-font-specification:'Ubuntu, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;writing-mode:lr-tb;text-anchor:middle;stroke-width:0.99999994px"
          id="tspan837">ICS Import Holidays </tspan></text>
     <flowRoot

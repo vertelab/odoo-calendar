@@ -11,7 +11,7 @@ IMPORT = '__import__'
 class ResCalendarSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    ics_url = fields.Char(string='Enter the URL of the ICS file', config_parameter='holiday.url.ics',)
+    ics_url = fields.Char(string='Enter the URL of the ICS file', config_parameter='holiday.url.ics')
         
     @api.model
     def create(self, vals_list):
@@ -38,3 +38,5 @@ class ResCalendarSettings(models.TransientModel):
                 if not self.env['res.users'].search([('login', '=', "holidays")]):
                     self.env['res.users'].sudo().create({'name': "Holidays", 'login': "holidays"})
         return res
+    
+    

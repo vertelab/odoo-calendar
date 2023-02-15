@@ -1,0 +1,254 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* calendar_attendee_planning
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0-20220428\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-26 13:36+0000\n"
+"PO-Revision-Date: 2023-01-26 13:36+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__attendee_id
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.calendar_attendee_search_view
+msgid "Attendee"
+msgstr "Deltagare"
+
+#. module: calendar_attendee_planning
+#: model:ir.actions.act_window,name:calendar_attendee_planning.ir_act_window_attendees_view
+msgid "Attendee View"
+msgstr "Deltagarvy"
+
+#. module: calendar_attendee_planning
+#: code:addons/calendar_attendee_planning/models/calendar_attendee.py:0
+#, python-format
+msgid ""
+"Attendee cannot be scheduled on hours outside of his/her work schedule."
+msgstr ""
+"Deltagaren kan ej schemaläggas på timmar utanför dennes arbetsschema."
+
+#. module: calendar_attendee_planning
+#: code:addons/calendar_attendee_planning/models/calendar_attendee.py:0
+#, python-format
+msgid ""
+"Attendee cannot be scheduled on hours outside of his/her work schedule. "
+"Attendee is also scheduled on another contracted calendar event that "
+"overlaps the current time."
+msgstr ""
+"Deltagaren kan ej schemaläggas på timmar utanför dennes arbetsschema. "
+"Deltagaren är även schemalagd på ett annat kontrakt/möte som "
+"överlappar den aktuella tiden."
+
+#. module: calendar_attendee_planning
+#: code:addons/calendar_attendee_planning/models/calendar_attendee.py:0
+#, python-format
+msgid ""
+"Attendee is already scheduled on another contracted calendar event that "
+"overlaps the current time."
+msgstr ""
+"Deltagaren är redan schemalagd på ett annat kontrakt/möte som "
+"överlappar den aktuella tiden."
+
+#. module: calendar_attendee_planning
+#: code:addons/calendar_attendee_planning/models/calendar_attendee.py:0
+#, python-format
+msgid ""
+"Attendee is already scheduled on another regular calendar event that "
+"overlaps the current time."
+msgstr ""
+"Deltagaren är redan schemalagd på ett annat möte i kalendern som "
+"överlappar den aktuella tiden."
+
+#. module: calendar_attendee_planning
+#: code:addons/calendar_attendee_planning/models/calendar_attendee.py:0
+#, python-format
+msgid ""
+"Attendee is on leave and cannot be scheduled on events in the current time "
+"period."
+msgstr ""
+"Deltagaren är ledig och kan ej schemaläggas på möten i den aktuella "
+"tidsperioden."
+
+#. module: calendar_attendee_planning
+#: code:addons/calendar_attendee_planning/models/calendar_attendee.py:0
+#, python-format
+msgid ""
+"Attendee is on leave and cannot be scheduled on events in the current time "
+"period. Attendee is also scheduled on another contracted calendar event that"
+" overlaps the current time."
+msgstr ""
+"Deltagaren är ledig och kan ej schemaläggas på möten i den aktuella "
+"tidsperioden. Deltagaren är dessutom schemalagd på ett annat kontrakt/möte som"
+" överlappar den aktuella tiden."
+
+#. module: calendar_attendee_planning
+#: code:addons/calendar_attendee_planning/models/calendar_attendee.py:0
+#, python-format
+msgid ""
+"Attendee is on leave and cannot be scheduled on events in the current time "
+"period. Attendee is also scheduled on another regular calendar event that "
+"overlaps the current time."
+msgstr ""
+"Deltagaren är ledig och kan ej schemaläggas på möten i den aktuella "
+"tidsperioden. Deltagaren är dessutom schemalagd på ett möte i kalendern som"
+" överlappar den aktuella tiden."
+
+#. module: calendar_attendee_planning
+#: model:ir.ui.menu,name:calendar_attendee_planning.menu_attendees_planning
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.view_calender_attendee_form
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.view_calender_attendee_tree
+msgid "Attendees"
+msgstr "Deltagare"
+
+#. module: calendar_attendee_planning
+#: model:ir.model,name:calendar_attendee_planning.model_calendar_attendee
+msgid "Calendar Attendee Information"
+msgstr "Information till kalenderdeltagare"
+
+#. module: calendar_attendee_planning
+#: model:ir.model,name:calendar_attendee_planning.model_calendar_event
+msgid "Calendar Event"
+msgstr "Kalenderhändelse"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__color
+msgid "Color"
+msgstr "Färg"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__partner_id
+msgid "Contact"
+msgstr "Kontakt"
+
+#. module: calendar_attendee_planning
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.calendar_attendee_search_view
+msgid "Day"
+msgstr "Dag"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__display_name
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_event__display_name
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_hr_employee__display_name
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_hr_leave__display_name
+msgid "Display Name"
+msgstr "Visningsnamn"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__duration
+msgid "Duration"
+msgstr "Varaktighet"
+
+#. module: calendar_attendee_planning
+#: model:ir.model,name:calendar_attendee_planning.model_hr_employee
+msgid "Employee"
+msgstr "Anställd"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__event_week
+msgid "Event Week"
+msgstr "Mötesvecka"
+
+#. module: calendar_attendee_planning
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.view_calender_attendee_calendar
+msgid "Events"
+msgstr "Möten"
+
+#. module: calendar_attendee_planning
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.calendar_attendee_search_view
+msgid "Group by"
+msgstr "Gruppera på"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__hr_leave_id
+msgid "Hr Leave"
+msgstr "Ledighet/Frånvaro"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__id
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_event__id
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_hr_employee__id
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_hr_leave__id
+msgid "ID"
+msgstr ""
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee____last_update
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_event____last_update
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_hr_employee____last_update
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_hr_leave____last_update
+msgid "Last Modified on"
+msgstr "Senast redigerad"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__user_id
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.calendar_attendee_search_view
+msgid "Responsible"
+msgstr "Ansvarig"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__event_date_start
+msgid "Start"
+msgstr "Starttid"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,help:calendar_attendee_planning.field_calendar_attendee__event_date_start
+msgid "Start date of an event, without time for full days events"
+msgstr "Startdatum för ett möte utan tid för heldagsmöten"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__state_msg
+msgid "Status message"
+msgstr "Statusmeddelande"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,field_description:calendar_attendee_planning.field_calendar_attendee__event_date_end
+msgid "Stop"
+msgstr "Sluttid"
+
+#. module: calendar_attendee_planning
+#: model:ir.model.fields,help:calendar_attendee_planning.field_calendar_attendee__event_date_end
+msgid "Stop date of an event, without time for full days events"
+msgstr "Slutdatum för ett mlte utan tid för heldagsmöten"
+
+#. module: calendar_attendee_planning
+#: code:addons/calendar_attendee_planning/models/calendar_attendee.py:0
+#, python-format
+msgid "The scheduled time overlaps with the attendees lunch period."
+msgstr "Den schemalagda tiden överlappar med deltagarens lunchperiod."
+
+#. module: calendar_attendee_planning
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.calendar_attendee_search_view
+msgid "This Week"
+msgstr "Denna vecka"
+
+#. module: calendar_attendee_planning
+#: model:ir.model,name:calendar_attendee_planning.model_hr_leave
+msgid "Time Off"
+msgstr "Frånvaro"
+
+#. module: calendar_attendee_planning
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.calendar_attendee_search_view
+msgid "Today"
+msgstr "Idag"
+
+#. module: calendar_attendee_planning
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.calendar_attendee_search_view
+msgid "Tomorrow"
+msgstr "Imorgon"
+
+#. module: calendar_attendee_planning
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.calendar_time_timeline
+msgid "User"
+msgstr "Användare"
+
+#. module: calendar_attendee_planning
+#: model_terms:ir.ui.view,arch_db:calendar_attendee_planning.view_calender_attendee_kanban
+msgid "to"
+msgstr "till"

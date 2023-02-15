@@ -14,7 +14,7 @@
                             <div class="o_setting_right_pane">
                                 <span class="o_form_label">ICS URL</span>
                                 <div class="text-muted content-group mt16">
-                                    <field name="ics_url" class="text-left oe_inline" />
+                                    <field name="ics_url"></field>
                                 </div>
                             </div>
                         </div>
