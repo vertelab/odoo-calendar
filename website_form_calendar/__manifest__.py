@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Online Booking Form',
+    'name': 'Calendar: Online Booking Form',
     'category': 'Website/Website',
     'summary': 'Add a task suggestion form to your website',
     'version': '1.0',
