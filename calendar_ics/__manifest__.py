@@ -20,16 +20,17 @@
 ##############################################################################
 
 {
-    'name': 'Calendar: ics-urls',
+    'name': 'Calendar: ICS',
     'version': '14.0.0.1.0',
     'category': 'Calendar',
     'summary': 'Subscription on calendar.ics-urls',
+    'images': ['static/description/banner.png'], # 560x280 px.
     'licence': 'AGPL-3',
     'description': """
-    Adds and updates calendar objects according to an ics-url
+    Adds and updates calendar objects according to an ics-url.
     """,
     'author': 'Vertel AB',
-    'website': 'http://www.vertel.se',
+    'website': 'https://vertel.se/apps/odoo-calendar/calendar_ics',
     'depends': ['calendar', ],
     'external_dependencies': {
         'python': ['icalendar'],

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<odoo>
+    <data>
+        <record id="calendar_template_meeting_booked" model="mail.template">
+            <field name="name">Calendar: New Booking</field>
+            <field name="model_id" ref="calendar.model_calendar_attendee"/>
+            <field name="subject">New Booking ${object.event_id.name}</field>
+            <field name="email_from">${ctx.get('partner_id').company_id.email | safe}</field>
+            <field name="email_to">${ctx.get('partner_id').email | safe}</field>
+            <field name="partner_to">${ctx.get('partner_id').id}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html" type="html">
+                <div>
+                    <p>
+                        Hello ${ctx.get('partner_id').name},<br/><br/>
+
+                        You have a new booking.
+                    </p>
+                    <table border="0" cellpadding="0" cellspacing="0"><tr>
+                        <td style="padding-top: 5px;">
+                            <p><strong>Details of the event</strong></p>
+                            <ul>
+                                % if object.event_id.location:
+                                    <li>Location: ${object.event_id.location}
+                                        (<a target="_blank" href="http://maps.google.com/maps?oi=map&amp;q=${object.event_id.location}">View Map</a>)
+                                    </li><br/>
+                                % endif
+                                % if object.event_id.description :
+                                    <li>Description: ${object.event_id.description}</li><br/>
+                                % endif
+                                % if not object.event_id.allday and object.event_id.duration
+                                    <li>Duration: ${('%dH%02d' % (object.event_id.duration,round(object.event_id.duration*60)%60))}</li> <br/>
+                                % endif
+                                <li>Attendees
+                                <ul>
+                                % for attendee in object.event_id.attendee_ids:
+                                    <li>
+                                        <div style="display: inline-block; border-radius: 50%; width: 10px; height: 10px;};"> </div>
+                                            <span style="margin-left:5px">${attendee.common_name}</span>
+                                    </li>
+                                % endfor
+                                </ul></li>
+                            </ul>
+                        </td>
+                    </tr></table>
+
+                    <br/>
+                    Thank you,
+                    % if object.event_id.user_id.signature:
+                        <br />
+                        ${object.event_id.user_id.signature | safe}
+                    % endif
+                </div>
+            </field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>

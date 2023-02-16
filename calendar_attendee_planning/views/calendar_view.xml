@@ -46,11 +46,12 @@
                 <field name="common_name" readonly="False"/>
                 <field name="event_id" readonly="False"/>
                 <field name="partner_id" readonly="False"/>
+                <field name="email" readonly="False"/>
                 <field name="user_id" readonly="False"/>
               </group>
               <group name="contract_group">
-                <field name="email" readonly="False"/>
-                <field name="state" readonly="False"/>
+                <field name="state" readonly="True"/>
+                <field name ="state_msg" readonly="True"/>
                 <field name="event_date_start" readonly="False"/>
                 <field name="event_date_end" readonly="False"/>
               </group>

@@ -12,12 +12,12 @@ import requests
 _logger = logging.getLogger(__name__)
 IMPORT = '__import__'
 
-eves = {
-    'Nyårsdagen' : 'Nyårsafton',
-    'Påsk': 'Påskafton',
-    'Midsommardagen': 'Midsommarafton',
-    'Juldagen': 'Julafton',
-}
+# eves = {
+#     'Nyårsdagen' : 'Nyårsafton',
+#     'Påsk': 'Påskafton',
+#     'Midsommardagen': 'Midsommarafton',
+#     'Juldagen': 'Julafton',
+# }
 
 
 class ImportHolidays(models.Model):
@@ -48,20 +48,20 @@ class ImportHolidays(models.Model):
                                                 'res_id': event_id.id
                                                 })
 
-                if event.name[3::] in eves.keys():
-                    eve_id = self.env["calendar.event"].create({'name': eves[event.name[3::]],
-                                                'start': (event_id.start - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'), 
-                                                'stop': (event_id.stop - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
-                                                'allday': 'True',
-                                                'user_id': responsible_id
-                                                })
+                # if event.name[3::] in eves.keys():
+                #     eve_id = self.env["calendar.event"].create({'name': eves[event.name[3::]],
+                #                                 'start': (event_id.start - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'), 
+                #                                 'stop': (event_id.stop - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
+                #                                 'allday': 'True',
+                #                                 'user_id': responsible_id
+                #                                 })
 
-                    eve_xmlid = f"{IMPORT}.calendar_{eve_id['name'].replace(' ', '_')}_{eve_id['start']}".replace(' ', '_')
-                    external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
-                                                'name': eve_xmlid.split('.')[-1], 
-                                                'model': 'calendar.event',
-                                                'res_id': f"{eve_id.id}"
-                                                })  
+                    # eve_xmlid = f"{IMPORT}.calendar_{eve_id['name'].replace(' ', '_')}_{eve_id['start']}".replace(' ', '_')
+                    # external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
+                    #                             'name': eve_xmlid.split('.')[-1], 
+                    #                             'model': 'calendar.event',
+                    #                             'res_id': f"{eve_id.id}"
+                    #                             })  
                                                 
             for resource_calendar in self.env['resource.calendar'].search_read([], ['id', 'hours_per_day']):  
                 hours_week = (resource_calendar['hours_per_day'] * 5)
@@ -77,6 +77,7 @@ class ImportHolidays(models.Model):
                                                     'date_from': (event.begin.date()).strftime('%Y-%m-%d %H:%M:%S'), 
                                                     'date_to': (event.begin.date() + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
                                                     })
+                    
 
                     external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
                                                     'name': leave_xmlid.split('.')[-1], 
@@ -84,18 +85,19 @@ class ImportHolidays(models.Model):
                                                     'res_id': leave_id.id
                                                     })    
 
-                    if event.name[3::] in eves.keys():
-                        leave_eve_id = self.env["resource.calendar.leaves"].create({'name': eves[event.name[3::]],
-                                                    'calendar_id': resource_calendar['id'], 
-                                                    'date_from': (leave_id.date_from - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'), 
-                                                    'date_to': (leave_id.date_to - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
-                                                    })
+                    # if event.name[3::] in eves.keys():
+                    #     leave_eve_id = self.env["resource.calendar.leaves"].create({'name': eves[event.name[3::]],
+                    #                                 'calendar_id': resource_calendar['id'], 
+                    #                                 'date_from': (leave_id.date_from - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'), 
+                    #                                 'date_to': (leave_id.date_to - datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+                    #                                 })
                         
-                        uid_eve = f"{hours_week}_{leave_eve_id['name'].replace(' ', '_')}_{leave_eve_id['date_from'].strftime('%Y-%m-%d')}".replace('.','_')
-                        leave_eve_xmlid = f"{IMPORT}.leaves_eve_{uid_eve}"
+                        # uid_eve = f"{hours_week}_{leave_eve_id['name'].replace(' ', '_')}_{leave_eve_id['date_from'].strftime('%Y-%m-%d')}".replace('.','_')
+                        # leave_eve_xmlid = f"{IMPORT}.leaves_eve_{uid_eve}"
 
-                        external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
-                                                    'name': leave_eve_xmlid.split('.')[-1], 
-                                                    'model': 'resource.calendar.leaves',
-                                                    'res_id': leave_eve_id.id
-                                                    })    
+                        # external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
+                        #                             'name': leave_eve_xmlid.split('.')[-1], 
+                        #                             'model': 'resource.calendar.leaves',
+                        #                             'res_id': leave_eve_id.id
+                        #                             })    
+                        

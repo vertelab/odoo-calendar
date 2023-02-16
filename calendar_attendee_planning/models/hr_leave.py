@@ -61,8 +61,6 @@ class HRLeaveWriteModify(models.Model):
         # if 'date_from' in vals:
         #     old_overlap = attendee.check_overlapping()
         res = super().write(vals)
-        _logger.warning(vals)
-
 
         # _logger.warning(partner_in_attendees)
         for calendar_attendee_id in partner_in_attendees:
@@ -72,17 +70,6 @@ class HRLeaveWriteModify(models.Model):
             overlap = self.check_overlapping()
             attendee.set_state(overlap)
 
-            # for rec in attendee:
-            #     try:
-            #         if rec.event_date_start <= self.date_to and self.date_from <= rec.event_date_end:
-            #             _logger.warning('try!')
-            #             _logger.warning(rec.id)
-                        
-            #             #rec.write({'state': 'declined'})
-            #             #rec.state = 'declined'
-            #     except TypeError as e:
-            #         raise UserWarning(f"One of the current logged in users calendar.attendees lacks a start or stop date. {e}")
-                    
         return res
 
     # def create(self, vals_list):

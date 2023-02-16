@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 import logging
 import datetime
 from odoo.osv import expression
@@ -7,7 +7,6 @@ from datetime import date, datetime, timedelta
 from odoo.exceptions import UserError
 import pytz
 import numpy as np
-from copy import copy
 
 _logger = logging.getLogger(__name__)
 
@@ -97,182 +96,54 @@ class CalendarAttendee(models.Model):
 
         res = super().write(vals)
         new_overlap = self.check_overlapping()
-        self.set_state(new_overlap)
+        if len(new_overlap) != 0:
+            self.set_state(new_overlap)
         if old_overlap:
             self.set_state(old_overlap,True)
         
-
-
-        # if vals.get('partner_id',) or vals.get('event_date_start',):
-        #     for participant in self.event_id.attendee_ids:
-        #         # _logger.warning(f"self print {self} {self.partner_id}")
-        #         write_state = 'accepted'
-
-        #         partner = self.env['res.partner'].browse(participant.partner_id.id)
-        #         #fix error that triggers when partner does not have employee id
-        #         try:
-        #             employee_id = partner.user_ids[0].employee_id[0].id
-        #         except IndexError:
-        #             # _logger.warning('hello')
-        #             raise UserError('Attendee must be an employee')
-
-        #         leave_periods = self.env['hr.leave'].search([('employee_id', '=', employee_id)]).ids
-        #         _logger.warning(f"leave_periods: {leave_periods}")
-
-        #         for leave_id in leave_periods:
-        #             leave = self.env['hr.leave'].browse(leave_id)
-        #             # try:
-        #             if leave.date_from <= participant.event_date_end and participant.event_date_start <= leave.date_to:
-        #                 participant.write({'state': 'declined'})
-        #                 write_state = 'declined'
-        #                 _logger.warning("Checkpoint Alpha declined write")
-        #                 break
-        #             else:
-        #                 participant.write({'state': 'accepted'})
-        #                 _logger.warning("Checkpoint Alpha accepted write")
-
-        #         if write_state != 'declined':
-        #             # declined_count = 0
-        #             # for day in workdays:        
-        #             #     # _logger.warning(f"for loop {day.dayofweek} {today_int}")
-        #             #     if int(day.dayofweek) == int(today_int): 
-        #             #         time_hour_from = datetime.strptime(str(int(day.hour_from)), '%H').time()
-        #             #         time_hour_to = datetime.strptime(str(int(day.hour_to)), '%H').time()
-        #             #         # _logger.warning(f" {time_hour_from} {time_hour_to}")
-
-        #             #         # _logger.warning(f"{time_hour_from} {time_hour_to}")
-        #             #         if self.event_date_start.time() >= time_hour_from and self.event_date_end.time() <= time_hour_to:
-        #             #             # _logger.warning('inside the last if')
-        #             #             self.write({'state': 'accepted'})
-        #             #             break
-        #             #         else:
-        #             #             self.write({'state': 'declined'})
-        #             #             declined_count += 1
-        #             # if declined_count == 2:
-        #             #     write_state = 'declined'
-
-        #             # workday_length = partner.user_ids[0].employee_id[0].resource_calendar_id.hours_per_day
-        #             current_tz = pytz.timezone('UTC')
-        #             workdays = partner.user_ids[0].employee_id[0].resource_calendar_id.attendance_ids
-        #             event_day = participant.event_date_start.weekday()
-
-        #             _logger.warning(f"workdays: {workdays}")
-
-        #             work_intervals = partner.user_ids[0].employee_id[0].resource_calendar_id[0]._work_intervals(participant.event_date_start.astimezone(current_tz), 
-        #                                                                                                         participant.event_date_end.astimezone(current_tz))
-        #             _logger.warning(f"work_intervals: {work_intervals._items}")                                                                                                           
-                    
-        #             if len(work_intervals._items) != 0:
-        #                 acceptable_count = 0
-        #                 for count, interval in enumerate(work_intervals._items[0]):
-        #                     _logger.warning(count)
-        #                     _logger.warning(interval)
-        #                     if count == 0:
-        #                         # _logger.warning(f"Timezone shenanigans incoming {self.event_date_start} {interval} {current_tz.localize(self.event_date_start) >= interval} {current_tz.localize(self.event_date_end) <= interval}")
-        #                         if current_tz.localize(participant.event_date_start) >= interval:
-        #                             acceptable_count += 1
-        #                             _logger.warning("A")
-        #                             continue
-
-        #                     if count == 1:
-        #                         # _logger.warning(f"Timezone shenanigans incoming {self.event_date_start} {interval} {current_tz.localize(self.event_date_start) >= interval} {current_tz.localize(self.event_date_end) <= interval}")
-        #                         if current_tz.localize(participant.event_date_end) <= interval:
-        #                             acceptable_count += 1
-        #                             _logger.warning("B")
-        #                             continue
-
-        #                 # _logger.warning(f"{acceptable_count}")
-        #                 if acceptable_count != 0:
-        #                     filtered = list(filter(lambda day: int(day.dayofweek) == int(event_day), workdays))
-        #                     # _logger.warning(f"WORKDAYS: {workdays}")
-        #                     # _logger.warning(f"event_day: {event_day}")
-        #                     # for day in workdays:
-        #                     #     _logger.warning(f"DAYOFWEEK: {day.dayofweek}")
-        #                     # _logger.warning(f"ATTENDEE CREATE FILTERED: {filtered}")
-        #                     # _logger.warning(self.event_date_start.hour)
-        #                     # _logger.warning(filtered[0].hour_to)
-        #                     # _logger.warning(self.event_date_end.hour)
-        #                     # _logger.warning(filtered[1].hour_from)
-        #                     try:
-        #                         hour_to_datetime = current_tz.localize(participant.event_date_start.replace(hour=int(filtered[0].hour_to)))
-        #                         hour_from_datetime = current_tz.localize(participant.event_date_end.replace(hour=int(filtered[0].hour_from)))
-        #                     except IndexError:
-        #                         raise UserWarning('hour_to_datetime is pointing at empty list')
-        #                     # _logger.warning(f"Timezone shenanigans IF {hour_to_datetime} {hour_from_datetime}")
-        #                     if acceptable_count == 2:
-        #                         participant.write({'state': 'accepted'})
-        #                         write_state = 'accepted'
-        #                         _logger.warning("Checkpoint Zetta accepted write")
-        #                     elif acceptable_count == 1:
-        #                         participant.write({'state': 'tentative'})
-        #                         write_state = 'tentative'
-        #                         _logger.warning("Checkpoint Zettea tentative write")
-        #                     # else:
-        #                     #     self.write({'state': 'declined'})
-        #                     #     write_state = 'declined'
-        #                     #     # _logger.warning("E")
-        #                 else:
-        #                     participant.write({'state': 'declined'})
-        #                     write_state = 'declined'
-        #                     _logger.warning("Checkpoint Beta declined write")
-        #             else:
-        #                 # _logger.warning(current_tz.localize(self.event_date_start))
-        #                 # filtered = list(filter(lambda day: int(day.dayofweek) == int(event_day), workdays))
-
-        #                 participant.write({'state': 'declined'})
-        #                 write_state = 'declined'
-        #                 _logger.warning("Checkpoint Gamma declined write")
-        #                 # _logger.warning(f"F {write_state}")
-
-        #     # attendee_ids = self.event_id.attendee_ids
-        #     # ID = self.id            
-        #     # if not self.env.context.get('dont_write'):
-        #     #     for attendee_id in attendee_ids:                    attendee_id.with_context({'dont_write': True}).write({'state': write_state})
-
-        # # _logger.warning(f' BYPIDI WRITE {self} {vals} {res}')
         return res
 
 
     def set_state(self, overlapping_events,old=False):
-
-        own_state = 'accepted'	# test
-
-        msg_1 = 'Attendee is already scheduled on another contracted calendar event that overlaps the current time.'
-        msg_2 = 'Attendee is already scheduled on another regular calendar event that overlaps the current time.'
-        msg_3 = 'Attendee is on leave and cannot be scheduled on events in the current time period.'
-        msg_4 = 'Attendee is on leave and cannot be scheduled on events in the current time period. Attendee is also scheduled on another contracted calendar event that overlaps the current time.'
-        msg_5 = 'Attendee is on leave and cannot be scheduled on events in the current time period. Attendee is also scheduled on another regular calendar event that overlaps the current time.'
-        msg_6 = 'Attendee cannot be scheduled on hours outside of his/her working period.'
-        msg_7 = 'Attendee cannot be scheduled on hours outside of his/her working period. Attendee is also scheduled on another contracted calendar event that overlaps the current time.'
+        own_state = 'accepted'
+        msg_1 = _('Attendee is already scheduled on another contracted calendar event that overlaps the current time.')
+        msg_2 = _('Attendee is already scheduled on another regular calendar event that overlaps the current time.')
+        msg_3 = _('Attendee is on leave and cannot be scheduled on events in the current time period.')
+        msg_4 = _('Attendee is on leave and cannot be scheduled on events in the current time period. Attendee is also scheduled on another contracted calendar event that overlaps the current time.')
+        msg_5 = _('Attendee is on leave and cannot be scheduled on events in the current time period. Attendee is also scheduled on another regular calendar event that overlaps the current time.')
+        msg_6 = _('Attendee cannot be scheduled on hours outside of his/her work schedule.')
+        msg_7 = _('Attendee cannot be scheduled on hours outside of his/her work schedule. Attendee is also scheduled on another contracted calendar event that overlaps the current time.')
+        msg_8 = _('The scheduled time overlaps with the attendees lunch period.')
 
         if overlapping_events:
             for event in overlapping_events:
+                for attendee_event in event.attendee_ids:
+                    if attendee_event.id:
 
-                if event.attendee_ids.id:
+                        if attendee_event.state != 'declined':
+                            if attendee_event.time_off():
+                                attendee_event.write({'state': 'declined','state_msg': msg_4})
+                            else:
+                                attendee_event.write({'state': 'declined','state_msg': msg_1})
 
-                    if event.attendee_ids.state != 'declined':
-                        if event.attendee_ids.time_off():
-                            event.attendee_ids.write({'state': 'declined','state_msg': msg_4})
-                        else:
-                            event.attendee_ids.write({'state': 'declined','state_msg': msg_1})
+                        elif attendee_event.state_msg == msg_3:
+                            attendee_event.state_msg = msg_4
+                        
+                        elif attendee_event.state_msg == msg_6:
+                            attendee_event.state_msg = msg_7
 
-                    elif event.attendee_ids.state_msg == msg_3:
-                        event.attendee_ids.state_msg = msg_4
-                    
-                    elif event.attendee_ids.state_msg == msg_6:
-                        event.attendee_ids.state_msg = msg_7
+                        elif old:
+                            if attendee_event.state == 'declined':
+                                attendee_event.write({'state': 'accepted','state_msg': ''})
+                                #attendee_event.state = 'accepted'
 
-                    elif old:
-                        if event.attendee_ids.state == 'declined':
-                            event.attendee_ids.write({'state': 'accepted','state_msg': ''})
-                            #event.attendee_ids.state = 'accepted'
+                        if own_state != 'declined':
+                            own_state = 'declined'
 
-                    if own_state != 'declined':
-                        own_state = 'declined'
+                    else:
+                        if own_state != 'declined':
+                            own_state = 'tentative'
 
-                else:
-                    if own_state != 'declined':
-                        own_state = 'tentative'
 
             if self.work_interval() and own_state == 'declined' and self.state != 'declined':
                 self.write({'state': 'declined','state_msg': msg_1})
@@ -283,15 +154,19 @@ class CalendarAttendee(models.Model):
         elif not self.time_off() and self.work_interval() and self.state != 'accepted':
             self.write({'state': 'accepted','state_msg': ''})
 
-        if not self.work_interval():
-            if self.state != 'declined':
+        if not self.work_interval() and not self.time_off():
+            if self.lunch_period() and not self.time_off() and self.state_msg != msg_8 and own_state != 'declined':
+                self.write({'state': 'tentative','state_msg': msg_8})
+            elif not self.lunch_period() and self.state != 'declined':
                 self.write({'state': 'declined','state_msg': msg_6})
             elif self.state == 'declined' and own_state != 'declined' and self.state_msg != msg_6:
                 self.state_msg = msg_6
             
-            if own_state == 'declined' and self.state_msg != msg_7:
+            if own_state == 'declined' and self.state_msg != msg_7 and not self.lunch_period():
                 self.state_msg = msg_7
-		
+            elif own_state == 'declined' and self.state_msg != msg_1 and self.lunch_period():
+                self.write({'state': 'declined','state_msg': msg_1})
+        
         elif self.time_off():
             if self.state != 'declined':
                 self.write({'state': 'declined','state_msg': msg_3})
@@ -302,10 +177,10 @@ class CalendarAttendee(models.Model):
                 self.state_msg = msg_4
             elif own_state == 'tentative' and self.state_msg != msg_5:
                 self.state_msg = msg_5
-        
 
 
     def check_overlapping(self):
+        overlapping_events = []
         for participant in self:
             overlapping_events = self.env['calendar.event'].search([
                     '&',
@@ -329,6 +204,7 @@ class CalendarAttendee(models.Model):
                     ('partner_id', '=', participant.partner_id.id),
                     ('id', '!=', self.event_id.id),
                     ])
+            
         return overlapping_events
 
 
@@ -362,16 +238,70 @@ class CalendarAttendee(models.Model):
     def work_interval(self):
         current_tz = pytz.timezone('UTC')
         for participant in self:
-            work_intervals = participant.partner_id.user_ids[0].employee_id[0].resource_calendar_id[0]._work_intervals(participant.event_date_start.astimezone(current_tz), 
-                                                                                                                        participant.event_date_end.astimezone(current_tz))
+            try:
+                work_intervals = participant.partner_id.user_ids[0].employee_id[0].resource_calendar_id[0]._work_intervals(participant.event_date_start.astimezone(current_tz), 
+                                                                                                                            participant.event_date_end.astimezone(current_tz))
 
-            if work_intervals._items:
-                interval_start = work_intervals._items[0][0]
-                interval_stop = work_intervals._items[0][1]
+                if work_intervals._items:
+                    interval_start = work_intervals._items[0][0]
+                    interval_stop = work_intervals._items[0][1]
 
-                if self.event_date_start.astimezone(current_tz) == interval_start and self.event_date_end.astimezone(current_tz) == interval_stop:
-                    return True
+                    if self.event_date_start.astimezone(current_tz) == interval_start and self.event_date_end.astimezone(current_tz) == interval_stop:
+                        return True
+                    else:
+                        return False
                 else:
                     return False
-            else:
-                return False
+            except IndexError:
+                continue
+
+    def lunch_period(self):
+        try:
+            tz = self.partner_id.user_ids[0].employee_id.resource_calendar_id.tz
+        except IndexError:
+            return
+        current_tz = pytz.timezone(tz)
+        eventstart = self.event_date_start.astimezone(current_tz)
+        eventend = self.event_date_end.astimezone(current_tz)
+        data = {'0': {},'1': {},'2': {},'3': {},'4': {},'5': {},'6': {}}
+
+        for period in self.partner_id.user_ids[0].employee_id[0].resource_calendar_id[0].attendance_ids:
+            entry = data[period.dayofweek]
+            entry[period.day_period] = (period.hour_from,period.hour_to)
+            data[period.dayofweek] = entry
+        dayofweek = eventstart.now().weekday()
+        entry = data[str(dayofweek)]
+
+        if len(entry) == 2:
+            if 'morning' in entry and 'afternoon' in entry:
+                if entry['morning'][1] != entry['afternoon'][0]:
+                    day_start = entry['morning'][0]
+                    lunch_start = entry['morning'][1]
+                    lunch_stop = entry['afternoon'][0]
+                    day_stop = entry['afternoon'][1]
+
+                    # Convert eventstart hour and minute to a decimal integer
+                    h_int = lambda e: int(e.time().strftime('%-H'))
+                    m_int = lambda e: int(e.time().strftime('%-M')) / 60
+                    eventstart_int = h_int(eventstart) + m_int(eventstart)
+                    eventend_int = h_int(eventend) + m_int(eventend)
+
+                    # Check if event time and lunch overlaps
+                    if eventstart_int >= day_start and eventend_int <= day_stop:
+                        if eventstart_int < lunch_start and eventend_int > lunch_start:
+                            return True
+                        elif eventstart_int < lunch_stop and eventend_int > lunch_stop:
+                            return True
+                        elif eventstart_int <= lunch_start and eventend_int >= lunch_stop:
+                            return True
+                        elif eventstart_int >= lunch_start and eventend_int <= lunch_stop:
+                            return True
+        return False
+
+    def test(self):
+        # ('partner_id','=',self.partner_id.id),
+        mysearch = self.search([('event_date_start','>=',datetime.now())])
+        _logger.warning(f"{mysearch=}")
+        for record in mysearch:
+            overlap = record.check_overlapping()
+            self.set_state(overlap)

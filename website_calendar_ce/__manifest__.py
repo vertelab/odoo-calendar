@@ -20,7 +20,7 @@
 ##############################################################################
 
 {
-    'name': 'Calendar: Website Calendar',
+    'name': 'Calendar: Website Calendar CE',
     'version': '14.0.0.0.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Schedule bookings with clients',
@@ -40,6 +40,7 @@
     'depends': ['calendar_sms', 'hr', 'website', 'mail'],
     'data': [
         'data/website_calendar_data.xml',
+        'data/mail.xml',
         'views/calendar_views.xml',
         'views/calendar_booking_views.xml',
         'views/website_calendar_templates.xml',
