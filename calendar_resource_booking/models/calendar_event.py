@@ -31,7 +31,7 @@ class CalendarEventModify(models.Model):
             [
                 ('stop_date','<=',self.start_date),
                 ('start_date','>=',self.start_date),
-                ('resource_ids','in',self.resource_ids)
+               
                 ]
             )
         _logger.warning(calendars)
