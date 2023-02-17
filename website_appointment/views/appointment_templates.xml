@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Online Booking">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/website_appointment/static/src/js/appointment.js"/>
+        </xpath>
+    </template>
+
+    <template id="index" name="Website Appointment: Appointment Page">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure"/>
+                <div class="container mb128 o_website_calendar_booking">
+                    <ul class="wizard mt32 float-right">
+                        <li class="text-primary">Booking<span class="chevron"/>
+                        </li>
+                        <li class="text-muted">Time<span class="chevron"/>
+                        </li>
+                        <li class="text-muted">Confirmation<span class="chevron"/>
+                        </li>
+                    </ul>
+                    <h1 t-if="header" class="o_page_header mt32">
+                        <t t-esc="header"/>
+                    </h1>
+                    <h1 t-else="" class="o_page_header mt32">
+                        Schedule an Booking
+                    </h1>
+                    <div t-if="description" class="col-md-9">
+                        <t t-esc="description"/>
+                    </div>
+                    <div t-if="message=='cancel'" class="alert alert-danger mt16" role="alert">
+                        <p>
+                            <strong>Booking canceled!</strong>
+                            You can schedule another booking from here.
+                        </p>
+                    </div>
+                    <form class="o_website_appointment_form w-md-50" t-attf-action="/appointment/#{ slug(booking_type) }/booking" type="post">
+                        <div id="booking" class="form-group row">
+                            <label for="calendarType" class="col-md-3 col-form-label">Booking</label>
+                            <div class="col-md-9">
+                                <select class="form-control" id="calendarType" t-att-disabled="len(suggested_booking_types)==1 and '1' or None">
+                                    <t t-foreach="suggested_booking_types" t-as="cal">
+                                        <option t-att-value="cal.id" t-att-selected="cal.id == booking_type.id and 'selected'">
+                                            <t t-esc="cal.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+                        </div>
+                        <div name="header" class="form-group">
+                            <t t-esc="header"/>
+                        </div>
+                        <div name="description" class="form-group">
+                            <t t-esc="description"/>
+                        </div>
+
+                        <div class="form-group row" style="text-align: end;">
+                            <div class="offset-md-8 col-md-6">
+                                <button type="submit" class="btn btn-primary">View Availabilities <span class="fa fa-arrow-right"/>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div t-raw="booking_type.message_intro" class="o_calendar_intro mb32"/>
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="booking_calendar" name="Website Booking: Booking Calendars">
+        <div class="row" id="booking_calendar">
+            <input type="hidden" name="booking_type_id" t-att-value="booking_type.id"/>
+            <div t-foreach="slots" t-as="month" class="col-lg-6">
+                <h3 t-esc="month['month']"/>
+                <table class="table">
+                    <tr class="active">
+                        <th class="text-center">Mon</th>
+                        <th class="text-center">Tue</th>
+                        <th class="text-center">Wed</th>
+                        <th class="text-center">Thu</th>
+                        <th class="text-center">Fri</th>
+                        <th class="text-center">Sat</th>
+                        <th class="text-center">Sun</th>
+                    </tr>
+                    <tr t-foreach="month['weeks']" t-as="weeks" class="o_calendar_days">
+                        <t t-foreach="weeks" t-as="day">
+                            <td t-attf-class="text-center#{day['slots'] and ' o_day dropdown' or ''} #{day['weekend_cls']} #{day['today_cls']}" t-attf-title="#{day['today_cls'] and 'Today' or ''}">
+                                <t t-if="day['slots']">
+                                    <div class="dropdown-toggle o_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <strong>
+                                            <span t-esc="day['day'].day"/>
+                                        </strong>
+                                    </div>
+                                    <div class="dropdown-menu" role="menu">
+                                        <t t-foreach="day['slots']" t-as="slot">
+                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?employee_id=#{slot['employee_id']}&amp;date_time=#{slot['datetime']}&amp;description=#{description}&amp;title=#{title}" t-esc="slot['hours']"/>
+<!--                                            <a t-if='slot' role="menuitem" class="dropdown-item" t-attf-href="/website/calendar/#{booking_type.id}/info?" t-esc="slot['hours']"/>-->
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-if="not day['slots']">
+                                    <div t-esc="day['day'].day" t-att-class="day['mute_cls']"/>
+                                </t>
+                            </td>
+                        </t>
+                    </tr>
+                    <!--to fix bootstrap md height add empty "tr" so now each month has 6 weeks row -->
+                    <tr t-if="len(month['weeks']) == 5" class="o_calendar_days"/>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <template id="setup" name="Website Booking: Configure You Bookings">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure"/>
+                <div class="oe_structure container mb128">
+                    <h1 class="o_page_header">No bookings available!</h1>
+                    <p groups="base.group_user">
+                        In order to configure your first booking, go
+                        to the "Calendar" application in Odoo and create
+                        an online booking.
+                    </p>
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="booking" name="Website Booking: Schedule Booking">
+        <t t-call="website.layout">
+            <div id="wrap" class="o_website_calendar">
+                <div class="oe_structure"/>
+                <div class="oe_structure container mb128">
+                    <ul class="wizard mt32 float-right">
+                        <li>
+                            <a t-attf-href="/appointment" class="text-success">Booking</a>
+                            <span class="chevron"/>
+                        </li>
+                        <li class="text-primary">Time<span class="chevron"/>
+                        </li>
+                        <li class="text-muted">Confirmation<span class="chevron"/>
+                        </li>
+                    </ul>
+                    <h1 class="o_page_header mt32">Booking Time</h1>
+                    <div t-if="failed=='employee'" class="alert alert-danger mt16" role="alert">
+                        <p>
+                            <strong>Booking failed!</strong>
+                            The selected timeslot is not available anymore.
+                            Someone has booked the same time slot a few
+                            seconds before you.
+                        </p>
+                        <p>
+                            Please, select another date.
+                        </p>
+                    </div>
+                    <div t-if="failed=='datetime'" class="alert alert-danger mt16" role="alert">
+                        <p>
+                            <strong>Booking failed!</strong>
+                            You have likely selected an ending slot which is before the starting slot.
+                        </p>
+                        <p>
+                            Please, select another date.
+                        </p>
+                    </div>
+                    <div t-if="failed=='partner'" class="alert alert-danger mt16" role="alert">
+                        <p>
+                            <strong>Booking failed!</strong>
+                            The selected timeslot is not available.
+                            It appears you already have another meeting with us at that date.
+                        </p>
+                        <p>
+                            Please, select another date.
+                        </p>
+                    </div>
+                    <div class="mb8">
+                        <div class="row">
+                            <t t-foreach="employee_ids" t-as="employee_id">
+                                <a href="#" id="employee_selector" style="margin-left: 10px;" data-name="cover">
+<!--                                    badge-primary-->
+                                    <span class="badge badge-pill badge-secondary" style="font-size: 18px">
+                                        <input t-if="employee_id" type="hidden" name="employee_id" t-att-value="employee_id.id"/>
+                                        <span t-field="employee_id.image_128" t-att-title="employee_id.name" role="img" t-att-aria-label="employee_id.name" t-options='{"widget": "image", "class": "rounded-circle ", "style":"max-width: 30px; display: inline-block"}'/>
+
+                                        <t t-esc="employee_id.name"/>
+                                    </span>
+                                </a>
+                            </t>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6" style="text-align: start;margin: auto;">
+                                <a href="#" id="previous_month">
+                                    <i class="fa fa-fw o_button_icon fa-arrow-left"/>
+                                </a>
+                            </div>
+                            <div class="col-lg-6" style="text-align: end;margin: auto;">
+                                <a href="#" id="next_month">
+                                    <i class="fa fa-fw o_button_icon fa-arrow-right"/>
+                                </a>
+                            </div>
+<!--                            <div class="col-lg-2">-->
+<!--                                <t t-call="website.publish_management">-->
+<!--                                    <t t-set="object" t-value="booking_type"/>-->
+<!--                                    <t t-set="publish_edit" t-value="True"/>-->
+<!--                                    <t t-set="action" t-value="'website_calendar_ce.calendar_booking_type_action'"/>-->
+<!--                                </t>-->
+<!--                            </div>-->
+                        </div>
+
+                    </div>
+                    <div class="clearfix"/>
+                    <t t-call="website_appointment.booking_calendar"/>
+                    <p id="timezone">
+                        Time displayed in <strong t-esc="timezone"/> timezone
+                    </p>
+                </div>
+                <div class="oe_structure"/>
+            </div>
+        </t>
+    </template>
+</odoo>
