@@ -96,8 +96,8 @@ class CalendarAttendee(models.Model):
 
         res = super().write(vals)
         new_overlap = self.check_overlapping()
-        if len(new_overlap) != 0:
-            self.set_state(new_overlap)
+#        if len(new_overlap) != 0:
+        self.set_state(new_overlap)
         if old_overlap:
             self.set_state(old_overlap,True)
         

@@ -169,6 +169,7 @@
           <calendar date_stop="event_date_end" date_start="event_date_start" string="Events" color="color">
               <field name="event_id"/>
               <field name="state" filters="1"/>
+              <field name="state_msg"/>
               <field name="partner_id" filters="1"/>
               <field name="user_id" filters="1"/>
           </calendar>
