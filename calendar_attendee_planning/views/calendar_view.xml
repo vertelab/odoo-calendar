@@ -14,6 +14,16 @@
         action="ir_act_window_attendees_view"
     />
 
+    <record model="ir.actions.server" id="action_update_calendar_attendee_states">
+        <field name="name">Update States</field>
+        <field name="model_id" ref="model_calendar_attendee"/>
+        <field name="binding_model_id" ref="model_calendar_attendee"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.set_state_on_all_future_events()
+        </field>
+    </record>
+
   <record model="ir.ui.view" id="view_calender_attendee_tree">
     <field name="name">calender_attendee_tree</field>
     <field name="model">calendar.attendee</field>

@@ -298,10 +298,8 @@ class CalendarAttendee(models.Model):
                             return True
         return False
 
-    def test(self):
-        # ('partner_id','=',self.partner_id.id),
+    def set_state_on_all_future_events(self):
         mysearch = self.search([('event_date_start','>=',datetime.now())])
-        _logger.warning(f"{mysearch=}")
         for record in mysearch:
             overlap = record.check_overlapping()
             self.set_state(overlap)
