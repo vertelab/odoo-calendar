@@ -12,22 +12,12 @@ class HRLeaveWriteModify(models.Model):
     @api.model
     def create(self, vals_list):
         res = super().create(vals_list)
-        # _logger.warning(vals_list)
-
 
         partner_id = res.employee_id.user_partner_id.id
-        partner_in_attendees = self.env['calendar.attendee'].search([('partner_id', '=', partner_id)]).ids
-        # _logger.warning(partner_in_attendees)
-        for calendar_attendee_id in partner_in_attendees:
-            attendee = self.env['calendar.attendee'].browse(calendar_attendee_id) 
-            # _logger.warning(attendee)
-
-            for rec in attendee:
-                try: 
-                    if rec.event_date_start <= res.date_to and res.date_from <= rec.event_date_end:
-                        rec.write({'state': 'declined'})
-                except TypeError as e:
-                    raise UserWarning(f"One of the current logged in users calendar.attendees lacks a start or stop date.  {e}")
+        my_overlap = self.check_overlapping()
+        for overlap in my_overlap:
+            for attendee in overlap.attendee_ids:
+                attendee.set_state()
                     
         return res
 
@@ -55,39 +45,31 @@ class HRLeaveWriteModify(models.Model):
         return overlapping_events
 
     def write(self, vals):
-        partner_id = self.employee_id.user_partner_id.id
-        partner_in_attendees = self.env['calendar.attendee'].search([('partner_id', '=', partner_id)]).ids
+        #partner_id = self.employee_id.user_partner_id.id
+        pre_move_overlap = self.check_overlapping()
 
-        # if 'date_from' in vals:
-        #     old_overlap = attendee.check_overlapping()
         res = super().write(vals)
 
-        # _logger.warning(partner_in_attendees)
-        for calendar_attendee_id in partner_in_attendees:
-            attendee = self.env['calendar.attendee'].browse(calendar_attendee_id) 
-            # _logger.warning(attendee)
+        post_move_overlap = self.check_overlapping()
 
-            overlap = self.check_overlapping()
-            attendee.set_state(overlap)
+        for overlap in pre_move_overlap:
+            for attendee in overlap.attendee_ids:
+                attendee.set_state()
+
+        for overlap in post_move_overlap:
+            for attendee in overlap.attendee_ids:
+                attendee.set_state()
 
         return res
+    
+    def unlink(self):
+        #partner_id = self.employee_id.user_partner_id.id
+        pre_move_overlap = self.check_overlapping()
 
-    # def create(self, vals_list):
-    #     res = super(HRLeaveWriteModify, self).create(vals_list)
-    #     _logger.warning(f"HR LEAVE CREATE {res} {vals_list}")
+        res = super().unlink()
 
-    # def write(self, vals):
-    #     res = super(HRLeaveWriteModify, self).write(vals)
-    #     _logger.warning(f"HR LEAVE WRITE {res} {vals}")
+        for overlap in pre_move_overlap:
+            for attendee in overlap.attendee_ids:
+                attendee.set_state()
 
-    # @api.onchange('date_from', 'date_to', 'number_of_days')
-    # @api.depends('date_from', 'date_to', 'number_of_days')
-    # def update_calendar_attendees(self):
-    #     _logger.warning('HELLO')
-    #     for rec in self:
-    #         partner_id = self.employee_id.user_partner_id.id
-    #         calendar_attendees_ids = self.env['calendar.attendee'].search([('partner_id', '=', partner_id)])
-
-    #         for id in calendar_attendees_ids:
-    #             browse_attendee = self.env['calendar.attendee'].browse(id)
-    #             _logger.warning(browse_attendee)
+        return res

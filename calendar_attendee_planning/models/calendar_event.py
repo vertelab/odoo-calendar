@@ -8,53 +8,76 @@ _logger = logging.getLogger(__name__)
 class CalendarEventModify(models.Model):
     _inherit = "calendar.event"
 
-    # @api.model
-    # def create(self, vals_list):
-    #     res = super().create(vals_list)
-    #     _logger.warning(vals_list)
-    #     return res
-        
-#     def create(self, vals_list):
-#         res = super().create(vals_list)
-#         #_logger.warning(f"BAPIDI {self} {vals_list} {res}")
-#         # for vals in vals_list:
-#             # res = super().create(vals)
-#             # _logger.warning(f"BAPIDI {self} {vals} {res}")
-#             # if res.recurrence_id != False and res.contract_id == False:
-#             #     res.contract_id = res.recurrence_id.base_event_id.contract_id.id
-                
-#             # _logger.warning(f"calendar event {self.env['calendar.event'].search_read([('id', '=', res.id)],[])}")
+    @api.model
+    def create(self, vals_list):
+        res = super().create(vals_list)
 
-#         return res
-        
-#     #consider what to do about returning res in the middle of loop
+        my_overlap = self.check_overlapping()
+        for overlap in my_overlap:
+            for attendee in overlap.attendee_ids:
+                attendee.set_state()
+        return res
+
     def write(self, vals):
-        if 'active' in vals.keys() and vals['active'] == False:
-            vals['attendee_ids'] = [(5, 0, 0)]
-            # _logger.warning(f"CALENDAR EVENT WRITE {self} {vals}")
+        res = None
+        for event in self:
+            if 'active' in vals.keys() and vals['active'] == False:
+                vals['attendee_ids'] = [(5, 0, 0)]
 
-        res = super().write(vals)
-        _logger.warning(f"calendar event vals {vals}")
-#         # for cal in self:
-#         #     res = super().write(cal)
-#         #     _logger.warning(f"BOPIDI {cal} {vals} {res}")
-#             # if cal.recurrence_id != False and cal.contract_id == False:
-#             #     cal.contract_id = cal.recurrence_id.base_event_id.contract_id.id
+            pre_move_overlap = event.check_overlapping()
+
+            res = super().write(vals)
+            if res == False:
+                break
+
+            post_move_overlap = event.check_overlapping()
+            for attendee in event.attendee_ids:
+                #if len(new) != 0:
+                attendee.set_state()
+
+            for attendee in pre_move_overlap.attendee_ids:
+                attendee.set_state()
+
+            for attendee in post_move_overlap.attendee_ids:
+                attendee.set_state()
         
-        return res  
+        return res
+    
+    def unlink(self):
+        pre_move_overlap = self.check_overlapping()
 
-# # class CalendarRecurrenceModify(models.Model):
-# #     _inherit = "calendar.recurrence"
-        
-# #     #consider what to do about returning res in the middle of loop
-# #     def write(self, vals):
-# #         res = super(CalendarRecurrenceModify, self).write(vals)
-# #         for rec in self:
-# #             _logger.warning(f"first loop {rec}")
-# #             for event in rec.calendar_event_ids:
-# #                 _logger.warning(f"second loop {event}")
-# #                 event.write({'contract_id': rec.base_event_id.contract_id})
-# #                 self.env['calendar.event'].browse(rec.base_event_id)
+        res = super().unlink()
 
-# #         return res  
+        for overlap in pre_move_overlap:
+            for attendee in overlap.attendee_ids:
+                attendee.set_state()
 
+        return res
+
+    def check_overlapping(self):
+        overlapping_events = []
+        for event in self:
+            overlapping_events = self.search([
+                    '&',
+                        '|',
+                            '&',
+                                ('start','<',self.start),
+                                ('stop','>',self.start),
+                            '|',
+                                '&',
+                                    ('start','<',self.stop),
+                                    ('stop','>',self.stop),
+                                '|',
+                                    '&',
+                                        ('start','<=',self.start),
+                                        ('stop','>=',self.stop),
+                                    '&',
+                                        ('start','>=',self.start),
+                                        ('stop','<=',self.stop),
+                        # '&',
+                        # #('partner_id', 'in', attendee_partners),
+                        #     ('partner_id', '=', event.partner_id.id),
+                        ('id', '!=', self.id),
+                    ])
+            
+        return overlapping_events
