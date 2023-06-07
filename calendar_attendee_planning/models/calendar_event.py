@@ -46,13 +46,13 @@ class CalendarEventModify(models.Model):
     def unlink(self):
         pre_move_overlap = self.check_overlapping()
 
-        super().unlink()
+        res = super().unlink()
 
         for overlap in pre_move_overlap:
             for attendee in overlap.attendee_ids:
                 attendee.set_state()
 
-        return True
+        return res
 
     def check_overlapping(self):
         overlapping_events = self.env['calendar.event']
