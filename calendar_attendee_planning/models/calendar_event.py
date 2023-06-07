@@ -46,38 +46,38 @@ class CalendarEventModify(models.Model):
     def unlink(self):
         pre_move_overlap = self.check_overlapping()
 
-        res = super().unlink()
+        super().unlink()
 
         for overlap in pre_move_overlap:
             for attendee in overlap.attendee_ids:
                 attendee.set_state()
 
-        return res
+        return True
 
     def check_overlapping(self):
-        overlapping_events = []
+        overlapping_events = self.env['calendar.event']
         for event in self:
-            overlapping_events = self.search([
+            overlapping_events |= self.search([
                     '&',
                         '|',
                             '&',
-                                ('start','<',self.start),
-                                ('stop','>',self.start),
+                                ('start','<',event.start),
+                                ('stop','>',event.start),
                             '|',
                                 '&',
-                                    ('start','<',self.stop),
-                                    ('stop','>',self.stop),
+                                    ('start','<',event.stop),
+                                    ('stop','>',event.stop),
                                 '|',
                                     '&',
-                                        ('start','<=',self.start),
-                                        ('stop','>=',self.stop),
+                                        ('start','<=',event.start),
+                                        ('stop','>=',event.stop),
                                     '&',
-                                        ('start','>=',self.start),
-                                        ('stop','<=',self.stop),
+                                        ('start','>=',event.start),
+                                        ('stop','<=',event.stop),
                         # '&',
                         # #('partner_id', 'in', attendee_partners),
                         #     ('partner_id', '=', event.partner_id.id),
-                        ('id', '!=', self.id),
+                        ('id', '!=', event.id),
                     ])
             
         return overlapping_events
