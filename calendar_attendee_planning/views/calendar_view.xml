@@ -4,6 +4,7 @@
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">calendar.attendee</field>
         <field name="view_mode">tree,form,kanban,calendar,timeline</field>
+        <field name="context">{"search_default_my_responsibility":1}</field>
     </record>
 
     <menuitem
@@ -190,10 +191,11 @@
     <field name="name">calendar.attendee.search.view</field>
     <field name="model">calendar.attendee</field>
     <field name="arch" type="xml">
-      <search string="filters_and_groups">           
+      <search string="filters_and_groups">
+        <filter name="my_responsibility" string="My Responsibility" domain="[('user_id', '=', uid)]" />
         <filter name="today" string="Today" domain="[('event_date_start', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0)),('event_date_start', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59))]" />
         <filter name="tomorrow" string="Tomorrow" domain="[('event_date_start', '&gt;=', datetime.datetime.now().replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)),('event_date_start', '&lt;=', datetime.datetime.now().replace(hour=23, minute=59, second=59) + datetime.timedelta(days=1))]" />
-        <filter name="this_week" string="This Week" domain="[('event_week', '&lt;=', (context_today()+relativedelta(weeks=0, weekday=-1)).strftime('%Y-%m-%d')), ('event_week', '&gt;=', (context_today()-relativedelta(weeks=1, weekday=0)).strftime('%Y-%m-%d'))]"/>
+        <filter name="this_week" string="This Week" domain="[('event_week', '&lt;=', (context_today()+relativedelta(weeks=0, weekday=-1)).strftime('%Y-%m-%d')), ('event_week', '&gt;=', (context_today()-relativedelta(weeks=1, weekday=0, year=context_today().year)).strftime('%Y-%m-%d'))]"/>
         <group string="Group by">
             <filter name="responsible" string="Responsible" context="{'group_by':'user_id'}"/>
             <filter name="attendee" string="Attendee" context="{'group_by':'partner_id'}"/>

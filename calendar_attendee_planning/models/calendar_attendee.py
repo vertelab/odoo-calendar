@@ -53,7 +53,7 @@ class CalendarAttendee(models.Model):
     def _compute_week_number(self):
         for rec in self:
             # _logger.warning(f"FIRST: {date.today().year} SECOND: {datetime.date(rec.event_date_start).isocalendar()[1]} THIRD: {datetime.strptime('%s-%s-%s' % (date.today().year, datetime.date(rec.event_date_start).isocalendar()[1], 1), '%G-%V-%u')} FOURTH: {datetime.strptime('%s-%s-%s' % (date.today().year, datetime.date(rec.event_date_start).isocalendar()[1], 1), '%G-%V-%u').strftime('%Y-%m-%d')}")
-            rec.event_week = datetime.strptime('%s-%s-%s' % (date.today().year, datetime.date(rec.event_date_start).isocalendar()[1], 1), '%G-%V-%u').strftime('%Y-%m-%d')
+            rec.event_week = datetime.strptime('%s-%s-%s' % (datetime.date(rec.event_date_start).year, datetime.date(rec.event_date_start).isocalendar()[1], 1), '%G-%V-%u').strftime('%Y-%m-%d')
             # rec.event_week = datetime.date(rec.event_date_start).isocalendar()[1]
 
     def _read_attendee_ids(self, custom, domain, order):
