@@ -10,11 +10,11 @@ class HrEmployeeWriteModify(models.Model):
 
     def write(self,vals):
         res = super().write(vals)
-
-        if 'resource_calendar_id' in vals:
-            events = self.env['calendar.attendee'].search([('event_date_start','>=',datetime.now()),('partner_id','=',self.user_partner_id.id)])
-            for event in events:
-                overlap = event.check_overlapping()
-                event.set_state(overlap)
+        if 'hr.contract' in self:
+            if 'resource_calendar_id' in vals:
+                events = self.env['calendar.attendee'].search([('event_date_start','>=',datetime.now()),('partner_id','=',self.user_partner_id.id)])
+                for event in events:
+                    overlap = event.check_overlapping()
+                    event.set_state(overlap)
 
         return res
