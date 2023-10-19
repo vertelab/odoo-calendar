@@ -21,7 +21,7 @@ class BookingWebsiteSale(WebsiteSale):
                                 **kwargs):
         # sale_order_id = request.session['sale_order_id']
         if not booking_type:
-            country_code = request.session.geoip and request.session.geoip.get('country_code')
+            country_code = request.geoip and request.geoip.get('country_code')
             if country_code:
                 suggested_booking_types = request.env['calendar.booking.type'].search([
                     '|', ('country_ids', '=', False),
@@ -183,6 +183,9 @@ class BookingWebsiteSale(WebsiteSale):
         if order and order.state != 'draft':
             request.session['sale_order_id'] = None
             order = request.website.sale_get_order()
+
+        request.session['website_sale_cart_quantity'] = order.cart_quantity
+
         values = {}
         if access_token:
             abandoned_order = request.env['sale.order'].sudo().search([('access_token', '=', access_token)], limit=1)
@@ -190,15 +193,13 @@ class BookingWebsiteSale(WebsiteSale):
                 raise NotFound()
             if abandoned_order.state != 'draft':  # abandoned cart already finished
                 values.update({'abandoned_proceed': True})
-            elif revive == 'squash' or (revive == 'merge' and not request.session.get(
-                    'sale_order_id')):  # restore old cart or merge with unexistant
+            elif revive == 'squash' or (revive == 'merge' and not request.session.get('sale_order_id')):  # restore old cart or merge with unexistant
                 request.session['sale_order_id'] = abandoned_order.id
                 return request.redirect('/shop/cart')
             elif revive == 'merge':
                 abandoned_order.order_line.write({'order_id': request.session['sale_order_id']})
                 abandoned_order.action_cancel()
-            elif abandoned_order.id != request.session.get(
-                    'sale_order_id'):  # abandoned cart found, user have to choose what to do
+            elif abandoned_order.id != request.session.get('sale_order_id'):  # abandoned cart found, user have to choose what to do
                 values.update({'access_token': abandoned_order.access_token})
 
         values.update({
@@ -208,11 +209,10 @@ class BookingWebsiteSale(WebsiteSale):
             'error': post.get('error', False)
         })
         if order:
+            values.update(order._get_website_sale_extra_values())
             order.order_line.filtered(lambda l: not l.product_id.active).unlink()
-            _order = order
-            if not request.env.context.get('pricelist'):
-                _order = order.with_context(pricelist=order.pricelist_id.id)
-            values['suggested_products'] = _order._cart_accessories()
+            values['suggested_products'] = order._cart_accessories()
+            values.update(self._get_express_shop_payment_values(order))
 
         if post.get('type') == 'popover':
             # force no-cache so IE11 doesn't cache this XHR
@@ -254,10 +254,10 @@ class BookingWebsiteSale(WebsiteSale):
             request.session['sale_order_id'] = None
             order = request.website.sale_get_order()
         product_values = self._prepare_product_values(product, category, search, **kwargs)
+
         if order.order_line and product.product_variant_id in order.order_line.mapped('product_id'):
             product_values.update({
                 'product_on_order': product.product_variant_id,
-                'has_products': True
             })
 
         return request.render("website_sale.product", product_values)

@@ -25,7 +25,7 @@
     'category': 'Calendar',
     'summary': 'Subscription on calendar.ics-urls',
     'images': ['static/description/banner.png'], # 560x280 px.
-    'licence': 'AGPL-3',
+    'license': 'AGPL-3',
     'description': """
     Adds and updates calendar objects according to an ics-url.
     """,

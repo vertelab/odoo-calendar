@@ -1,6 +1,6 @@
 {
     'name': 'Calendar: Product Booking Checkout',
-    'version': '14.0.0.0.1',
+    'version': '16.0.0.0.1',
     'summary': 'Product Booking Checkout',
     'category': 'Calendar',
     'description': """
@@ -22,6 +22,11 @@
         "views/product_view.xml",
 
     ],
+    'assets': {
+        'web.assets_frontend': [
+            'website_booking_checkout/static/src/js/website_calendar_ce.js'
+        ],
+    },
     'installable': True,
     'application': True,
     'auto_install': False,

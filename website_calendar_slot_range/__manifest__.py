@@ -21,7 +21,7 @@
 
 {
     'name': 'Calendar: Website Calendar Slot Range',
-    'version': '14.0.0.0.1',
+    'version': '16.0.0.0.1',
     'summary': 'Booking a range of time slot',
     'category': 'Calendar',
     'description': """

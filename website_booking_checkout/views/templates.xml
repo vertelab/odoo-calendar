@@ -1,9 +1,4 @@
 <odoo>
-    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Online Booking">
-        <xpath expr="." position="inside">
-            <script type="text/javascript" src="/website_booking_checkout/static/src/js/website_calendar_ce.js"/>
-        </xpath>
-    </template>
 
     <template id="product_booking" name="Product Booking" track="1">
         <t t-call="website.layout">
@@ -38,7 +33,7 @@
 
                     <div id="wrap" class="o_website_product_booking">
                         <div class="oe_structure container mb128">
-                            <ul class="wizard mt32 float-right">
+                            <ul class="wizard mt32 float-end">
                                 <li>
                                     <a t-attf-href="/shop/#{ slug(product) }/booking-type" class="text-success">Booking</a>
                                     <span class="chevron"></span>
@@ -136,7 +131,7 @@
                         <t t-foreach="weeks" t-as="day">
                             <td t-attf-class="text-center#{day['slots'] and ' o_day dropdown' or ''} #{day['weekend_cls']} #{day['today_cls']}" t-attf-title="#{day['today_cls'] and 'Today' or ''}">
                                 <t t-if="day['slots']">
-                                    <div class="dropdown-toggle o_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <div class="dropdown-toggle o_slots_dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         <strong>
                                             <span t-esc="day['day'].day"/>
                                         </strong>
@@ -172,7 +167,7 @@
         <t t-call="website.layout">
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure container mb128 o_website_calendar_booking">
-                    <ul class="wizard mt32 float-right">
+                    <ul class="wizard mt32 float-end">
                         <li class="text-primary">Booking<span class="chevron"/></li>
                         <li class="text-muted">Time<span class="chevron"/></li>
                         <li class="text-muted">Confirmation<span class="chevron"/></li>
@@ -211,38 +206,42 @@
                         <div name="description" class="form-group">
                             <t t-esc="description"></t>
                         </div>
-                        <div class="form-group row" style="text-align: end;">
+                        <div class="form-group row" style="text-align: end; margin: 20px">
                             <div class="offset-md-8 col-md-6">
                                 <button type="submit" class="btn btn-primary">View Availabilities <span class="fa fa-arrow-right"/>
                                 </button>
                             </div>
                         </div>
                     </form>
-                    <div t-raw="booking_type.message_intro" class="o_calendar_intro mb32"/>
+                    <div t-out="booking_type.message_intro" class="o_calendar_intro mb32"/>
                 </div>
             </div>
         </t>
     </template>
 
-
-
     <template id="product_quantity" inherit_id="website_sale.product">
          <xpath expr="//a[@id='add_to_cart']" position="replace">
-             <a t-if="has_products" role="button" class="btn btn-primary btn-lg mt16 d-block d-sm-inline-block" t-attf-href="/shop/#{ slug(product_on_order) }/booking-type"><i class="fa fa-shopping-cart"/> Proceed to Booking</a>
-             <p t-if="has_products">You have added an item to cart. Delete the item in the cart if you want to change your item</p>
-             <a t-else="" role="button" id="add_to_cart" class="btn btn-primary btn-lg mt16 js_check_product a-submit d-block d-sm-inline-block" href="#"><i class="fa fa-shopping-cart"/> Add to Cart</a>
+             <t t-if="product.is_booking and product_on_order">
+                 <a role="button" t-attf-class="btn btn-primary btn-lg d-block d-sm-inline-block"
+                    t-attf-href="/shop/#{ slug(product.product_variant_id) }/booking-type"
+                    data-tooltip="You have added an item to cart. Delete the item in the cart if you want to change your item"><i class="fa fa-shopping-cart"/>
+                     Proceed to Booking
+                 </a>
+             </t>
+             <t t-else="">
+                <a  role="button" id="add_to_cart" class="btn btn-primary btn-lg js_check_product a-submit d-block d-sm-inline-block" href="#"><i class="fa fa-shopping-cart"/> Add to Cart</a>
+             </t>
          </xpath>
     </template>
 
      <template id="cart_lines" inherit_id="website_sale.cart_lines">
-         <xpath expr="//table[@id='cart_products']//t[@t-foreach='website_sale_order.website_order_line']/tr[1]/td[hasclass('td-product_name')]/div[1]" position="replace">
+         <xpath expr="//table[@id='cart_products']//t[@t-foreach='website_sale_order.website_order_line']/tr[1]/t[@t-else='']/td[hasclass('td-product_name')]/div[1]" position="replace">
              <div>
                  <t t-call="website_sale.cart_line_product_link">
                      <strong t-field="line.name_short" />
                  </t>
              </div>
              <t t-if="line.sale_order_booking_id">
-
                  <i t-field="line.sale_order_booking_id.start_date" style="font-size:13px;"/> - <i t-field="line.sale_order_booking_id.end_date" style="font-size:13px;"/>
              </t>
          </xpath>
