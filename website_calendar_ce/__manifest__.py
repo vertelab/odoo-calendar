@@ -61,6 +61,19 @@
             'pandas'  # sudo pip3 install pandas
         ]
     },
+    'assets': {
+        'web.assets_frontend': [
+            'website_calendar_ce/static/src/scss/website_calendar_ce.scss',
+            'website_calendar_ce/static/src/js/website_calendar_ce.js'
+        ],
+        'web.assets_backend': [
+            'website_calendar_ce/static/src/scss/booking_employee_url.scss',
+            'website_calendar_ce/static/src/js/booking_employee_url.js'
+        ],
+        'website.assets_wysiwyg': [
+            'website_calendar_ce/static/src/js/website_calendar.editor.js'
+        ]
+    },
     'installable': True,
     'application': True,
     'auto_install': False,

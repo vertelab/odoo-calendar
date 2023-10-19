@@ -66,6 +66,7 @@ class WebsiteCalendarExtended(WebsiteCalendar):
                 'end_datetime_str': end_date,
             })
 
+        print(employee_id)
         employee = request.env['hr.employee'].sudo().browse(int(employee_id))
         if employee.user_id and employee.user_id.partner_id:
             if not employee.user_id.partner_id.calendar_verify_availability(fields.Datetime.from_string(start_date),

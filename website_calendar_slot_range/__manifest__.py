@@ -41,6 +41,11 @@
         'views/website_calendar_templates.xml'
 
     ],
+    'assets': {
+        'web.assets_frontend': [
+            'website_calendar_slot_range/static/src/js/website_calendar_ce.js'
+        ],
+    },
     'installable': True,
     'application': True,
     'auto_install': False,

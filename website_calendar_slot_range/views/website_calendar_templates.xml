@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Online Booking">
-        <xpath expr="." position="inside">
-            <script type="text/javascript" src="/website_calendar_slot_range/static/src/js/website_calendar_ce.js"/>
-        </xpath>
-    </template>
-
     <template id="website_calendar_slot_range_booking_calendar" inherit_id="website_calendar_ce.booking_calendar">
         <xpath expr="//tr[hasclass('o_calendar_days')]" position="replace">
             <tr t-foreach="month['weeks']" t-as="weeks" class="o_calendar_days">
                 <t t-foreach="weeks" t-as="day">
                     <td t-attf-class="text-center#{day['slots'] and ' o_day dropdown' or ''} #{day['weekend_cls']} #{day['today_cls']}" t-attf-title="#{day['today_cls'] and 'Today' or ''}">
                         <t t-if="day['slots']">
-                            <div class="dropdown-toggle o_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div class="dropdown-toggle o_slots_dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <strong>
                                     <span t-esc="day['day'].day"/>
                                 </strong>

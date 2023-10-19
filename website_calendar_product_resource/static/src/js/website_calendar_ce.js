@@ -125,6 +125,16 @@ odoo.define('website_calendar_product_resource.select_booking_type', function (r
             }
         },
 
+        formatDate: function (datetime) {
+            const year = datetime.getFullYear();
+            const month = String(datetime.getMonth() + 1).padStart(2, '0');
+            const day = String(datetime.getDate()).padStart(2, '0');
+            const hours = String(datetime.getHours()).padStart(2, '0');
+            const minutes = String(datetime.getMinutes()).padStart(2, '0');
+            const seconds = String(datetime.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        },
+
         _HighlightMultipleSlots: function (event) {
             var clicked_slot = $(event.target)
             var booking_id = $(event.target).data('bookingId')
@@ -152,8 +162,15 @@ odoo.define('website_calendar_product_resource.select_booking_type', function (r
                 $("#proceed_with_slot").attr("href", booking_url)
             }
             else if(this.starting_slot && typeof(this.ending_slot) === "undefined") {
+                var starting_slot_date = new Date(this.starting_slot);
+                starting_slot_date.setMinutes(starting_slot_date.getMinutes() + 30);
+                this.ending_slot = this.formatDate(new Date(starting_slot_date.toLocaleString()));
+
                 $("#selected_slots").html('You have selected: <strong>' + this.starting_slot + '</strong>')
-                var booking_url = `/website/calendar/${booking_id}/info?product_id=${product_id}&start_date=${this.starting_slot}&description=${description}&title=${title}`
+
+                var booking_url = `/website/calendar/${booking_id}/product/info?product_id=${product_id}&start_date=${this.starting_slot}&end_date=${this.ending_slot}&description=${description}&title=${title}`
+
+//                var booking_url = `/website/calendar/${booking_id}/info?product_id=${product_id}&start_date=${this.starting_slot}&description=${description}&title=${title}`
                 $("#proceed_with_slot").attr("href", booking_url)
             }
         }

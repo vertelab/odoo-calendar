@@ -37,7 +37,10 @@ class CalendarBooking(models.Model):
         last_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(days=self.max_schedule_days))
 
         # Compute available slots (ordered)
-        slots = self._product_slots_generate(first_day.astimezone(appt_tz), last_day.astimezone(appt_tz), timezone, product)
+        if product:
+            slots = self._product_slots_generate(first_day.astimezone(appt_tz), last_day.astimezone(appt_tz), timezone, product)
+        else:
+            slots = []
         # if not product or product in self.product_ids:
         #     self._check_product_booking_time(product)
             # self._slots_available(slots, first_day.astimezone(pytz.UTC), last_day.astimezone(pytz.UTC), product)

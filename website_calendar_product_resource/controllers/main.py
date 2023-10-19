@@ -41,7 +41,7 @@ class WebsiteCalendar(http.Controller):
         website=True)
     def calendar_booking_product_choice(self, booking_type=None, product_id=None, **kwargs):
         if not booking_type:
-            country_code = request.session.geoip and request.session.geoip.get('country_code')
+            country_code = request.geoip and request.geoip.get('country_code')
             if country_code:
                 suggested_booking_types = request.env['calendar.booking.type'].search([
                     '|', ('country_ids', '=', False),
@@ -90,8 +90,10 @@ class WebsiteCalendar(http.Controller):
     def calendar_booking(self, booking_type=None, product_id=None, failed=False, **kwargs):
         if product_id:
             product_obj = request.env['product.product'].sudo().browse(int(product_id)) if product_id else None
-        else:
+        elif booking_type and booking_type.product_ids:
             product_obj = booking_type.product_ids[0]
+        else:
+            product_obj = False
 
         session = request.session
         timezone = session.get('timezone')

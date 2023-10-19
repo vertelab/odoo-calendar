@@ -40,7 +40,7 @@ class WebsiteCalendar(http.Controller):
     def calendar_booking_choice(self, booking_type=None, employee_id=None, message=None, description=None, header=None,
                                 **kwargs):
         if not booking_type:
-            country_code = request.session.geoip and request.session.geoip.get('country_code')
+            country_code = request.geoip and request.geoip.get('country_code')
             if country_code:
                 suggested_booking_types = request.env['calendar.booking.type'].search([
                     '|', ('country_ids', '=', False),

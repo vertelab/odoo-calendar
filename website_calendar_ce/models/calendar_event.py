@@ -94,13 +94,13 @@ class Meeting(models.Model):
         if public_partner:
             events.filtered(lambda event: event.start > fields.Datetime.now()).attendee_ids.filtered(
                 lambda attendee: attendee.partner_id.id == public_partner.id)._send_mail_to_attendees(
-                'website_calendar_ce.calendar_template_meeting_invitation_public')
+                self.env.ref('website_calendar_ce.calendar_template_meeting_invitation_public'))
             events.filtered(lambda event: event.start > fields.Datetime.now()).attendee_ids.filtered(
                 lambda attendee: attendee.partner_id.id != public_partner.id)._send_mail_to_attendees(
-                'calendar.calendar_template_meeting_invitation')
+                self.env.ref('calendar.calendar_template_meeting_invitation'))
         else:
             events.filtered(lambda event: event.start > fields.Datetime.now()).attendee_ids._send_mail_to_attendees(
-                'calendar.calendar_template_meeting_invitation')
+                self.env.ref('calendar.calendar_template_meeting_invitation'))
         events._sync_activities(fields={f for vals in vals_list for f in vals.keys()})
 
         # Notify attendees if there is an alarm on the created event, as it might have changed their

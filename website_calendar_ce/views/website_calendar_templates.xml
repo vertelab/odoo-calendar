@@ -28,15 +28,10 @@
     <!-- Pages -->
     <template id="index" name="Website booking: Booking Page">
         <t t-call="website.layout">
-            <t t-set="head">
-                 <link rel="stylesheet" type="text/scss" href="/website_calendar_ce/static/src/scss/website_calendar_ce.scss" t-ignore="true"/>
-            <script type="text/javascript" src="/website_calendar_ce/static/src/js/website_calendar_ce.js"/>
-            </t>
-            
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure"/>
                 <div class="container mb128 o_website_calendar_booking">
-                    <ul class="wizard mt32 float-right">
+                    <ul class="wizard mt32 float-end">
                         <li class="text-primary">Booking<span class="chevron"/>
                         </li>
                         <li class="text-muted">Time<span class="chevron"/>
@@ -79,14 +74,14 @@
                             <t t-esc="description"/>
                         </div>
                         <t t-call="website_calendar_ce.employee_select"/>
-                        <div class="form-group row" style="text-align: end;">
+                        <div class="form-group row" style="text-align: end; margin: 20px">
                             <div class="offset-md-8 col-md-6">
                                 <button type="submit" class="btn btn-primary">View Availabilities <span class="fa fa-arrow-right"/>
                                 </button>
                             </div>
                         </div>
                     </form>
-                    <div t-raw="booking_type.message_intro" class="o_calendar_intro mb32"/>
+                    <div t-out="booking_type.message_intro" class="o_calendar_intro mb32"/>
                 </div>
                 <div class="oe_structure"/>
             </div>
@@ -144,7 +139,7 @@
                         <t t-foreach="weeks" t-as="day">
                             <td t-attf-class="text-center#{day['slots'] and ' o_day dropdown' or ''} #{day['weekend_cls']} #{day['today_cls']}" t-attf-title="#{day['today_cls'] and 'Today' or ''}">
                                 <t t-if="day['slots']">
-                                    <div class="dropdown-toggle o_slots_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <div class="dropdown-toggle o_slots_dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         <strong>
                                             <span t-esc="day['day'].day"/>
                                         </strong>
@@ -173,7 +168,7 @@
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure"/>
                 <div class="oe_structure container mb128">
-                    <ul class="wizard mt32 float-right">
+                    <ul class="wizard mt32 float-end">
                         <li>
                             <a t-attf-href="/website/calendar" class="text-success">Booking</a>
                             <span class="chevron"/>
@@ -252,7 +247,7 @@
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure"/>
                 <div class="oe_structure container mb128 o_website_calendar_form">
-                    <ul class="wizard mt32 float-right">
+                    <ul class="wizard mt32 float-end">
                         <li>
                             <a t-attf-href="/website/calendar" class="text-success">Booking</a>
                             <span class="chevron"/>
@@ -328,7 +323,7 @@
 
                         <t t-foreach="booking_type.question_ids" t-as="question">
                             <div class="form-group row col-xl-8 form-field" t-if="question.question_type!='text'">
-                                <label t-att-for="question_#{question.id}" class="col-md-4 col-form-label" t-esc="question.name"/>
+                                <label t-att-for="'question_%s' % (question.id)" class="col-md-4 col-form-label" t-esc="question.name"/>
                                 <div class="col-md-8">
                                     <t t-if="question.question_type=='char'">
                                         <input type="char" class="form-control o_website_form_input" t-attf-name="question_#{question.id}" t-att-required="question.question_required or None" t-att-placeholder="question.placeholder"/>
@@ -361,16 +356,16 @@
                                 </div>
                             </div>
                             <div class="form-group row col-xl-8" t-if="question.question_type=='text'">
-                                <label t-att-for="question_#{question.id}" class="col-md-4 col-form-label" t-esc="question.name"/>
+                                <label t-att-for="'question_%s' % (question.id)" class="col-md-4 col-form-label" t-esc="question.name"/>
                                 <div class="col-md-8">
                                     <textarea class="form-control o_website_form_input" rows="8" t-att-required="question.question_required or None" t-attf-name="question_#{question.id}" t-att-placeholder="question.placeholder"/>
                                 </div>
                             </div>
                         </t>
 
-                        <div class="form-group row col-xl-8">
+                        <div class="form-group row col-xl-8" style="margin: 20px">
                             <div class="offset-md-2 col-md-10">
-                                <button type="submit" class="btn btn-primary o_website_form_send float-right">Confirm Booking <span class="fa fa-arrow-right"/>
+                                <button type="submit" class="btn btn-primary o_website_form_send float-end">Confirm Booking <span class="fa fa-arrow-right"/>
                                 </button>
                                 <span id="o_website_form_result"/>
                             </div>
@@ -403,7 +398,7 @@
                     </div>
                     <div class="row">
                         <t t-if="event.booking_type_id">
-                            <div t-raw="event.booking_type_id.message_confirmation" style="margin-bottom:10px;"/>
+                            <div t-out="event.booking_type_id.message_confirmation" style="margin-bottom:10px;"/>
                         </t>
                         <div class="col-md-9">
                             <div class="row">
@@ -478,7 +473,7 @@
                             <a role="button" class="btn btn-block btn-primary" t-attf-href="/website/calendar/ics/#{event.access_token}.ics">
                                 <i class="fa fa-fw fa-arrow-right"/>Add to iCal/Outlook
                             </a>
-                            <a role="button" class="btn btn-primary btn-block" t-att-href="google_url">
+                            <a role="button" class="btn btn-primary btn-block" t-att-href="google_url" style="margin-top: 20px">
                                 <i class="fa fa-fw fa-arrow-right"/>Add to Google Calendar
                             </a>
                             <t t-if="event.booking_type_id">
@@ -519,7 +514,7 @@
             <div id="wrap" class="o_website_calendar">
                 <div class="oe_structure"/>
                 <div class="oe_structure container mb128">
-                    <ul class="wizard mt32 float-right">
+                    <ul class="wizard mt32 float-end">
                         <li>
                             <a class="text-success">Booking</a>
                             <span class="chevron"/>
