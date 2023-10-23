@@ -83,7 +83,9 @@ class WebsiteCalendar(http.Controller):
             }
             # TODO: I dislike using private function here, although no other function seems to work
             #       as I need it to work.
-            result['employee_selection_html'] = selection_template._render(data)
+            result['employee_selection_html'] = request.env['ir.qweb']._render(
+                'website_calendar_ce.employee_select', data
+            )
         return result
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/booking'], type='http', auth="public",
