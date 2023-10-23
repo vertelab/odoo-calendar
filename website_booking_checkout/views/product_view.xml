@@ -19,6 +19,7 @@
 
                 <field name="categ_id" position="after">
                     <field name="allow_booking_range"/>
+                    <field name="booking_type_id"/>
                 </field>
             </field>
         </record>

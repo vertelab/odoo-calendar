@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
-from odoo import fields, models
+from odoo import fields, models, api
 
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
     is_booking = fields.Boolean(string="Can be Booked")
+
     allow_booking_range = fields.Boolean(string="Allow Booking Range")
 
     def _get_bookings(self):
@@ -20,6 +21,8 @@ class ProductTemplate(models.Model):
 
     calendar_event_id = fields.Many2many(
         'calendar.event', 'calendar_event_product_rel', readonly=True, compute=_get_bookings)
+
+    booking_type_id = fields.Many2one('calendar.booking.type', string="Booking Type")
 
 
 class ProductProduct(models.Model):
@@ -49,3 +52,4 @@ class ProductProduct(models.Model):
             ('start_date', '=', fields.Date.to_string(date_start))])):
             return False
         return True
+

@@ -34,7 +34,7 @@
                     <div id="wrap" class="o_website_product_booking">
                         <div class="oe_structure container mb128">
                             <ul class="wizard mt32 float-end">
-                                <li>
+                                <li t-if="not product.product_variant_id.booking_type_id">
                                     <a t-attf-href="/shop/#{ slug(product) }/booking-type" class="text-success">Booking</a>
                                     <span class="chevron"></span>
                                 </li>
@@ -223,7 +223,7 @@
          <xpath expr="//a[@id='add_to_cart']" position="replace">
              <t t-if="product.is_booking and product_on_order">
                  <a role="button" t-attf-class="btn btn-primary btn-lg d-block d-sm-inline-block"
-                    t-attf-href="/shop/#{ slug(product.product_variant_id) }/booking-type"
+                    t-attf-href="/shop/#{ slug(product.product_variant_id) }/#{ slug(product.booking_type_id) }"
                     data-tooltip="You have added an item to cart. Delete the item in the cart if you want to change your item"><i class="fa fa-shopping-cart"/>
                      Proceed to Booking
                  </a>
