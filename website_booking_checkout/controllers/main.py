@@ -51,6 +51,8 @@ class BookingWebsiteSale(WebsiteSale):
         timezone = session.get('timezone')
         if not timezone:
             timezone = session.context.get('tz')
+        if not timezone:
+            timezone = product.booking_type_id.booking_tz
         slot_ids = booking_type.sudo()._get_paginated_product_booking_slots(timezone, product)
 
         booking_values = self._prepare_product_values(product, category, search, **kwargs)
@@ -71,6 +73,10 @@ class BookingWebsiteSale(WebsiteSale):
     @http.route(['/shop/booking/update'], type='http', auth="public", website=True)
     def booking_update(self, product_id=None, start_date=None, end_date=None, booking_type_id=None, **kw):
         timezone = request.session.context.get('tz')  # request.session.get('timezone')
+        product_id = request.env['product.product'].sudo().browse(int(product_id))
+        if not timezone:
+            print(product_id)
+            timezone = product_id.booking_type_id.booking_tz
         tz_session = pytz.timezone(timezone)
         sale_order_id = request.session['sale_order_id']
         start_date = tz_session.localize(fields.Datetime.from_string(start_date)).astimezone(pytz.utc)
@@ -80,8 +86,8 @@ class BookingWebsiteSale(WebsiteSale):
         if not end_date or end_date == 'undefined':
             end_date = start_date + timedelta(hours=booking_type_id.booking_duration)
         if sale_order_id and booking_type_id and start_date:
-            sale_id = request.env['sale.order'].browse(int(sale_order_id))
-            sale_order_line = sale_id.order_line.filtered(lambda x: x.product_id.id == int(product_id))
+            sale_id = request.env['sale.order'].sudo().browse(int(sale_order_id))
+            sale_order_line = sale_id.order_line.filtered(lambda x: x.product_id.id == product_id.id)
             # sale_id.write({
             #     'booking_type_id': booking_type_id,
             #     'start_date': start_date.strftime(dtf),
@@ -259,7 +265,6 @@ class BookingWebsiteSale(WebsiteSale):
             product_values.update({
                 'product_on_order': product.product_variant_id,
             })
-
         return request.render("website_sale.product", product_values)
 
     @http.route(['/shop/checkout'], type='http', auth="public", website=True, sitemap=False)

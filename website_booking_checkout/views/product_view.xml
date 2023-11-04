@@ -19,7 +19,7 @@
 
                 <field name="categ_id" position="after">
                     <field name="allow_booking_range"/>
-                    <field name="booking_type_id"/>
+                    <field name="booking_type_id" attrs="{'required': [('is_booking', '=', True)]}"/>
                 </field>
             </field>
         </record>

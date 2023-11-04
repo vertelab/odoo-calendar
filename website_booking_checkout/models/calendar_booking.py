@@ -79,10 +79,10 @@ class CalendarBooking(models.Model):
                 'weeks': dates
             })
             start = start + relativedelta(months=1)
-        # print(months)
         return months
 
     def _get_paginated_product_booking_slots(self, timezone, product=None, month=0):
+        timezone = product.sudo().booking_type_id.sudo().booking_tz
         booking_slots = self._get_product_booking_slots(timezone, product)
         try:
             return [booking_slots[month], booking_slots[month + 1]]

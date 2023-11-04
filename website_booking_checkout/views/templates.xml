@@ -220,6 +220,10 @@
     </template>
 
     <template id="product_quantity" inherit_id="website_sale.product">
+        <xpath expr="//t[@t-cache='pricelist,product']" position="attributes">
+            <attribute name="t-cache"></attribute>
+        </xpath>
+
          <xpath expr="//a[@id='add_to_cart']" position="replace">
              <t t-if="product.is_booking and product_on_order">
                  <a role="button" t-attf-class="btn btn-primary btn-lg d-block d-sm-inline-block"
@@ -229,9 +233,15 @@
                  </a>
              </t>
              <t t-else="">
-                <a  role="button" id="add_to_cart" class="btn btn-primary btn-lg js_check_product a-submit d-block d-sm-inline-block" href="#"><i class="fa fa-shopping-cart"/> Add to Cart</a>
+                 <a  role="button" id="add_to_cart" class="btn btn-primary btn-lg js_check_product a-submit d-block d-sm-inline-block" href="#"><i class="fa fa-shopping-cart"/> Add to Cart</a>
              </t>
          </xpath>
+
+        <xpath expr="//div[@id='add_to_cart_wrap']" position="after">
+            <t t-if="product.is_booking">
+                <span style="color:red;"><i>Add to Cart, Refresh and Proceed to Booking</i></span>
+             </t>
+        </xpath>
     </template>
 
      <template id="cart_lines" inherit_id="website_sale.cart_lines">

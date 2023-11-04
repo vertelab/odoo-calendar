@@ -30,7 +30,7 @@ class ProductProduct(models.Model):
 
     def _get_bookings(self):
         for rec in self:
-            event_ids = self.env['calendar.event'].search([('product_id.id', '=', rec.id)])
+            event_ids = self.env['calendar.event'].sudo().search([('product_id.id', '=', rec.id)])
             if event_ids:
                 rec.calendar_event_id = event_ids.ids
             else:
