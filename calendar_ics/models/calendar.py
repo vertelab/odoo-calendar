@@ -52,9 +52,6 @@ class calendar_event(models.Model):
 
     def set_ics_event(self, ics_file, partner):
         for event in Calendar.from_ical(ics_file).walk('vevent'):
-            # ~ if not event.get('uid'): ~ event.add('uid',reduce(lambda x,y: x ^ y, map(ord, str(event.get(
-            # 'dtstart') and event.get('dtstart').dt or '' + event.get('summary') + event.get('dtend') and event.get(
-            # 'dtend').dt or ''))) % 1024)
 
             summary = ''
             description = event.get('description', '')
@@ -70,40 +67,29 @@ class calendar_event(models.Model):
                                                 DEFAULT_SERVER_DATETIME_FORMAT)),
                                            ('dtend', 'stop_date', event.get('dtend') and event.get('dtend').dt.strftime(
                                                DEFAULT_SERVER_DATETIME_FORMAT)),
-                                           # ~ ('dtstamp','start_datetime',event.get('dtstamp') and event.get(
-                                           # 'dtstamp').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                                           # ~ ('description','description',description),
                                            ('duration', 'duration', event.get('duration')),
                                            ('location', 'location',
                                             event.get('location') and event.get('location') or partner.ics_location),
-                                           # ('class','class',event.get('class') and str(event.get('class')) or
-                                           # partner.ics_class),
                                            ('summary', 'name', summary),
                                            ('rrule', 'rrule',
                                             event.get('rrule') and event.get('rrule').to_ical() or None),
                                            ] if event.get(r[0])}
 
             partner_ids = self.env['res.partner'].get_attendee_ids(event)
-            # ~ raise Warning(partner_ids)
+
             if partner_ids:
                 partner_ids.append(partner.id)
             else:
                 partner_ids = [partner.id]
 
-            # record['partner_ids'] = [(6,0,[partner_ids])]
+            record['partner_ids'] = [(6, 0, self.env['res.partner'].browse(partner_ids).ids)]
 
-            record['partner_ids'] = self.env['res.partner'].browse(partner_ids)
-            # ~ record['partner_ids'] = [(6,0,self.env['res.partner'].get_attendee_ids(event)[0] and self.env[
-            # 'res.partner'].get_attendee_ids(event)[0].append(partner.id) or [partner.id])] ~ raise Warning(record[
-            # 'partner_ids']) ~ record['attendee_ids'] = [(6,0,[attendee])]
             record['ics_subscription'] = True
             record['start'] = record.get('start_date')
             record['stop'] = record.get('stop_date') or record.get('start')
             record['description'] = description
             record['show_as'] = partner.ics_show_as
             record['allday'] = partner.ics_allday
-            # ~ record['rrule'] = event.get('rrule').to_ical()
-            # ~ raise Warning(record['rrule_type'].to_ical)
 
             if record['start']:
                 tmpStart = datetime.time(
@@ -124,22 +110,6 @@ class calendar_event(models.Model):
                 _logger.error('ICS %s' % record)
                 self.env['calendar.event'].create(record)
 
-    # ~
-    # ~ attendee_values = self.env['res.partner'].get_attendee_ids(event)
-    # ~ for i in range(len(attendee_values[0])):
-    # ~ self.env['calendar.attendee'].create({
-    # ~ 'event_id': event_id.id,
-    # ~ 'partner_id': attendee_values[0][i],
-    # ~ 'email': attendee_values[1][i],
-    # ~ })
-
-    # ~ 'state': fields.selection(STATE_SELECTION, 'Status', readonly=True, help="Status of the attendee's
-    # participation"), ~ 'cn': fields.function(_compute_data, string='Common name', type="char", multi='cn',
-    # store=True), ~ 'partner_id': fields.many2one('res.partner', 'Contact', readonly="True"), ~ 'email':
-    # fields.char('Email', help="Email of Invited Person"), ~ 'availability': fields.selection([('free', 'Free'),
-    # ('busy', 'Busy')], 'Free/Busy', readonly="True"), ~ 'access_token': fields.char('Invitation Token'),
-    # ~ 'event_id': fields.many2one('calendar.event', 'Meeting linked', ondelete='cascade'),
-
     def get_ics_event(self):
         event = self[0]
         ics = Event()
@@ -147,26 +117,6 @@ class calendar_event(models.Model):
         calendar = Calendar()
         date_format = DEFAULT_SERVER_DATETIME_FORMAT
 
-        # ~ for t in ics_record:
-        # ~ ics[t[2]] = eval(t[3])
-        # ~
-        # ~ foo = {ics[t[2]]: event.read([t[1]]) for t in ics_record}
-        # ~
-        # ~
-        # ~ ics['uid'] = event.id
-        # ~ ics['allday'] = event.allday
-        # ~
-        # ~ if ics['allday']:
-        # ~ date_format = DEFAULT_SERVER_DATE_FORMAT
-        # ~
-        # ~ ics['dtstart'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.start_date, date_format))))
-        # ~ ics['dtend'] = vDatetime(datetime.fromtimestamp(mktime(strptime(event.stop_date, date_format))))
-        # ~ ics['summary'] = event.name
-        # ~ ics['description'] = event.description
-        # ~ ics['class'] = event.read(['class'])
-
-        # ~ calendar.add_component(ics)
-        # ~ raise Warning(calendar.to_ical())
         return ics
 
     def get_ics_file(self, events_exported, partner):
@@ -192,15 +142,6 @@ class calendar_event(models.Model):
                         mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical().decode("utf-8") + 'Z'
             return False
 
-        # ~ try:
-        # ~ # FIXME: why isn't this in CalDAV?
-        # ~ import vobject
-        # ~ except ImportError:
-        # ~ return res
-
-        # ~ cal = vobject.iCalendar()
-
-        # ~ event = cal.add('vevent')
         if not event.start or not event.stop:
             raise ValidationError(_('Warning!'), _("First you have to specify the date of the invitation."))
         ics['summary'] = event.name
@@ -210,8 +151,6 @@ class calendar_event(models.Model):
             ics['location'] = event.location
         if event.rrule:
             ics['rrule'] = event.rrule
-            # ~ ics.add('rrule', str(event.rrule), encode=0)
-            # ~ raise Warning(ics['rrule'])
 
         if event.alarm_ids:
             for alarm in event.alarm_ids:
@@ -224,7 +163,7 @@ class calendar_event(models.Model):
                         delta = timedelta(hours=alarm.duration)
                     elif alarm.interval == 'minutes':
                         delta = timedelta(minutes=alarm.duration)
-                    trigger = valarm.add('TRIGGER', -delta)  # fields.Datetime.from_string(event.start) -
+                    trigger = valarm.add('TRIGGER', -delta)
                     valarm.add('DESCRIPTION', event.name)
                     ics.add_component(valarm)
         if event.attendee_ids:
@@ -241,7 +180,6 @@ class calendar_event(models.Model):
             event_not_found = True
 
             for event_comparison in events_exported:
-                # ~ raise Warning('event_comparison = %s ics = %s' % (event_comparison, ics))
                 if str(ics) == event_comparison:
                     event_not_found = False
                     break
@@ -299,7 +237,6 @@ class calendar_event(models.Model):
         @param event: event object (browse record)
         @return: .ics file content
         """
-        # ~ ics = FreeBusy()
         event = self[0]
 
         def ics_datetime(idate, iallday=False):

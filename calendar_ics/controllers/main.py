@@ -20,7 +20,7 @@ class res_partner_icalendar(http.Controller):
     @http.route(['/partner/<model("res.partner"):partner>/calendar/freebusy.ics'], type='http', auth="public", website=True)
     def icalendar_freebusy(self, partner=False, **post):
         if partner:
-            document = partner.sudo().get_ics_calendar(type='freebusy').to_ical()
+            document = partner.sudo().get_ics_calendar(event_type='freebusy').to_ical()
             return request.make_response(
                 document,
                 headers=[
@@ -35,7 +35,7 @@ class res_partner_icalendar(http.Controller):
     @http.route(['/partner/<int:partner>/calendar/public.ics'], type='http', auth="public", website=True)
     def icalendar_public(self, partner=None, **post):
         if partner:
-            document = request.env['res.partner'].sudo().browse(partner).get_ics_calendar(type='public')
+            document = request.env['res.partner'].sudo().browse(partner).get_ics_calendar(event_type='public')
             return request.make_response(
                 document,
                 headers=[

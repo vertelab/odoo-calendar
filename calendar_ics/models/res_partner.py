@@ -44,7 +44,8 @@ class res_partner(models.Model):
             self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id)
 
     def ics_cron_job(self):
-        for ics in self.env['res.partner'].browse(self.env['res.partner'].search([('ics_active', '=', True)])):
+        partner_ids = self.env['res.partner'].search([('ics_active', '=', True)])
+        for ics in partner_ids:
             if not ics.ics_nextdate or (ics.ics_nextdate < fields.Datetime.today()):
                 ics.get_ics_events()
                 ics.ics_nextdate = fields.Datetime.to_string(
@@ -75,7 +76,7 @@ class res_partner(models.Model):
 
     def get_attendee_ids(self, event):
         partner_ids = []
-        # ~ attendee_mails = []
+
         event_attendee_list = event.get('attendee')
         if event_attendee_list:
             if not (type(event_attendee_list) is list):
