@@ -397,6 +397,16 @@ class CalendarBookingSlotWizard(models.TransientModel):
     booking_duration = fields.Char(string="Booking Duration", required=True)
     booking_id = fields.Many2one('calendar.booking.type', string="Booking", required=True)
 
+    has_leadtime = fields.Boolean(string="Has Lead Time")
+    lead_time = fields.Char(string="Lead Time")
+
+    @api.depends("booking_duration", "has_leadtime", "lead_time")
+    def _compute_real_stop(self):
+        for event in self:
+            event.real_stop = float(event.booking_duration) - float(event.lead_time)
+
+    real_stop = fields.Char(string="Time Gap", compute='_compute_real_stop')
+
     monday = fields.Boolean(string="Monday", default=True)
     tuesday = fields.Boolean(string="Tuesday", default=True)
     wednesday = fields.Boolean(string="Wednesday", default=True)
@@ -409,7 +419,10 @@ class CalendarBookingSlotWizard(models.TransientModel):
         fmt = '%H:%M'
         time_from = datetime.strptime(self.time_from, fmt)
         time_to = datetime.strptime(self.time_to, fmt)
-        frequency = '%sH' % self.booking_duration
+        if self.has_leadtime:
+            frequency = '%sH' % self.lead_time
+        else:
+            frequency = '%sH' % self.booking_duration
         date_range = pd.date_range(start=time_from, end=time_to, freq=frequency)
         if self.monday:
             self._populate_slot(date_range, fmt, 1)

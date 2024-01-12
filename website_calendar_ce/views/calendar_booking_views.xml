@@ -256,6 +256,8 @@
                     <group>
                         <field name="booking_id"/>
                         <field name="time_from"/>
+                        <field name="has_leadtime"/>
+                        <field name="lead_time" attrs="{'invisible': [('has_leadtime', '=', False)]}"  widget="float_time"/>
                     </group>
                     <group>
                         <label for="booking_duration"/>
@@ -263,6 +265,7 @@
                               <field name="booking_duration" widget="float_time" class="oe_inline"/><span> hours</span>
                         </div>
                         <field name="time_to"/>
+                        <field name="real_stop" widget="float_time"/>
                     </group>
                 </group>
                 <footer>
