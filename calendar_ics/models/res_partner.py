@@ -120,8 +120,11 @@ class res_partner(models.Model):
 
     def get_ics_calendar(self, event_type='public'):
         calendar = Calendar()
+        event_ids = self.env['calendar.event'].search([
+            ('partner_ids', 'in', self.id), ('ics_subscription', '=', False)
+        ])
         if event_type == 'private':
-            for event in self.env['calendar.event'].search([('partner_ids', 'in', self.id)]):
+            for event in event_ids:
                 calendar.add_component(event.get_ics_file())
         elif event_type == 'freebusy':
             fc = FreeBusy()
@@ -132,13 +135,14 @@ class res_partner(models.Model):
             organizer_add += self.email and ('MAILTO:' + self.email) or ''
             fc['organizer'] = organizer_add
 
-            for event in self.env['calendar.event'].search([('partner_ids', 'in', self.id)]):
+            for event in event_ids:
                 fc.add('freebusy', event.get_ics_freebusy(), encode=0)
             return fc
         elif event_type == 'public':
             exported_ics = []
-            for event in reversed(self.env['calendar.event'].search([('partner_ids', 'in', self.id)])):
+            for event in reversed(event_ids):
                 temporary_ics = event.get_ics_file(exported_ics, self)
+
                 if temporary_ics:
                     exported_ics.append(temporary_ics[1])
                     calendar.add_component(temporary_ics[0])

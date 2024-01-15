@@ -62,18 +62,14 @@ class calendar_event(models.Model):
                 if not event.get('description'):
                     description = event.get('summary')
 
-            record = {r[1]: r[2] for r in [('dtstart', 'start_date',
-                                            event.get('dtstart') and event.get('dtstart').dt.strftime(
-                                                DEFAULT_SERVER_DATETIME_FORMAT)),
-                                           ('dtend', 'stop_date', event.get('dtend') and event.get('dtend').dt.strftime(
-                                               DEFAULT_SERVER_DATETIME_FORMAT)),
-                                           ('duration', 'duration', event.get('duration')),
-                                           ('location', 'location',
-                                            event.get('location') and event.get('location') or partner.ics_location),
-                                           ('summary', 'name', summary),
-                                           ('rrule', 'rrule',
-                                            event.get('rrule') and event.get('rrule').to_ical() or None),
-                                           ] if event.get(r[0])}
+            record = {r[1]: r[2] for r in [
+                ('dtstart', 'start_date', event.get('dtstart') and event.get('dtstart').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                ('dtend', 'stop_date', event.get('dtend') and event.get('dtend').dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                ('duration', 'duration', event.get('duration')),
+                ('location', 'location', event.get('location') and event.get('location') or partner.ics_location),
+                ('summary', 'name', summary),
+                ('rrule', 'rrule', event.get('rrule') and event.get('rrule').to_ical() or None),
+            ] if event.get(r[0])}
 
             partner_ids = self.env['res.partner'].get_attendee_ids(event)
 
@@ -91,24 +87,23 @@ class calendar_event(models.Model):
             record['show_as'] = partner.ics_show_as
             record['allday'] = partner.ics_allday
 
-            if record['start']:
-                tmpStart = datetime.time(
-                    datetime.fromtimestamp(mktime(strptime(record['start'], DEFAULT_SERVER_DATETIME_FORMAT))))
-                tmpStop = datetime.fromtimestamp(mktime(strptime(record['stop'], DEFAULT_SERVER_DATETIME_FORMAT)))
+            tmpStart = datetime.time(
+                datetime.fromtimestamp(mktime(strptime(record['start'], DEFAULT_SERVER_DATETIME_FORMAT))))
+            tmpStop = datetime.fromtimestamp(mktime(strptime(record['stop'], DEFAULT_SERVER_DATETIME_FORMAT)))
 
-                if tmpStart == time(0, 0, 0) and tmpStart == datetime.time(tmpStop):
-                    record['allday'] = True
+            if tmpStart == time(0, 0, 0) and tmpStart == datetime.time(tmpStop):
+                record['allday'] = True
 
-                if not record.get('stop_date'):
-                    record['allday'] = True
-                    record['stop_date'] = record['start_date']
-                elif record.get('stop_date') and record['allday']:
-                    record['stop_date'] = vDatetime(tmpStop - timedelta(hours=24)).dt.strftime(
-                        DEFAULT_SERVER_DATETIME_FORMAT)
-                    record['stop'] = record['stop_date']
-                record['show_as'] = 'free'
-                _logger.error('ICS %s' % record)
-                self.env['calendar.event'].create(record)
+            if not record.get('stop_date'):
+                record['allday'] = True
+                record['stop_date'] = record['start_date']
+            elif record.get('stop_date') and record['allday']:
+                record['stop_date'] = vDatetime(tmpStop - timedelta(hours=24)).dt.strftime(
+                    DEFAULT_SERVER_DATETIME_FORMAT)
+                record['stop'] = record['stop_date']
+            record['show_as'] = 'free'
+            _logger.error('ICS %s' % record)
+            self.env['calendar.event'].create(record)
 
     def get_ics_event(self):
         event = self[0]
@@ -128,18 +123,16 @@ class calendar_event(models.Model):
         ics = Event()
         event = self[0]
 
-        # ~ raise Warning(self.env.cr.dbname)
-        # ~ The method below needs som proper rewriting to avoid overusing libraries.
         def ics_datetime(idate, allday=False):
             if type(idate) in (datetime, datetime.date):
                 idate = idate.strftime("%Y-%m-%d %H:%M:%S")
             if idate:
-                if allday:
-                    return str(vDatetime(
-                        datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical())[:8]
-                else:
-                    return vDatetime(datetime.fromtimestamp(
-                        mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical().decode("utf-8") + 'Z'
+                # if allday:
+                #     return str(vDatetime(
+                #         datetime.fromtimestamp(mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical())[:8]
+                # else:
+                return vDatetime(datetime.fromtimestamp(
+                    mktime(strptime(idate, DEFAULT_SERVER_DATETIME_FORMAT)))).to_ical().decode("utf-8") + 'Z'
             return False
 
         if not event.start or not event.stop:
@@ -192,18 +185,22 @@ class calendar_event(models.Model):
                 tmpStart = ics_datetime(event.start, event.allday)
                 tmpEnd = ics_datetime(event.stop, event.allday)
 
-                if event.allday:
-                    ics['dtstart;value=date'] = tmpStart
-                else:
-                    ics['dtstart'] = tmpStart
+                ics['dtstart'] = tmpStart
 
-                if tmpStart != tmpEnd or not event.allday:
-                    if event.allday:
-                        ics['dtend;value=date'] = str(vDatetime(datetime.fromtimestamp(
-                            mktime(strptime(event.stop, DEFAULT_SERVER_DATETIME_FORMAT))) + timedelta(
-                            hours=24)).to_ical())[:8]
-                    else:
-                        ics['dtend'] = tmpEnd
+                ics['dtend'] = tmpEnd
+
+                # if event.allday:
+                #     ics['dtstart;value=date'] = tmpStart
+                # else:
+                #     ics['dtstart'] = tmpStart
+                #
+                # if tmpStart != tmpEnd or not event.allday:
+                #     if event.allday:
+                #         ics['dtend;value=date'] = str(vDatetime(datetime.fromtimestamp(
+                #             mktime(strptime(event.stop, DEFAULT_SERVER_DATETIME_FORMAT))) + timedelta(
+                #             hours=24)).to_ical())[:8]
+                #     else:
+                #         ics['dtend'] = tmpEnd
 
                 return [ics, events_exported]
 
@@ -215,19 +212,23 @@ class calendar_event(models.Model):
             tmpStart = ics_datetime(event.start, event.allday)
             tmpEnd = ics_datetime(event.stop, event.allday)
 
-            if event.allday:
-                ics['dtstart;value=date'] = tmpStart
-            else:
-                ics['dtstart'] = tmpStart
+            ics['dtstart'] = tmpStart
 
-            if tmpStart != tmpEnd or not event.allday:
-                if event.allday:
-                    ics['dtend;value=date'] = str(
-                        vDatetime(datetime.fromtimestamp(
-                            mktime(strptime(
-                                event.stop, DEFAULT_SERVER_DATETIME_FORMAT))) + timedelta(hours=24)).to_ical())[:8]
-                else:
-                    ics['dtend'] = tmpEnd
+            ics['dtend'] = tmpEnd
+
+            # if event.allday:
+            #     ics['dtstart;value=date'] = tmpStart
+            # else:
+            #     ics['dtstart'] = tmpStart
+            #
+            # if tmpStart != tmpEnd or not event.allday:
+            #     if event.allday:
+            #         ics['dtend;value=date'] = str(
+            #             vDatetime(datetime.fromtimestamp(
+            #                 mktime(strptime(
+            #                     event.stop, DEFAULT_SERVER_DATETIME_FORMAT))) + timedelta(hours=24)).to_ical())[:8]
+            #     else:
+            #         ics['dtend'] = tmpEnd
 
             return [ics, events_exported]
 
