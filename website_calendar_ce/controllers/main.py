@@ -112,26 +112,35 @@ class WebsiteCalendar(http.Controller):
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/info'], type='http', auth="public",
                 website=True)
     def calendar_booking_form(self, booking_type, employee_id, date_time, description=None, title=None, **kwargs):
-        partner_data = {}
-        if request.env.user.partner_id != request.env.ref('base.public_partner'):
-            partner_data = request.env.user.partner_id.read(fields=['name', 'mobile', 'country_id', 'email'])[0]
-        day_name = format_datetime(datetime.strptime(date_time, dtf), 'EEE', locale=get_lang(request.env).code)
-        date_formated = format_datetime(datetime.strptime(date_time, dtf), locale=get_lang(request.env).code)
+        try:
+            partner_data = {}
+            if request.env.user.partner_id != request.env.ref('base.public_partner'):
+                partner_data = request.env.user.partner_id.read(fields=['name', 'mobile', 'country_id', 'email'])[0]
+            day_name = format_datetime(datetime.strptime(date_time, dtf), 'EEE', locale=get_lang(request.env).code)
+            date_formated = format_datetime(datetime.strptime(date_time, dtf), locale=get_lang(request.env).code)
 
-        vals = {
-            'partner_data': partner_data,
-            'booking_type': booking_type,
-            'datetime': date_time,
-            'datetime_locale': day_name + ' ' + date_formated,
-            'datetime_str': date_time,
-            'employee_id': employee_id,
-            'countries': request.env['res.country'].search([]),
-            'description': description if description else _(
-                "Fill your personal information in the form below, and confirm the booking. We'll send an invite to "
-                "your email address"),
-            'title': title if title else _("Book meeting"),
-        }
-        return request.render("website_calendar_ce.booking_form", vals)
+            vals = {
+                'partner_data': partner_data,
+                'booking_type': booking_type,
+                'datetime': date_time,
+                'datetime_locale': day_name + ' ' + date_formated,
+                'datetime_str': date_time,
+                'employee_id': employee_id,
+                'countries': request.env['res.country'].search([]),
+                'description': description if description else _(
+                    "Fill your personal information in the form below, and confirm the booking. We'll send an invite to "
+                    "your email address"),
+                'title': title if title else _("Book meeting"),
+            }
+            return request.render("website_calendar_ce.booking_form", vals)
+        except Exception as e:
+             partner_data = request.env.user.partner_id.read(fields=['name', 'mobile', 'country_id', 'email'])[0]
+             _logger.warning(f"Failed booking: {e}")
+             _logger.warning(f"Booking with data {partner_data=}")
+             _logger.warning(f"Booking with data {date_time=}")
+             _logger.warning(f"Booking with data {description=}")
+             _logger.warning(f"Booking with data {title=}")
+             raise e
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/submit'], type='http', auth="public",
                 website=True, methods=["POST"])
