@@ -37,7 +37,9 @@ class CalendarBookingType(models.Model):
     _description = "Online Booking Type"
     _inherit = ['mail.thread', "website.seo.metadata", 'website.published.mixin']
     _order = "sequence"
-
+    
+    company_id = fields.Many2one('res.company', required=True, default=lambda self: self.env.company, index = True)
+    
     sequence = fields.Integer('Sequence')
     name = fields.Char('Booking Type', required=True, translate=True)
     min_schedule_hours = fields.Float('Schedule before (hours)', required=True, default=1.0)
@@ -59,15 +61,36 @@ class CalendarBookingType(models.Model):
     booking_tz = fields.Selection(
         _tz_get, string='Timezone', required=True, default=lambda self: self.env.user.tz,
         help="Timezone where booking take place")
-    employee_ids = fields.Many2many('hr.employee', 'website_calendar_type_employee_rel',
-                                    domain=[('user_id', '!=', False)], string='Employees')
+
+    employee_ids = fields.Many2many(
+        'hr.employee', 
+        'website_calendar_type_employee_rel',
+        domain=[('user_id', '!=', False)], 
+        string='Employees', 
+        default=lambda self: self._get_default_employee_ids()
+    )
+
+    @api.model
+    def _get_default_employee_ids(self):
+        # Search for an employee linked to the current user
+        employee = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
+        
+        # If no employee exists, create one
+        if not employee:
+            employee = self.env['hr.employee'].create({
+                'name': self.env.user.name,
+                'user_id': self.env.user.id,
+                'company_id': self.env.user.company_id.id
+            })
+        
+        return employee.ids
+
     assignation_method = fields.Selection([
         ('random', 'Random'),
         ('chosen', 'Chosen by the Customer')], string='Assignation Method', default='random',
         help="How employees will be assigned to meetings customers book on your website.")
     booking_count = fields.Integer('# Bookings', compute='_compute_booking_count')
     meeting_base_url = fields.Char('Meeting base url')
-
     @api.model
     def find_all_bookings(self):
         bookings = []
@@ -113,11 +136,12 @@ class CalendarBookingType(models.Model):
 
     def action_calendar_meetings(self):
         self.ensure_one()
-        action = self.env.ref('calendar.action_calendar_event').read()[0]
+        action = self.env["ir.actions.actions"]._for_xml_id("calendar.action_calendar_event")
         action['context'] = {
             'default_booking_type_id': self.id,
             'search_default_booking_type_id': self.id
         }
+        
         return action
 
     # --------------------------------------
@@ -290,15 +314,22 @@ class CalendarBookingType(models.Model):
         requested_tz = pytz.timezone(timezone)
         first_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(hours=self.min_schedule_hours))
         last_day = requested_tz.fromutc(datetime.utcnow() + relativedelta(days=self.max_schedule_days))
+        
+        today = requested_tz.fromutc(datetime.utcnow())
+        start = today
+        
+
+        difference = relativedelta(last_day, first_day)
+        months_diff = difference.years * 12 + difference.months
+        if abs(months_diff ) < 1:
+            last_day += relativedelta(months=1)
 
         # Compute available slots (ordered)
         slots = self._slots_generate(first_day.astimezone(appt_tz), last_day.astimezone(appt_tz), timezone)
         if not employee or employee in self.employee_ids:
             self._slots_available(slots, first_day.astimezone(pytz.UTC), last_day.astimezone(pytz.UTC), employee)
 
-        # Compute calendar rendering and inject available slots
-        today = requested_tz.fromutc(datetime.utcnow())
-        start = today
+        # Compute calendar rendering and inject available slots       
         month_dates_calendar = cal.Calendar(0).monthdatescalendar
         months = []
         while (start.year, start.month) <= (last_day.year, last_day.month):
@@ -340,9 +371,10 @@ class CalendarBookingType(models.Model):
 
     def _get_paginated_booking_slots(self, timezone, employee=None, month=0):
         booking_slots = self._get_booking_slots(timezone, employee)
+        print(booking_slots)
         try:
             return [booking_slots[month], booking_slots[month + 1]]
-        except IndexError:
+        except IndexError as e:
             return []
 
     def open_booking_wizard(self):

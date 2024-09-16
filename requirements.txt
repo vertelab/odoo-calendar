@@ -1,3 +1,4 @@
-ics
-icalendar
-urllib2
+ics==0.7.2
+icalendar==5.0.12
+pandas==2.2.2
+geoip2==4.8.0

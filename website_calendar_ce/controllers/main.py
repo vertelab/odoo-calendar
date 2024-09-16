@@ -41,14 +41,46 @@ class WebsiteCalendar(http.Controller):
                                 **kwargs):
         if not booking_type:
             country_code = request.geoip and request.geoip.get('country_code')
+            
+            website_id = request.website.company_id.id
+            print(website_id)
+            # Initialize the base domain
+            domain = []
+            website_condition = (website_id == 1)
+            print(website_condition)
+            print(country_code)
+            # Add the country code constraints
             if country_code:
-                suggested_booking_types = request.env['calendar.booking.type'].search([
+                # Add the company_id constraint if website_id is not 1
+                if website_condition:
+                    domain = [
                     '|', ('country_ids', '=', False),
-                    ('country_ids.code', 'in', [country_code])])
+                    ('country_ids.code', 'in', [country_code])
+                    ]
+                else: 
+                    domain = [
+                    '&',
+                    '|', ('country_ids', '=', False),
+                    ('country_ids.code', 'in', [country_code]),
+                    ('company_id', '=', website_id)
+                    ]
             else:
-                suggested_booking_types = request.env['calendar.booking.type'].search([])
+                if website_condition:
+                    domain = [
+                    ]
+                else: 
+                    domain = [
+                    ('company_id', '=', website_id)
+                    ]
+            print(domain)
+            suggested_booking_types = request.env['calendar.booking.type'].search(domain)
+            print(suggested_booking_types)
             if not suggested_booking_types:
                 return request.render("website_calendar_ce.setup", {})
+            
+
+
+
             booking_type = suggested_booking_types[0]
         else:
             suggested_booking_types = booking_type
@@ -152,7 +184,12 @@ class WebsiteCalendar(http.Controller):
 
         country_id = int(country_id) if country_id else None
         country_name = country_id and request.env['res.country'].browse(country_id).name or ''
-        partner = request.env['res.partner'].sudo().search([('email', '=like', email)], limit=1)
+        domain = []
+        if booking_type.company_id.id:
+            domain = ['&', ('email', '=like', email), ('company_id', '=', booking_type.company_id.id)]
+        else:
+            domain = [('email', '=like', email)]
+            partner = request.env['res.partner'].sudo().search(domain, limit=1)
         if partner:
             if not partner.calendar_verify_availability(date_start, date_end):
                 return request.redirect('/website/calendar/%s/booking?failed=partner' % booking_type.id)
@@ -166,6 +203,9 @@ class WebsiteCalendar(http.Controller):
                 'country_id': country_id,
                 'mobile': phone,
                 'email': email,
+                'company_id' : booking_type.company_id.id,
+                'is_patient' : True,
+                'partner_share': False
             })
 
         record_description = (_('Country: %s') + '\n\n' +
