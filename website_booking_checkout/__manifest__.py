@@ -1,6 +1,6 @@
 {
     'name': 'Calendar: Product Booking Checkout',
-    'version': '16.0.0.0.1',
+    'version': '1.0',
     'summary': 'Product Booking Checkout',
     'category': 'Calendar',
     'description': """
