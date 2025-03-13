@@ -21,7 +21,7 @@
 
 {
     'name': 'Calendar: Product Resource',
-    'version': '16.0.0.0.1',
+    'version': '1.0',
     'summary': 'Calendar Product Resource',
     'category': 'Calendar',
     'description': """
