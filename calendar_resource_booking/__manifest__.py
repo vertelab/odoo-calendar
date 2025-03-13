@@ -21,7 +21,7 @@
 
 {
     'name': 'Calendar Resource Booking',
-    'version': '14.0.0.0.1',
+    'version': '1.0.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Adds material resource to book at an appointment',
     'category': 'Calendar',
