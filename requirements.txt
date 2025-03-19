@@ -1,3 +1,5 @@
 ics
 icalendar
 urllib2
+wheel
+pandas
