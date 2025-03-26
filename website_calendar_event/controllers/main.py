@@ -23,11 +23,10 @@ class ExtendedWebsiteCalendar(WebsiteCalendar):
         customer_id = None
         if related_users:
             customer_id = related_users[0][1]
-
         data = {
                 'name': event.name,
                 'project_id': booking_type.related_project_id.id,
-                'user_id': Employee.user_id.id,
+                'user_ids': [Employee.user_id.id],
                 'recurring_task': False,
                 'description': data.get('description').replace("\n", "<br/>"),
                 'partner_id': customer_id,
