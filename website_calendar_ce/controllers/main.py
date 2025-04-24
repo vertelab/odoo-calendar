@@ -111,10 +111,18 @@ class WebsiteCalendar(http.Controller):
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/info'], type='http', auth="public",
                 website=True)
-    def calendar_booking_form(self, booking_type, employee_id, date_time, description=None, title=None, **kwargs):
+    def calendar_booking_form(self, booking_type, employee_id=None, date_time=None, description=None, title=None, **kwargs):
+        if not employee_id or not date_time:
+            return request.redirect("/website/calendar")
+
         partner_data = {}
         if request.env.user.partner_id != request.env.ref('base.public_partner'):
             partner_data = request.env.user.partner_id.read(fields=['name', 'mobile', 'country_id', 'email'])[0]
+
+        # Replace + with space in date_time
+        if date_time:
+            date_time = date_time.replace('+', ' ')
+
         day_name = format_datetime(datetime.strptime(date_time, dtf), 'EEE', locale=get_lang(request.env).code)
         date_formated = format_datetime(datetime.strptime(date_time, dtf), locale=get_lang(request.env).code)
 
