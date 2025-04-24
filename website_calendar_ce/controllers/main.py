@@ -111,7 +111,7 @@ class WebsiteCalendar(http.Controller):
 
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/info'], type='http', auth="public",
                 website=True)
-    def calendar_booking_form(self, booking_type, employee_id, date_time, description=None, title=None, **kwargs):
+    def calendar_booking_form(self, booking_type, employee_id=None, date_time=None, description=None, title=None, **kwargs):
         if not employee_id or not date_time:
             return request.redirect("/website/calendar")
 
