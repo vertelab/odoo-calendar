@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2025 Vertel AB
+     License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). -->
+<odoo>
+  <record id="view_calendar_public_holiday_form" model="ir.ui.view">
+    <field name="name">calendar.public.holiday.nager</field>
+    <field name="model">calendar.public.holiday</field>
+    <field name="inherit_id" ref="calendar_public_holiday.view_calendar_public_holiday_form" />
+    <field name="arch" type="xml">
+      <group name="group_main_right" position="inside">
+        <button name="fetch_public_holidays" type="object" string="Fetch Public Holidays" class="btn-primary" groups="base.group_user" />
+      </group>
+    </field>
+  </record>
+</odoo>
