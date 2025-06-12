@@ -7,8 +7,11 @@
     <field name="model">calendar.public.holiday</field>
     <field name="inherit_id" ref="calendar_public_holiday.view_calendar_public_holiday_form" />
     <field name="arch" type="xml">
-      <group name="group_main_right" position="inside">
-        <button name="fetch_public_holidays" type="object" string="Fetch Public Holidays" class="btn-primary" groups="base.group_user" />
+      <group name="group_main" position="before">
+        <header>
+          <button name="fetch_public_holidays" type="object" string="Fetch Public Holidays" class="btn-primary" invisible="line_ids" groups="base.group_user" />
+          <button name="fetch_public_holidays_next" type="object" string="Create Next Year" class="btn-primary" groups="base.group_user" />
+        </header>
       </group>
     </field>
   </record>

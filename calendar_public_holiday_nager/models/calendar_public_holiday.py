@@ -21,3 +21,17 @@ class ResourceCalendarPublicHoliday(models.Model):
                     cal.line_ids.create({'name': day['localName'],'date':day['date'],'public_holiday_id':cal.id})
             else:
                 raise UserError(f"Could not fetch holidays {response.status_code} - {response.reason}{response.text}\n{url}")
+
+    def fetch_public_holidays_next(self):
+        self.ensure_one()
+        cal = self.env['calendar.public.holiday'].create({'year':self.year + 1,'country_id':self.country_id.id,})
+        cal.fetch_public_holidays()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Public Holiday',
+            'res_model': 'calendar.public.holiday',
+            'view_mode': 'form',
+            'view_id': self.env.ref('calendar_public_holiday.view_calendar_public_holiday_form').id,
+            'res_id': cal.id,  
+            'target': 'current',
+        }
