@@ -138,7 +138,7 @@ class WebsiteCalendar(http.Controller):
     @http.route(['/website/calendar/<model("calendar.booking.type"):booking_type>/submit'], type='http', auth="public",
                 website=True, methods=["POST"])
     def calendar_booking_submit(self, booking_type, datetime_str, employee_id, name, phone, email, country_id=False,
-                                comment=False, company=False, description=False, title=_("Book meeting"), **kwargs):
+                                comment=False, company=False, description=False, title="Book meeting", **kwargs):
         timezone = booking_type.booking_tz
         tz_session = pytz.timezone(timezone)
         date_start = tz_session.localize(fields.Datetime.from_string(datetime_str)).astimezone(pytz.utc)
@@ -213,7 +213,7 @@ class WebsiteCalendar(http.Controller):
             'alarm_ids': alarm_ids,
             'location': f"https://{booking_type.meeting_base_url}/{str(uuid.uuid1())}",
             'partner_ids': [(4, pid, False) for pid in partner_ids],
-            'public_partner': public_partner,
+            # 'public_partner': public_partner,
             'categ_ids': [(4, categ_id.id, False)],
             'booking_type_id': booking_type.id,
             'user_id': Employee.user_id.id,

@@ -1,0 +1,124 @@
+<odoo>
+<!--     <template id="rental_pricing_plan" inherit_id="website_sale.product">-->
+<!--         <xpath expr="//a[@id='add_to_cart']" position="replace">-->
+<!--             <t t-if="product.is_booking and product_on_order">-->
+<!--                 <a role="button" t-attf-class="btn btn-primary btn-lg d-block d-sm-inline-block"-->
+<!--                    t-attf-href="/shop/#{ slug(product.product_variant_id) }/#{ slug(product.booking_type_id) }"-->
+<!--                    data-tooltip="You have added an item to cart. Delete the item in the cart if you want to change your item"><i class="fa fa-shopping-cart"/>-->
+<!--                     Proceed to Booking-->
+<!--                 </a>-->
+<!--             </t>-->
+<!--             <t t-else="">-->
+<!--                 <a  role="button" id="add_to_cart" class="btn btn-primary btn-lg js_check_product a-submit d-block d-sm-inline-block" href="#"><i class="fa fa-shopping-cart"/> Add to Cart</a>-->
+<!--             </t>-->
+<!--         </xpath>-->
+
+<!--        <xpath expr="//div[@id='add_to_cart_wrap']" position="before">-->
+<!--            <t t-if="product.is_booking">-->
+<!--                <span style="color:red;"><i>Add to Cart, Refresh and Proceed to Booking</i></span>-->
+<!--             </t>-->
+<!--        </xpath>-->
+<!--    </template>-->
+
+    <template id="rental_products_price" inherit_id="website_sale.product_price" name="Rental Product Price">
+        <xpath expr="//div[@itemprop='offers']" position="attributes">
+            <attribute name="t-attf-class" separator=" " add="{{'o_hidden' if combination_info.get('is_rent') else ''}}"/>
+        </xpath>
+        <xpath expr="//span[hasclass('oe_price')]" position="after">
+            <t t-if="combination_info.get('is_rent')">
+                <input type="hidden" name="is_rent" t-att-value="combination_info['is_rent']"/>
+                <span class="oe_price o_renting_price text-nowrap"
+                      t-esc="combination_info['current_rental_price_per_unit']"
+                      t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+            </t>
+        </xpath>
+        <xpath expr="//h3[hasclass('css_editable_mode_hidden')]/del" position="after">
+            <t t-if="combination_info.get('is_rent')">
+                <span>per</span>
+                <span itemprop="rental_duration" t-if="combination_info['rental_duration'] > 1"
+                      t-esc="combination_info['rental_duration']"/>
+                <span itemprop="rental_unit" t-esc="combination_info['rental_unit']"/>
+            </t>
+        </xpath>
+        <xpath expr="//span[hasclass('oe_price')]" position="attributes">
+            <attribute name="t-if">not combination_info.get('is_rent')</attribute>
+        </xpath>
+        <xpath expr="//span[@itemprop='listPrice']" position="attributes">
+            <attribute name="t-if">not combination_info.get('is_rent')</attribute>
+        </xpath>
+        <xpath expr="//h3[hasclass('css_non_editable_mode_hidden')]" position="attributes">
+            <attribute name="t-if">not combination_info.get('is_rent')</attribute>
+        </xpath>
+        <xpath expr="//div[@itemprop='offers']" position="after">
+            <div t-if="combination_info.get('is_rent')" class="d-inline-block mt-2 mb-3">
+                <h3>
+                    <span
+                        class="oe_price o_renting_total_price text-nowrap"
+                        t-out="combination_info['current_rental_price']"
+                        t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"
+                    />
+                    <span class="o_renting_details d-inline-block fs-5 text-muted">
+                        <span>/</span>
+                        <span
+                            class="o_renting_duration"
+                            t-out="combination_info['current_rental_duration']"
+                        />
+                        <span
+                            class="o_renting_unit"
+                            t-out="combination_info['current_rental_unit']"
+                        />
+                    </span>
+                </h3>
+            </div>
+        </xpath>
+    </template>
+
+    <template id="product_rental_prices" inherit_id="website_sale.product" name="Product Rental Prices">
+
+        <xpath expr="//t[@t-call='website_sale.variants']" position="after">
+            <div t-if="product.rental_price_ids" class="mb-3 js_rental_price_container">
+                <label class="form-label fw-bold">
+                    <i class="fa fa-calendar me-2"/>Rental Duration
+                </label>
+                <select class="form-select js_rental_price" name="rental_price_id" required="required">
+                    <option value="">Choose your rental period...</option>
+                    <t t-foreach="product.rental_price_ids" t-as="rental_price">
+                        <option t-att-value="rental_price.id"
+                                t-att-data-price="rental_price.price"
+                                t-att-data-unit-type="rental_price.unit_type">
+                            <t t-out="dict(rental_price._fields['unit_type'].selection).get(rental_price.unit_type)"/> -
+                            <span t-out="rental_price.price"
+                                  t-options="{'widget': 'monetary', 'display_currency': website.currency_id}"/>
+                        </option>
+                    </t>
+                </select>
+                <small class="form-text text-muted">
+                    Select how long you need this item
+                </small>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[@id='add_to_cart_wrap']//a[@id='add_to_cart']" position="replace">
+            <t t-if="product.is_rent">
+                <a role="button"
+                   id="proceed_to_booking"
+                   class="btn btn-primary flex-grow-1"
+                   href="#"
+                   data-product-id="product.id">
+                    <i class="fa fa-calendar me-2"/>
+                    Check Available Times
+                </a>
+            </t>
+            <t t-else="">
+                <a data-animation-selector=".o_wsale_product_images"
+                   role="button"
+                   id="add_to_cart"
+                   class="btn btn-primary js_check_product a-submit flex-grow-1"
+                   href="#">
+                    <i class="fa fa-shopping-cart me-2"/>
+                    Add to cart
+                </a>
+            </t>
+        </xpath>
+    </template>
+</odoo>

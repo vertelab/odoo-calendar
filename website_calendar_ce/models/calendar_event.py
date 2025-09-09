@@ -56,8 +56,8 @@ class Meeting(models.Model):
                 user_id = values.get('user_id', defaults.get('user_id'))
                 if not defaults.get('activity_ids') and res_model_id and res_id:
                     if hasattr(self.env[self.env['ir.model'].sudo().browse(res_model_id).model], 'activity_ids'):
-                        meeting_activity_type = self.env['mail.activity.type'].search([('category', '=', 'meeting')],
-                                                                                      limit=1)
+                        meeting_activity_type = self.env['mail.activity.type'].search([
+                            ('category', '=', 'meeting')], limit=1)
                         if meeting_activity_type:
                             activity_vals = {
                                 'res_model_id': res_model_id,
@@ -79,6 +79,7 @@ class Meeting(models.Model):
         recurrence_fields = self._get_recurrent_fields()
         recurring_vals = [vals for vals in vals_list if vals.get('recurrency')]
         other_vals = [vals for vals in vals_list if not vals.get('recurrency')]
+        print("other_vals", other_vals)
         events = super(MeetingOriginal, self).create(other_vals)
 
         for vals in recurring_vals:

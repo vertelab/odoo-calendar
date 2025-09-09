@@ -27,7 +27,6 @@ from babel.dates import format_datetime
 from odoo import api, fields, models, _
 from odoo.tools.misc import get_lang
 from odoo.addons.base.models.res_partner import _tz_get
-from odoo.addons.http_routing.models.ir_http import slug
 from odoo.exceptions import ValidationError
 import pandas as pd
 
@@ -103,7 +102,7 @@ class CalendarBookingType(models.Model):
 
     def _compute_website_url(self):
         for booking_type in self:
-            booking_type.website_url = '/website/calendar/%s/booking' % (slug(booking_type),)
+            booking_type.website_url = '/website/calendar/%s/booking' % (self.env['ir.http']._slug(booking_type),)
 
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):

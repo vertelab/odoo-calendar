@@ -156,9 +156,11 @@
     </template>
 
     <template id="cart" inherit_id="website_sale.cart" name="Shopping Cart">
-        <xpath expr="//div[@id='wrap']/div[hasclass('oe_website_sale')]//div[@id='o_cart_summary']" position="after">
+        <xpath expr="//t[@t-call='website_sale.cart_lines']" position="after">
             <t t-if="error">
-                <span style="color: #d9534f; font-size: 20px">You need to select a booking time for your order</span>
+                <div class="alert alert-danger mt-3" role="alert">
+                    You need to select a booking time for your order
+                </div>
             </t>
         </xpath>
     </template>
@@ -220,9 +222,9 @@
     </template>
 
     <template id="product_quantity" inherit_id="website_sale.product">
-        <xpath expr="//t[@t-cache='pricelist,product']" position="attributes">
-            <attribute name="t-cache"></attribute>
-        </xpath>
+<!--        <xpath expr="//t[@t-cache='pricelist,product']" position="attributes">-->
+<!--            <attribute name="t-cache"></attribute>-->
+<!--        </xpath>-->
 
          <xpath expr="//a[@id='add_to_cart']" position="replace">
              <t t-if="product.is_booking and product_on_order">
@@ -245,16 +247,16 @@
     </template>
 
      <template id="cart_lines" inherit_id="website_sale.cart_lines">
-         <xpath expr="//table[@id='cart_products']//t[@t-foreach='website_sale_order.website_order_line']/tr[1]/t[@t-else='']/td[hasclass('td-product_name')]/div[1]" position="replace">
-             <div>
-                 <t t-call="website_sale.cart_line_product_link">
-                     <strong t-field="line.name_short" />
-                 </t>
-             </div>
-             <t t-if="line.sale_order_booking_id">
-                 <i t-field="line.sale_order_booking_id.start_date" style="font-size:13px;"/> - <i t-field="line.sale_order_booking_id.end_date" style="font-size:13px;"/>
-             </t>
-         </xpath>
+        <xpath expr="//div[@id='cart_products']//div[@t-foreach='website_sale_order.website_order_line']//t[@t-call='website_sale.cart_line_product_link']" position="replace">
+            <t t-call="website_sale.cart_line_product_link">
+                <h6 t-field="line.name_short" class="d-inline align-top h6 fw-bold"/>
+            </t>
+            <t t-if="line.sale_order_booking_id">
+                <div style="font-size:13px;">
+                    <i t-field="line.sale_order_booking_id.start_date"/> - <i t-field="line.sale_order_booking_id.end_date"/>
+                </div>
+            </t>
+        </xpath>
     </template>
 
 </odoo>

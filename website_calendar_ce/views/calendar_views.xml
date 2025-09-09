@@ -20,7 +20,7 @@
         <field name="model">calendar.event</field>
         <field name="inherit_id" ref="calendar.view_calendar_event_calendar"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='attendee_status']" position="before">
+            <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="meeting_url" widget="url"/>
             </xpath>
         </field>

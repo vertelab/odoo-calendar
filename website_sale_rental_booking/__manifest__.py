@@ -20,60 +20,29 @@
 ##############################################################################
 
 {
-    'name': 'Calendar: Website Calendar CE',
+    'name': 'Calendar: Webiste Sale Rental Booking',
     'version': '1.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': 'Schedule bookings with clients',
+    'summary': 'Webiste Sale Rental Booking',
     'category': 'Calendar',
     'description': """
-    Allow clients to Schedule Bookings through your Website
-    -------------------------------------------------------
+        Allow clients to book rentals
+        -------------------------------------------------------
     """,
+    #'sequence': '1',
     'sequence': '131',
     'author': 'Vertel AB',
-    'website': 'https://vertel.se/apps/odoo-calendar/website_calendar_ce',
-    'images': ['static/description/banner.png'],  # 560x280 px.
+    'website': 'https://vertel.se/apps/odoo-calendar/one_page_website_calendar',
+    'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
     'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
-    'depends': ['calendar_sms', 'hr', 'website', 'mail'],
+    'depends': ['base', 'calendar', 'sttl_sale_rental'],
     'data': [
-        'data/website_calendar_data.xml',
-        'data/mail.xml',
-        'views/calendar_views.xml',
-        'views/calendar_booking_views.xml',
-        'views/website_calendar_templates.xml',
-        'security/website_calendar_security.xml',
-        'security/ir.model.access.csv',
-
-        # 'views/snippets/snippets.xml',
+        'views/product_template_views.xml'
 
     ],
-    'demo': [
-        'data/website_calendar_demo.xml'
-    ],
-    # 'qweb': [
-    #     'static/src/xml/booking.xml',
-    # ],
-    'external_dependencies': {
-        'python': [
-            'pandas'  # sudo pip3 install pandas
-        ]
-    },
-    'assets': {
-        'web.assets_frontend': [
-            'website_calendar_ce/static/src/scss/website_calendar_ce.scss',
-            'website_calendar_ce/static/src/js/website_calendar_ce.js'
-        ],
-        'web.assets_backend': [
-            'website_calendar_ce/static/src/scss/booking_employee_url.scss',
-            # 'website_calendar_ce/static/src/js/booking_employee_url.js'
-        ],
-        'website.assets_wysiwyg': [
-            'website_calendar_ce/static/src/js/website_calendar.editor.js'
-        ]
-    },
     'installable': True,
     'application': True,
     'auto_install': False,

@@ -12,7 +12,6 @@ from babel.dates import format_datetime
 from odoo import api, fields, models, _
 from odoo.tools.misc import get_lang
 from odoo.addons.base.models.res_partner import _tz_get
-from odoo.addons.http_routing.models.ir_http import slug
 from odoo.exceptions import ValidationError
 
 

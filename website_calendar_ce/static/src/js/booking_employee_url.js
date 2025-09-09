@@ -14,7 +14,7 @@ var fieldRegistry = require('web.field_registry');
 
 var _t = core._t;
 
-var FieldemployeeUrl = AbstractField.extend({
+var FieldEmployeeUrl = AbstractField.extend({
     events: _.extend({}, AbstractField.prototype.events, {
         'click .o_website_calendar_copy_icon': '_stopPropagation',
         'click .o_form_uri': '_stopPropagation',
@@ -100,5 +100,5 @@ var FieldemployeeUrl = AbstractField.extend({
     },
 });
 
-fieldRegistry.add('booking_employee_url', FieldemployeeUrl)
+fieldRegistry.add('booking_employee_url', FieldEmployeeUrl)
 });

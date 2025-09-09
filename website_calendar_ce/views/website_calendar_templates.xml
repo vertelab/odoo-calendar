@@ -32,12 +32,9 @@
                 <div class="oe_structure"/>
                 <div class="container mb128 o_website_calendar_booking">
                     <ul class="wizard mt32 float-end">
-                        <li class="text-primary">Booking<span class="chevron"/>
-                        </li>
-                        <li class="text-muted">Time<span class="chevron"/>
-                        </li>
-                        <li class="text-muted">Confirmation<span class="chevron"/>
-                        </li>
+                        <li class="text-primary">Booking<span class="chevron"/></li>
+                        <li class="text-muted">Time<span class="chevron"/></li>
+                        <li class="text-muted">Confirmation<span class="chevron"/></li>
                     </ul>
                     <h1 t-if="header" class="o_page_header mt32">
                         <t t-esc="header"/>
