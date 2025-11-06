@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from base64 import b64decode
 import datetime
-from modulefinder import IMPORT_NAME
 from multiprocessing.sharedctypes import Value
 from unicodedata import name
 from odoo import fields, models, api, _
