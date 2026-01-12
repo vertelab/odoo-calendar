@@ -1,6 +1,5 @@
 from odoo import models, fields, api, _
 from pytz import timezone
-from odoo.exceptions import except_orm, Warning, RedirectWarning
 from datetime import datetime, timedelta, time
 from time import strptime, mktime, strftime
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
@@ -17,7 +16,7 @@ _logger = logging.getLogger(__name__)
 try:
     from icalendar import Calendar, Event, vDatetime, FreeBusy
 except ImportError:
-    raise Warning('icalendar library missing, pip install icalendar')
+    raise _logger.warning('icalendar library missing, pip install icalendar')
 
 
 class res_partner(models.Model):

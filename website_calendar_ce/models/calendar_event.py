@@ -79,7 +79,6 @@ class Meeting(models.Model):
         recurrence_fields = self._get_recurrent_fields()
         recurring_vals = [vals for vals in vals_list if vals.get('recurrency')]
         other_vals = [vals for vals in vals_list if not vals.get('recurrency')]
-        print("other_vals", other_vals)
         events = super(MeetingOriginal, self).create(other_vals)
 
         for vals in recurring_vals:
