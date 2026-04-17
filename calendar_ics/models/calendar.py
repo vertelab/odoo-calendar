@@ -51,10 +51,12 @@ class calendar_event(models.Model):
     ics_subscription = fields.Boolean(default=False) # partner_ids + ics_subscription -> its ok to delete
 
     def set_ics_event(self, ics_file, partner):
+        _logger.error(f'ICS {ics_file} {partner}')
+
         for event in Calendar.from_ical(ics_file).walk('vevent'):            
             #~ if not event.get('uid'):
                 #~ event.add('uid',reduce(lambda x,y: x ^ y, map(ord, str(event.get('dtstart') and event.get('dtstart').dt or '' + event.get('summary') + event.get('dtend') and event.get('dtend').dt or ''))) % 1024)
-                
+            _logger.info('ICS %s' % event)
             summary = ''
             description = event.get('description', '')
             if event.get('summary') and len(event.get('summary')) < 35:

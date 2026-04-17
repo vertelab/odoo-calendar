@@ -31,7 +31,7 @@
     """,
     'author': 'Vertel AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_ics',
-    'depends': ['calendar', ],
+    'depends': ['calendar', 'mail'],
     'external_dependencies': {
         'python': ['icalendar'],
     },

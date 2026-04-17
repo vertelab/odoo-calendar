@@ -29,15 +29,15 @@ class res_partner(models.Model):
     ics_frequency = fields.Selection([('15', 'Every fifteen minutes'), ('60', 'Every hour'), ('360', 'Four times a day'), ('1440', 'Once per day'), ('10080', 'Once every week'), ('43920', 'Once every month'), ('131760', 'Once every third month')], string='Frequency', default='60')
     ics_class = fields.Selection([('private', 'Private'), ('public', 'Public'), ('confidential', 'Public for Employees')], string='Privacy', default='private')
     ics_show_as = fields.Selection([('free', 'Free'), ('busy', 'Busy')], string='Show Time as')
-    ics_location = fields.Char(string='Location', help="Location of Event")
-    ics_allday = fields.Boolean(string='All Day')
+    ics_location = fields.Char(string='Location', help="Default Location of Event")
+    ics_allday = fields.Boolean(string='All Day', help="If set all events from this source will be all-day events" )
     ics_url_field = fields.Char(string='URL to the calendar', compute='create_ics_url')
 
     def create_ics_url(self):
         self.ics_url_field = '%s/partner/%s/calendar/public.ics' % (self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id)
 
     def ics_cron_job(self):
-        for ics in self.env['res.partner'].browse(self.env['res.partner'].search([('ics_active','=',True)])):
+        for ics in self.env['res.partner'].search([('ics_active','=',True)]):
             if not ics.ics_nextdate or (ics.ics_nextdate < fields.Datetime.today()):
                 ics.get_ics_events()
                 ics.ics_nextdate = fields.Datetime.to_string(fields.Datetime.from_string(ics.ics_nextdate or fields.Datetime.now()) + timedelta(minutes=int(ics.ics_frequency)))
@@ -160,35 +160,74 @@ class res_partner(models.Model):
         
         return tmpCalendar
         
+    # ~ def ics_mail(self):
+        # ~ self.ensure_one()
+        # ~ template = self.env.ref('calendar_ics.email_ics_url', raise_if_not_found=False)
+        # ~ compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
+		
+		# ~ # Vi skapar en context som talar om för composern exakt vad den ska rendera
+        # ~ ctx = {
+			# ~ 'default_model': 'res.partner',
+			# ~ 'default_res_ids': self.ids, # Odoo 18 föredrar res_ids (lista)
+			# ~ 'default_template_id': template.id if template else False,
+			# ~ 'default_composition_mode': 'comment',
+			# ~ 'force_email': True, # Valfritt: tvingar fram e-postläge
+        # ~ }
+
+		# ~ # I Odoo 18 är det bäst att låta action-fönstret skapa objektet via context,
+		# ~ # eller skapa det med rätt default-värden direkt.
+        # ~ mail = self.env['mail.compose.message'].with_context(ctx).create({})
+		
+		# ~ # Trigga rendering av mallen manuellt om den inte populeras automatiskt
+        # ~ if template:
+            # ~ mail._compute_subject()
+            # ~ mail._compute_body()
+
+
     def ics_mail(self):
+        self.ensure_one()
+        template = self.env.ref('calendar_ics.email_ics_url', raise_if_not_found=False)
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
-        #~ raise Warning("%s compose_form" % compose_form)
-        mail= self.env['mail.compose.message'].create({
-            'template_id':self.env.ref('calendar_ics.email_ics_url').id, 
-            'model': 'res.partner',
-            'res_id': self.id,
-            })
-        mail.write(mail.onchange_template_id( # gets defaults from template
-                                self.env.ref('calendar_ics.email_ics_url').id, mail.composition_mode,
-                                mail.model, mail.res_id
-                            )['value'])
-        return {
-                'name': _('Compose Email'),
-                'type': 'ir.actions.act_window',
-                'view_type': 'form',
-                'view_mode': 'form',
-                'res_model': 'mail.compose.message',
-                'res_id':mail.id,
-                'views': [(compose_form.id, 'form')],
-                'view_id': compose_form.id,
-                'target': 'new',
-                }
-
-        # return {'value': {'partner_id': False}, 'warning': {'title': 'Hello', 'message': 'Hejsan'}}
- 
         
-        #~ ics['freebusy'] = '%s/%s' % (ics_datetime(event.start, event.allday), ics_datetime(event.stop, event.allday))
+        # Vi använder context för att styra initialvärden i Odoo 18
+        ctx = {
+            'default_model': 'res.partner',
+            'default_res_ids': self.ids,
+            'default_template_id': template.id if template else False,
+            'default_composition_mode': 'comment',
+        }
 
+        # Skapa recordet med korrekt context
+        composer = self.env['mail.compose.message'].with_context(ctx).create({})
+
+        # I Odoo 18 triggar vi renderingen manuellt via compute-metoder
+        # Detta ersätter den gamla onchange-logiken som nu är borttagen
+        if template:
+            composer._compute_subject()
+            composer._compute_body()
+
+        return {
+            'name': _('Compose Email'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'mail.compose.message',
+            'res_id': composer.id,
+            'view_mode': 'form',
+            'view_id': compose_form.id if compose_form else False,
+            'views': [(compose_form.id, 'form')] if compose_form else [(False, 'form')],
+            'target': 'new',
+            'context': ctx,
+        }
+        # ~ return {
+			# ~ 'name': _('Compose Email'),
+			# ~ 'type': 'ir.actions.act_window',
+			# ~ 'view_mode': 'form', # 'view_type' har tagits bort i nyare Odoo-versioner
+			# ~ 'res_model': 'mail.compose.message',
+			# ~ 'res_id': mail.id,
+			# ~ 'view_id': compose_form.id if compose_form else False,
+			# ~ 'views': [(compose_form.id, 'form')] if compose_form else [(False, 'form')],
+			# ~ 'target': 'new',
+			# ~ 'context': ctx,
+        # ~ }
     # vtodo, vjournal, vfreebusy
 
 
