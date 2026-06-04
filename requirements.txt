@@ -1,5 +1,4 @@
-python3-numpy
-python3-pandas
+numpy
+pandas
 ics
 icalendar
-urllib2

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="280" viewBox="0 0 560 280" version="1.1">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#930a57"/>
+      <stop offset="100%" style="stop-color:#8105a7"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="560" height="280" fill="url(#bg)"/>
+  <circle cx="480" cy="200" r="180" fill="#ffffff" fill-opacity="0.05"/>
+  <circle cx="520" cy="230" r="140" fill="#ffffff" fill-opacity="0.05"/>
+  <text x="50" y="120" style="font-family:Ubuntu, sans-serif; font-size:48px; font-weight:bold; fill:#ffffff">CalDAV</text>
+  <text x="50" y="155" style="font-family:Ubuntu, sans-serif; font-size:18px; fill:#ffffff" fill-opacity="0.8">CalDAV support for Odoo Calendar</text>
+  <line x1="50" y1="170" x2="350" y2="170" stroke="#ffffff" stroke-width="1" stroke-opacity="0.3"/>
+  <rect x="50" y="185" width="120" height="35" rx="17" ry="17" fill="#ffffff" fill-opacity="0.15"/>
+  <text x="110" y="208" text-anchor="middle" style="font-family:Ubuntu, sans-serif; font-size:14px; fill:#ffffff">Vertel AB</text>
+</svg>

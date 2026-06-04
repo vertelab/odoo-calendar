@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_calendar_event_dav_user,calendar.event.dav.user,model_calendar_event,base.group_user,1,1,0,0
+access_calendar_event_dav_manager,calendar.event.dav.manager,model_calendar_event,base.group_system,1,1,1,1

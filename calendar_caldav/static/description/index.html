@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Calendar CalDAV</title>
+</head>
+<body>
+  <p>CalDAV endpoint for Odoo Calendar at <code>/caldav/</code>.</p>
+  <p>CalDAV clients (Thunderbird, iOS, etc.) connect using HTTP Basic Auth with Odoo user credentials. Multi-database setups are supported.</p>
+
+  <h2>DNS SRV auto-discovery (RFC 6764)</h2>
+  <p>To let CalDAV clients discover the calendar automatically (by entering only an email address), add SRV records to the domain's DNS zone:</p>
+
+  <p><strong>For HTTPS (recommended):</strong></p>
+  <pre>_caldavs._tcp.example.com.  300  SRV  0 1 443  odoo.example.com.</pre>
+
+  <p><strong>For HTTP:</strong></p>
+  <pre>_caldav._tcp.example.com.  300  SRV  0 1 80  odoo.example.com.</pre>
+
+  <p>Replace <code>example.com</code> with your domain and <code>odoo.example.com</code> with the hostname serving the CalDAV endpoint. The service must be reverse-proxied to the Odoo server's <code>/caldav/</code> URL.</p>
+
+  <h2>Well-known URI</h2>
+  <p>The module also serves <code>/.well-known/caldav/</code> (RFC 6764) which redirects to <code>/caldav/</code>. Thunderbird, iOS and other clients use this for CalDAV discovery.</p>
+</body>
+</html>
