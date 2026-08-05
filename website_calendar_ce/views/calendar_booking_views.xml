@@ -8,7 +8,7 @@
             <kanban class="o_kanban_dashboard">
                 <field name="id" invisible="1" />
                 <templates>
-                    <t t-name="kanban-box">
+                    <t t-name="card">
                         <div>
                             <div class="o_kanban_manage_button_section">
                                 <t t-if="widget.editable"><a class="o_kanban_manage_toggle_button" href="#"><i class="fa fa-ellipsis-v" role="img" aria-label="Manage" title="Manage"/></a></t>

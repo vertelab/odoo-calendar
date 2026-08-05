@@ -39,11 +39,9 @@ msgid "Last Modified (DAV)"
 msgstr "Senast ändrad (DAV)"
 
 #. module: calendar_caldav
-#: model:ir.model.access,calendar_caldav.access_calendar_event_dav_user
 msgid "calendar.event.dav.user"
 msgstr "calendar.event.dav.user"
 
 #. module: calendar_caldav
-#: model:ir.model.access,calendar_caldav.access_calendar_event_dav_manager
 msgid "calendar.event.dav.manager"
 msgstr "calendar.event.dav.manager"
