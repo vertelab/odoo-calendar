@@ -32,7 +32,7 @@
     Adds a check if sklls and allergies match for a calendar.attendee.
     """,
     #'sequence': '1',
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_skills_allergies_glue',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',

@@ -28,7 +28,7 @@
     'description': """
     Adds attendee views to the calendar
 """,
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_attendee_planning',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',

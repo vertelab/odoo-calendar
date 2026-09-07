@@ -31,7 +31,7 @@
         https://date.nager.at/api/v3/PublicHolidays/{ar}/{country code}        
     """,
     #'sequence': '1',
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_public_holoday_nager',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',

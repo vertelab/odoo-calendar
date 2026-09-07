@@ -7,7 +7,7 @@
     "version": "0.1",
     "category": "Calendar",
     "website": "https://github.com/OCA/calendar",
-    "author": "Vertel AB, initOS GmbH, Odoo Community Association (OCA)",
+    "author": "Vertel Sverige AB, initOS GmbH, Odoo Community Association (OCA)",
     "license": "AGPL-3",
     "application": False,
     "installable": True,

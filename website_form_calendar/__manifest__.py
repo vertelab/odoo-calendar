@@ -3,6 +3,7 @@
 
 {
     'name': 'Calendar: Online Booking Form',
+'author': 'Vertel Sverige AB',
     'category': 'Website/Website',
     'summary': 'Add a task suggestion form to your website',
     'version': '1.0',

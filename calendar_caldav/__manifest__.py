@@ -3,7 +3,7 @@
     "summary": "CalDAV support for Odoo Calendar",
     "version": "18.0.1.0.0",
     "category": "Calendar",
-    "author": "Vertel AB",
+    "author": "Vertel Sverige AB",
     "license": "AGPL-3",
     "depends": ["calendar"],
     "data": [

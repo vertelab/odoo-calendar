@@ -33,7 +33,7 @@
     Module extends functionality for calandar events to send update emails when the event is deleted or changed.
     """,
     #'sequence': '1',
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/extended_calendar_notifications',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',

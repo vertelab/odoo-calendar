@@ -29,7 +29,7 @@
         Sets up a REST API that enables Odoo to sync calendar events with other apps.
     """,
     #'sequence': '1',
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_sync',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',

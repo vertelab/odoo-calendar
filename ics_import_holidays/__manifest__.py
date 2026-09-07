@@ -33,7 +33,7 @@
     Required python library: 'ics', just do "pip install ics" on your machine and you should be able to install the module.
     """,
     #'sequence': '1',
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/ics_import_holidays',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',

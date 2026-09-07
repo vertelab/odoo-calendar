@@ -29,7 +29,7 @@
     'description': """
     Adds and updates calendar objects according to an ics-url.
     """,
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_ics',
     'depends': ['calendar', 'mail'],
     'external_dependencies': {

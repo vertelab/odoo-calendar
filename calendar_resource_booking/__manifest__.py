@@ -28,7 +28,7 @@
     'description': """
     Adds resource tags to a calendar event
 """,
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_resource_booking',
     'images': [], # 560x280 px.
     'license': 'AGPL-3',
