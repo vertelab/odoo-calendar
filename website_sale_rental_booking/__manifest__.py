@@ -32,7 +32,7 @@
     #'sequence': '1',
     'sequence': '131',
     'author': 'Vertel Sverige AB',
-    'website': 'https://vertel.se/apps/odoo-calendar/one_page_website_calendar',
+    'website': 'https://vertel.se/apps/odoo-calendar/website_sale_rental_booking',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',

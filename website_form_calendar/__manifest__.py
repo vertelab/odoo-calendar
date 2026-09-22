@@ -4,6 +4,7 @@
 {
     'name': 'Calendar: Online Booking Form',
 'author': 'Vertel Sverige AB',
+'website': 'https://vertel.se/apps/odoo-calendar/website_form_calendar',
     'category': 'Website/Website',
     'summary': 'Add a task suggestion form to your website',
     'version': '1.0',

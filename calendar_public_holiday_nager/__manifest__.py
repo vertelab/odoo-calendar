@@ -32,7 +32,7 @@
     """,
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
-    'website': 'https://vertel.se/apps/odoo-calendar/calendar_public_holoday_nager',
+    'website': 'https://vertel.se/apps/odoo-calendar/calendar_public_holiday_nager',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',

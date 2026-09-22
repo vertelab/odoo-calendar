@@ -4,6 +4,7 @@
     "version": "18.0.1.0.0",
     "category": "Calendar",
     "author": "Vertel Sverige AB",
+    "website": "https://vertel.se/apps/odoo-calendar/calendar_caldav",
     "license": "AGPL-3",
     "depends": ["calendar"],
     "data": [

@@ -30,7 +30,7 @@
         To be able to open calendar form view instead of a popup
     """,
     'author': 'Vertel Sverige AB',
-    'website': 'https://vertel.se/apps/odoo-calendar/calender_full_form',
+    'website': 'https://vertel.se/apps/odoo-calendar/calander_full_form',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
     'maintainer': 'Vertel AB',
