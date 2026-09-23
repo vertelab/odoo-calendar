@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Artefakttyp för calendar_ai (okf-mixin D12). -->
-    <record id="artifact_type_event" model="ai.artifact.type">
-        <field name="name">event</field>
+    <record id="artifact_type_calendar_event" model="ai.artifact.type">
+        <field name="name">calendar_event</field>
         <field name="kind">knowledge</field>
         <field name="bridge_module">calendar_ai</field>
         <field name="model_id" ref="calendar.model_calendar_event"/>

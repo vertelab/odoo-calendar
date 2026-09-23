@@ -9,12 +9,18 @@ en LLM hade formulerat om samma fakta olika varje gång, och datumet är
 det viktigaste ordet.
 """
 
-from odoo import models
+from odoo import models, fields
 
 
 class CalendarEvent(models.Model):
     _name = 'calendar.event'
     _inherit = ['calendar.event', 'ai.okf.mixin']
+
+    # OKF-taggar: egen relationstabell (en many2many kan inte
+    # ligga pa en abstrakt mixin — den ger samma tabell for alla).
+    okf_tags = fields.Many2many(
+        'ai.okf.tag', 'calendar_event_okf_tag_rel', 'res_id', 'tag_id',
+        string='OKF Tags')
 
     # ── Källor ─────────────────────────────────────────────────────────
     #
@@ -45,8 +51,14 @@ class CalendarEvent(models.Model):
         return ' — '.join(b for b in bits if b) or None
 
     def _okf_artifact_type(self):
-        """Bryggans egen typ (okf-mixin D12)."""
-        return 'event'
+        """Bryggans egen typ (okf-mixin D12).
+
+        Heter 'calendar_event', inte 'event': `website_ai_event` äger
+        redan 'event' för `event.event`. Två bryggor kan inte dela namn —
+        `ai.artifact.type` har UNIQUE(name), och taxonomin ska kunna
+        spåras till EN brygga.
+        """
+        return 'calendar_event'
 
     def _okf_dirty_fields(self):
         """Fält vars ändring gör OKF-fälten inaktuella.
