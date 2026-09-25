@@ -21,16 +21,24 @@
 
 {
     'name': 'Calendar: Skills and allergies glue module',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Compare contract and partner skills & allergies.',
     # Categories can be used to filter modules in modules listing
     # Check https://github.com/odoo/odoo/blob/14.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': 'Calendar',
-    'description': """
+    'description': '''
+Skills and allergies glue module
+================================
+
     Adds a check if sklls and allergies match for a calendar.attendee.
-    """,
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on calendar.attendee, contract.contract.
+    ''',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_skills_allergies_glue',

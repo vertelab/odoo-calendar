@@ -1,12 +1,21 @@
 {
     'name': 'Calendar: Product Booking Checkout',
-    'version': '1.0',
-    'summary': 'Product Booking Checkout',
+    'version': '18.0.1.0.0',
+    'summary': 'Product Booking Checkout.',
     'category': 'Calendar',
-    'description': """
-        Allow items to be booked via webshop
-        -------------------------------------------------------
-    """,
+    'description': '''
+Product Booking Checkout
+========================
+
+    Allow items to be booked via webshop
+            -------------------------------------------------------
+
+    Features:
+
+        - Web integration: Exposes HTTP endpoints for external systems.
+        - UI Integration: Extends 3 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on calendar.booking.type, calendar.event, product.product, product.template.
+    ''',
     'sequence': '131',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/website_booking_checkout',

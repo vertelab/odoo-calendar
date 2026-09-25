@@ -22,13 +22,20 @@
 
 {
     'name': 'Calendar: Calender Full Form',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'To be able to open calendar form view instead of a popup.',
     'category': 'Calendar',
-    'description': """
-        To be able to open calendar form view instead of a popup
-    """,
+    'description': '''
+Calender Full Form
+==================
+
+    To be able to open calendar form view instead of a popup.
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+    ''',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calander_full_form',
     'images': ['static/description/banner.png'], # 560x280 px.

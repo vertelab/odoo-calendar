@@ -21,14 +21,23 @@
 
 {
     'name': 'Calendar: Website Calendar CE',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': 'Schedule bookings with clients',
+    'summary': 'Schedule bookings with clients.',
     'category': 'Calendar',
-    'description': """
+    'description': '''
+Website Calendar CE
+===================
+
     Allow clients to Schedule Bookings through your Website
-    -------------------------------------------------------
-    """,
+        -------------------------------------------------------
+
+    Features:
+
+        - Web integration: Exposes HTTP endpoints for external systems.
+        - UI Integration: Extends 3 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on calendar.attendee, calendar.booking.answer, calendar.booking.question, calendar.booking.slot.
+    ''',
     'sequence': '131',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/website_calendar_ce',

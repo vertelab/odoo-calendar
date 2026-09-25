@@ -21,15 +21,23 @@
 
 {
     'name': 'Calendar: Public Holiday Nager Date',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Get Public Holidays from Nager.Date .',
     'category': 'Calendar',
-    'description': """
-        Sets up a REST API that enables Odoo to sync calendar events from Nager.Date
-        
-        https://date.nager.at/api/v3/PublicHolidays/{ar}/{country code}        
-    """,
+    'description': '''
+Public Holiday Nager Date
+=========================
+
+    Sets up a REST API that enables Odoo to sync calendar events from Nager.Date
+
+    https://date.nager.at/api/v3/PublicHolidays/{ar}/{country code}
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on calendar.public.holiday.
+    ''',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_public_holiday_nager',

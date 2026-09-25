@@ -21,13 +21,22 @@
 
 {
     'name': 'Calendar: Website Calendar Waitlist',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': 'Schedule bookings with clients',
+    'summary': 'Schedule bookings with clients.',
     'category': 'Calendar',
-    'description': """
-    TODO:
-    """,
+    'description': '''
+Website Calendar Waitlist
+=========================
+
+    Schedule bookings with clients.
+
+    Features:
+
+        - Web integration: Exposes HTTP endpoints for external systems.
+        - UI Integration: Extends 3 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on calendar.booking.type, calendar.booking.type.waitlist.
+    ''',
     #'sequence': '1',
     'sequence': '131',
     'author': 'Vertel Sverige AB',

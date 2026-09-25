@@ -25,13 +25,20 @@
 
 {
     'name': 'Calendar: Extended Notifications',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Module extends functionality for calandar events.',
     'category': 'Calendar',
-    'description': """
+    'description': '''
+Extended Notifications
+======================
+
     Module extends functionality for calandar events to send update emails when the event is deleted or changed.
-    """,
+
+    Features:
+
+        - Extends Odoo: Builds on calendar.event.
+    ''',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/extended_calendar_notifications',

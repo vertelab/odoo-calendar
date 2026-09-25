@@ -21,13 +21,20 @@
 
 {
     'name': 'Calendar: Sync',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Syncs the Odoo calendar with other apps.',
     'category': 'Calendar',
-    'description': """
-        Sets up a REST API that enables Odoo to sync calendar events with other apps.
-    """,
+    'description': '''
+Sync
+====
+
+    Sets up a REST API that enables Odoo to sync calendar events with other apps.
+
+    Features:
+
+        - Web integration: Exposes HTTP endpoints for external systems.
+    ''',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_sync',

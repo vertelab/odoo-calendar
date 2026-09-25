@@ -4,7 +4,7 @@
 {
     "name": "Calendar dav",
     "summary": "Extension of the base_dav module to work better with the calendar",
-    "version": "0.1",
+    'version': '18.0.1.0.0',
     "category": "Calendar",
     "website": "https://vertel.se/apps/odoo-calendar/calendar_dav",
     "author": "Vertel Sverige AB, initOS GmbH, Odoo Community Association (OCA)",

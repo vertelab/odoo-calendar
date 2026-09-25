@@ -21,14 +21,24 @@
 
 {
     'name': 'Calendar: ICS',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     'category': 'Calendar',
-    'summary': 'Subscription on calendar.ics-urls',
+    'summary': 'Subscription on calendar.ics-urls.',
     'images': ['static/description/banner.png'], # 560x280 px.
     'license': 'AGPL-3',
-    'description': """
-    Adds and updates calendar objects according to an ics-url.
-    """,
+    'description': '''
+ICS
+===
+
+    Subscription on calendar.ics-urls.
+
+    Features:
+
+        - Web integration: Exposes HTTP endpoints for external systems.
+        - Automation: Scheduled jobs: Generate Recurring Calendar updates for Partners.
+        - UI Integration: Extends 2 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on calendar.event.
+    ''',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_ics',
     'depends': ['calendar', 'mail'],

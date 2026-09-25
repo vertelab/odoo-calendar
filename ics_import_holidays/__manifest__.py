@@ -21,17 +21,25 @@
 
 {
     'name': 'Calendar: Import holidays',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': 'Import holidays will update  monthly basis so you are always on the right ',
+    'summary': 'Import holidays will update monthly basis so you are always on the right.',
     'category': 'Calendar',
-    'description': """
+    'description': '''
+Import holidays
+===============
+
     This is a module you can use to import holidays into the calendar and the resource calendar.
-    Currently it only allows for one URL containing an .ics file to be imported. 
-    It updates monthly for new holidays so that you are always up to date.
+        Currently it only allows for one URL containing an .ics file to be imported. 
+        It updates monthly for new holidays so that you are always up to date.
 
     Required python library: 'ics', just do "pip install ics" on your machine and you should be able to install the module.
-    """,
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on calendar.event.
+    ''',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/ics_import_holidays',

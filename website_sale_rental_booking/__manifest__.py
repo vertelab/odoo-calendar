@@ -21,14 +21,22 @@
 
 {
     'name': 'Calendar: Webiste Sale Rental Booking',
-    'version': '1.0',
+    'version': '18.0.1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
-    'summary': 'Webiste Sale Rental Booking',
+    'summary': 'Webiste Sale Rental Booking.',
     'category': 'Calendar',
-    'description': """
-        Allow clients to book rentals
-        -------------------------------------------------------
-    """,
+    'description': '''
+Webiste Sale Rental Booking
+===========================
+
+    Allow clients to book rentals
+            -------------------------------------------------------
+
+    Features:
+
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on account.fiscal.position, crm.team, mail.template, product.pricelist.
+    ''',
     #'sequence': '1',
     'sequence': '131',
     'author': 'Vertel Sverige AB',

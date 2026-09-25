@@ -21,13 +21,21 @@
 
 {
     'name': 'Calendar: Website Calendar Slot Range',
-    'version': '1.0',
-    'summary': 'Booking a range of time slot',
+    'version': '18.0.1.0.0',
+    'summary': 'Booking a range of time slot.',
     'category': 'Calendar',
-    'description': """
-        Allow clients to Booking a range of time slot
-        -------------------------------------------------------
-    """,
+    'description': '''
+Website Calendar Slot Range
+===========================
+
+    Allow clients to Booking a range of time slot
+            -------------------------------------------------------
+
+    Features:
+
+        - Web integration: Exposes HTTP endpoints for external systems.
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+    ''',
     'sequence': '131',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/website_calendar_slot_range',
