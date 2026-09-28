@@ -55,4 +55,3 @@ ICS
     'installable': True,
     'demo': ['demo/calendar_ics_demo.xml', ],
 }
-# vim:expandtab:smartindent:tabstop=4s:softtabstop=4:shiftwidth=4:
