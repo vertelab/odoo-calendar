@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo><data noupdate="1">
+
+    <!-- Testdata: lektioner i kursen "Kalender &amp;amp; kontakter i Vertel".
+         Laddas ENDAST mot *_test-databaser (repo_apply: –without-demo=all
+         för produktion). Ersätts av riktigt innehåll i Fas 5. -->
+    <record id="slide_calendar_0" model="slide.slide">
+        <field name="name">Översikt: kalender och kontakter</field>
+        <field name="channel_id" ref="slide_channel_calendar"/>
+        <field name="slide_category">article</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">&lt;p&gt;Vad som synkas och var det bor (CalDAV/CardDAV).&lt;/p&gt;</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="slide_calendar_1" model="slide.slide">
+        <field name="name">Koppla mobilen</field>
+        <field name="channel_id" ref="slide_channel_calendar"/>
+        <field name="slide_category">article</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">&lt;p&gt;iOS/Android: lägg till CalDAV- och CardDAV-konto.&lt;/p&gt;</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="slide_calendar_2" model="slide.slide">
+        <field name="name">Koppla Outlook/Thunderbird</field>
+        <field name="channel_id" ref="slide_channel_calendar"/>
+        <field name="slide_category">article</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">&lt;p&gt;Skrivbordsklienter mot samma DAV-slutpunkt.&lt;/p&gt;</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="slide_calendar_3" model="slide.slide">
+        <field name="name">Boka rum och utrustning</field>
+        <field name="channel_id" ref="slide_channel_calendar"/>
+        <field name="slide_category">article</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">&lt;p&gt;Resursbokning på möten, konflikter och översikt.&lt;/p&gt;</field>
+        <field name="sequence">40</field>
+    </record>
+
+</data></odoo>

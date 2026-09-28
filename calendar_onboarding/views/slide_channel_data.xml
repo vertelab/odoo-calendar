@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo><data noupdate="1">
+
+    <!-- Onboardingskurs: Kalender &amp;amp; kontakter i Vertel
+         Lektionerna ligger i demo/slide_slide_demo.xml (test-only).
+         Produktionsinnehåll fylls på via webbgränssnittet eller data-XML. -->
+    <record id="slide_channel_calendar" model="slide.channel">
+        <field name="name">Kalender &amp; kontakter i Vertel</field>
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="enroll">public</field>
+        <field name="channel_type">training</field>
+        <field name="allow_comment" eval="True"/>
+        <field name="promote_strategy">latest</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">Lär dig synka kalender och adressbok mot mobil, Outlook och Thunderbird — och boka resurser.</field>
+    </record>
+
+</data></odoo>
