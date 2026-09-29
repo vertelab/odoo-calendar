@@ -2,3 +2,7 @@
 *.swp
 *~
 graphify-out/
+.shazam/
+PLAN*
+__pycache__/
+openspec/
