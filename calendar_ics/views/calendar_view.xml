@@ -41,13 +41,13 @@
         <field name="name">Calendar ics-url</field>
         <field name="model">calendar.ics</field>
         <field name="arch" type="xml">
-            <tree string="Ics-urls" fonts="bold:active==False">
+            <list string="Ics-urls" fonts="bold:active==False">
                 <field name="name" />
                 <field name="user_id" />
                 <field name="url" />
                 <field name="active" /> 
                 <button name="get_events" string="Check" type="object" icon="gtk-ok" colspan="1"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -74,7 +74,7 @@
     <record id="action_calendar_ics" model="ir.actions.act_window">
         <field name="name">Calendar ics</field>
         <field name="res_model">calendar.ics</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_calendar_ics_tree"/>
         <field name="search_view_id" ref="view_calendar_ics_search"/>
         <field name="help" type="html">

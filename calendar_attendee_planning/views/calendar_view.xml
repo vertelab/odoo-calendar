@@ -3,7 +3,7 @@
         <field name="name">Attendee View</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">calendar.attendee</field>
-        <field name="view_mode">tree,form,kanban,calendar,timeline</field>
+        <field name="view_mode">list,form,kanban,calendar,timeline</field>
         <field name="context">{"search_default_my_responsibility":1}</field>
     </record>
 
@@ -28,9 +28,9 @@
   <record model="ir.ui.view" id="view_calender_attendee_tree">
     <field name="name">calender_attendee_tree</field>
     <field name="model">calendar.attendee</field>
-    <field name="type">tree</field>
+    <field name="type">list</field>
     <field name="arch" type="xml">
-      <tree string="Attendees" 
+      <list string="Attendees" 
       decoration-success="state == 'accepted'" 
       decoration-danger="state == 'declined'" 
       decoration-warning="state == 'tentative'">
@@ -40,7 +40,7 @@
         <field name="user_id" />
         <field name="email" />
         <field name="state" />
-      </tree>
+      </list>
     </field>
   </record>
 

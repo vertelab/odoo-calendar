@@ -18,11 +18,11 @@
         <field name="name">calendar.booking.type.waitlist.tree</field>
         <field name="model">calendar.booking.type.waitlist</field>
         <field name="arch" type="xml">
-            <tree default_order="create_date">
+            <list default_order="create_date">
                 <field name="related_user_id"/>
                 <field name="create_date"/>
                 <field name="employee_id"/>
-            </tree>
+            </list>
         </field>
     </record>
 

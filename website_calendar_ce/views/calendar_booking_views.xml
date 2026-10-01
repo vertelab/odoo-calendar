@@ -142,8 +142,9 @@
                                         </group>
                                         <group name="question_form_right">
                                             <field name="answer_ids" widget="many2many_tags" options="{'no_create_edit': True}"
-                                                   attrs="{'invisible': [('question_type','in',('char','text'))], 'required':[('question_type','in',('select','radio','checkbox'))]}"/>
-                                            <field name="placeholder" attrs="{'invisible': [('question_type','in',('select','radio','checkbox'))]}"/>
+                                                   invisible="question_type in ('char', 'text')"
+                                                   required="question_type in ('select', 'radio', 'checkbox')"/>
+                                            <field name="placeholder" invisible="question_type in ('select', 'radio', 'checkbox')"/>
                                             <field name="question_required"/>
                                         </group>
                                     </group>

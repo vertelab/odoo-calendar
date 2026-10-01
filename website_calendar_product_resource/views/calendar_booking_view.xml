@@ -8,9 +8,9 @@
                 <field name="employee_ids" position="after">
                     <separator string="Available Products"/>
                     <field name="product_ids">
-                        <tree string="Products">
+                        <list string="Products">
                             <field name="name"/>
-                        </tree>
+                        </list>
                     </field>
                 </field>
             </field>
