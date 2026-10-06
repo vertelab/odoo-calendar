@@ -1,5 +1,29 @@
 We program in English. All code, comments, docstrings, and commit messages must be written in English.
 
+## Modules
+
+| Module | Purpose |
+| --- | --- |
+| `calendar_ics_invitations` | Outlook/Exchange/Teams compatible iTIP invitations, updates and cancellations. Overrides `calendar.event._get_ics_file()` (stable `UID`, `SEQUENCE`, `METHOD`, `ORGANIZER`/`ATTENDEE` with `PARTSTAT`), and — together with `extended_calendar_notifications` — distributes attendee responses. |
+| `extended_calendar_notifications` | Cancellation and (since 18.0.1.1.0) attendee-response notifications. Attaches the `METHOD:CANCEL` / `METHOD:REQUEST` ICS payloads built by `calendar_ics_invitations`. |
+| `calendar_ics` | ICS subscriptions (legacy `icalendar`-based generator, unrelated to invitations). |
+| `calendar_caldav` | CalDAV server (see below). |
+
+### Upgrade check — ICS invitations
+
+`calendar_ics_invitations` overrides three core surfaces. Re-verify them when
+upgrading Odoo, because a core change makes the override silently stop working:
+
+* `calendar.event._get_ics_file()` — the override surface (core signature is
+  `_get_ics_file(self)`; our optional `method` argument is an extension).
+* `calendar.attendee._send_mail_to_attendees()` — attaches the payload as
+  `invitation.ics`.
+* `calendar.attendee.write()` — the hook the response distribution relies on.
+
+Both `calendar_ics_invitations` and `extended_calendar_notifications` must be
+version-bumped and redeployed together; the cancellation and response paths
+live in the latter.
+
 ## Module icons and banners
 When creating or updating module icons and banners:
 - Place in `static/description/`

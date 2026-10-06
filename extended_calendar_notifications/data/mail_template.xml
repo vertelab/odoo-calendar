@@ -47,4 +47,47 @@
             ]]>
         </field>
     </record>
+
+    <record id="calendar_template_meeting_response" model="mail.template">
+        <field name="name">Calendar: Attendee Response</field>
+        <field name="model_id" ref="calendar.model_calendar_attendee"/>
+        <field name="subject">${object.event_id.name}: Attendee response</field>
+        <field name="email_from">${(object.event_id.user_id.email_formatted or user.email_formatted or '') | safe}</field>
+        <field name="email_to">${(object.partner_id.email_formatted or user.email_formatted or '') | safe}</field>
+        <field name="body_html">
+            <![CDATA[
+                <div>
+                    % set states = {'needsAction': 'no response', 'accepted': 'accepted', 'tentative': 'tentative', 'declined': 'declined'}
+                    % set colors = {'needsAction': '#9e9e9e', 'accepted': '#2e7d32', 'tentative': '#f9a825', 'declined': '#c62828'}
+                    <p>
+                        Hello ${object.common_name},<br><br>
+                        An attendee has responded to the meeting ${object.event_id.name}.
+                    </p>
+                    <p><strong>Attendees</strong></p>
+                    <ul>
+                        % for attendee in object.event_id.attendee_ids:
+                        <li>
+                            <span style="display:inline-block;border-radius:50%;width:10px;height:10px;background:${colors.get(attendee.state, '#9e9e9e')};"> </span>
+                            ${attendee.common_name or ''}
+                            % if attendee == object:
+                                (you)
+                            % endif
+                            &#8212; ${states.get(attendee.state, attendee.state)}
+                        </li>
+                        % endfor
+                    </ul>
+                    <p>
+                        The meeting ${object.event_id.name} is scheduled for
+                        ${object.event_id.get_display_time_tz(tz=object.partner_id.tz) or ''}.
+                    </p>
+                    <br>
+                    Thank you
+                    % if object.event_id.user_id.signature:
+                        <br>
+                        ${object.event_id.user_id.signature | safe}
+                    % endif
+                </div>
+            ]]>
+        </field>
+    </record>
 </odoo>
