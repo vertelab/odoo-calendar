@@ -1,0 +1,38 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h2 class="oe_slogan" style="color:#8105a7;">Calendar: ICS Invitations</h2>
+        <h3 class="oe_slogan">Outlook / Exchange / Teams compatible meeting invitations</h3>
+        <div class="oe_span12">
+            <p class="oe_mt32">
+                Odoo builds meeting invitations from an iTIP payload that Outlook and
+                Teams do not recognise as a real invitation: no <code>METHOD</code>, a
+                <code>UID</code> containing spaces, bare <code>ATTENDEE</code> lines and
+                no <code>SEQUENCE</code>. Recipients get a static calendar entry with no
+                Accept / Decline / Tentative buttons, and a reschedule arrives as a new,
+                unrelated entry.
+            </p>
+            <p>
+                This module overrides <code>calendar.event._get_ics_file()</code> so the
+                generated <code>VEVENT</code> is compliant and Outlook/Exchange/Teams
+                aware:
+            </p>
+            <ul>
+                <li><code>METHOD:REQUEST</code> for invitations and updates, <code>METHOD:CANCEL</code> for cancellations.</li>
+                <li>A stable, space-free <code>UID</code> persisted on the event, so a reschedule updates the original entry instead of duplicating it.</li>
+                <li>A persisted <code>SEQUENCE</code>, incremented on scheduling-relevant changes.</li>
+                <li><code>ORGANIZER</code> and <code>ATTENDEE</code> lines carrying <code>CN</code>, <code>ROLE=REQ-PARTICIPANT</code>, <code>PARTSTAT</code> and <code>RSVP=TRUE</code>, with a lowercase <code>mailto:</code> scheme.</li>
+                <li>Exchange-compatible <code>STATUS</code>, <code>TRANSP</code>, <code>CLASS</code>, <code>DTSTAMP</code> and <code>LAST-MODIFIED</code>.</li>
+            </ul>
+            <p>
+                Attendee responses (accepted / declined / tentative) are distributed to
+                the other attendees as iTIP updates, so participants in Outlook and Teams
+                see each other's response without opening Odoo.
+            </p>
+            <p>
+                The existing invitation, reschedule and cancellation mail templates,
+                recipient selection and attachment naming are left untouched — only the
+                ICS payload changes, plus one dedicated response notification.
+            </p>
+        </div>
+    </div>
+</section>
