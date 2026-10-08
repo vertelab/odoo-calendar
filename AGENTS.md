@@ -8,6 +8,7 @@ We program in English. All code, comments, docstrings, and commit messages must 
 | `extended_calendar_notifications` | Cancellation and (since 18.0.1.1.0) attendee-response notifications. Attaches the `METHOD:CANCEL` / `METHOD:REQUEST` ICS payloads built by `calendar_ics_invitations`. |
 | `calendar_ics` | ICS subscriptions (legacy `icalendar`-based generator, unrelated to invitations). |
 | `calendar_caldav` | CalDAV server (see below). |
+| `calendar_ai` | OKF indexing of `calendar.event` (see below). One concept per stakeholder: a `company` concept owned by the event's company, plus a `personal` concept per attendee who is a user. |
 
 ### Upgrade check — ICS invitations
 
@@ -79,3 +80,98 @@ When creating or updating module icons and banners:
 - **2026-06-04**: New event creation crashed with `'NoneType' object has no attribute 'env'`. Fixed: use `request.env` instead of `event.env` in `icalendar_to_odoo_event`.
 - **2026-06-04**: New event creation failed with "Datetime field expects a naive datetime". Fixed: convert timezone-aware datetimes to naive UTC via `astimezone(pytz.UTC).replace(tzinfo=None)`.
 - **2026-06-04**: Thunderbird PUT to `/caldav/<uuid>.ics` returned 404. Fixed: added `/caldav/<string:event_uuid>.ics` route alongside existing `/caldav/events/<string:event_uuid>.ics`.
+
+## Current State — Calendar AI (`calendar_ai`)
+
+OKF indexing of `calendar.event`. The bridge owns the event's **sources**;
+`ai.okf.mixin` (in `ai_agent_core`) owns the fields and the dirty flag.
+
+### One event, one concept per stakeholder
+
+An event is personal to the person invited ("what do I have booked in
+October") *and* organisational knowledge for the company. The same event
+therefore yields:
+
+```
+   calendar.event,42                          company   (the event's company)
+   calendar.event,42,user.7                   personal  (attendee A)
+   calendar.event,42,user.9                   personal  (attendee B)
+```
+
+Owners are expressed through `_okf_owner_vals_list()`. `_okf_index_record()`
+writes one concept per owner and sets the owner segment in `concept_key`
+automatically — the bridge does not touch `_okf_concept_key`. The owner
+segment is only added when a post has **more than one** owner, so a
+single-owner post keeps the plain `<model>,<id>` key.
+
+Attendees are `partner_ids` that map to a `res.users`. External contacts
+(no user) get no personal concept — the event still gets its `company`
+concept.
+
+### Company resolution — `company_id` does not exist in core
+
+`calendar.event` has **no `company_id` in Odoo 18 core**; the calendar is not
+multi-company in CE. The field comes from OCA's
+`calendar_event_multi_company`, which is **not installed** here.
+`_okf_company_id()` therefore resolves in three steps:
+
+1. `company_id` if the field exists and is set (OCA module installed — then
+   it is authoritative),
+2. the organiser's company (`user_id.company_id`),
+3. `env.company` as a last resort (the organiser is not a required field).
+
+**Lesson (2026-10-07):** the original `_okf_owner_vals()` read `self.company_id`
+directly and raised `AttributeError` the moment the module ran. It went
+unnoticed because `calendar_ai` had never been installed or tested. Installing
+and testing the module is what surfaced it.
+
+### Attendee list is capped in personal concepts
+
+`_okf_summary_source(owner_vals=None)` omits the attendee list when the owner
+is a **user**: another attendee's name should not land in someone's personal
+memory, and an external attendee's name should not land there at all. The
+`company` concept keeps the list — it is shared between those entitled to it.
+
+Called without `owner_vals` (an older core), the list is kept. That is the
+harmless case; no crash.
+
+### Volume cap per event
+
+`_okf_owner_limit()` (system parameter `calendar_ai.okf_owner_limit`, default
+25) caps how many owners — and therefore concepts — one event may produce.
+`_okf_dirty_fields()` contains `partner_ids`, so an attendee change rewrites
+**every** owner's concept; the cap bounds that cost. The company is always
+included, so the cap counts attendees only. A capped event is logged.
+
+### Measured cost — embedding dominates (2026-10-07)
+
+Measured on a warm database, 5 attendees per event:
+
+```
+   per event:      2.47 s      (6 concepts)
+   per concept:    0.41 s
+   embedding call: 0.27 s      (Bifrost HTTP, one per concept)
+   _okf_upsert without embedding: 0.115 s
+```
+
+The embedding call is ~70 % of the cost, and it is **one HTTP request per
+concept**. Since one event now yields N+1 concepts instead of 1, indexing
+costs N+1 times as many embedding calls. Projected over ~21 000 events with
+5 attendees: ~126 000 embedding calls, ~14 hours of work.
+
+The OKF cron has a 4-minute time budget per 5-minute round, so it drains
+~100 events per round — a full pass takes hours of wall-clock time, which is
+acceptable. The **resource cost** (6× the embedding calls) is the real
+issue and is tracked as a separate change: batched embedding in
+`ai_agent_core`. It is out of scope here.
+
+### Upgrade check — calendar_ai
+
+* `_okf_owner_vals_list()`, `_okf_concept_key(owner_id=...)`,
+  `_okf_owner_vals_list`-aware `_okf_upsert`/`DISTINCT ON`/`_latest_per_key`
+  — all in `ai_agent_core` ≥ 18.0.1.302. `tests/test_calendar_okf_contract.py`
+  fails if the contract is missing.
+* `_okf_summary_source(owner_vals=...)` — the optional argument added in
+  `ai_agent_core` 18.0.1.303. Without it the attendee list is never capped.
+* `calendar.event` gains `company_id` only with OCA's
+  `calendar_event_multi_company`; `_okf_company_id()` handles both cases.
