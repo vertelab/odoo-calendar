@@ -6,7 +6,7 @@
     'description': """
 Lär dig synka kalender och adressbok mot mobil, Outlook och Thunderbird — och boka resurser.
 """,
-    'author': 'Vertel AB',
+    'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se',
     'license': 'LGPL-3',
     'category': 'Website/eLearning',

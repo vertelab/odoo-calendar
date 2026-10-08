@@ -21,7 +21,7 @@ Product Booking Checkout
     'website': 'https://vertel.se/apps/odoo-calendar/website_booking_checkout',
     'images': ['static/description/banner.png'],  # 560x280 px.
     'license': 'AGPL-3',
-    'maintainer': 'Vertel AB',
+    'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
     'depends': ['product', 'website_calendar_ce', 'website_sale'],
     'data': [

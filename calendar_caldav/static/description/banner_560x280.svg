@@ -13,5 +13,5 @@
   <text x="50" y="155" style="font-family:Ubuntu, sans-serif; font-size:18px; fill:#ffffff" fill-opacity="0.8">CalDAV support for Odoo Calendar</text>
   <line x1="50" y1="170" x2="350" y2="170" stroke="#ffffff" stroke-width="1" stroke-opacity="0.3"/>
   <rect x="50" y="185" width="120" height="35" rx="17" ry="17" fill="#ffffff" fill-opacity="0.15"/>
-  <text x="110" y="208" text-anchor="middle" style="font-family:Ubuntu, sans-serif; font-size:14px; fill:#ffffff">Vertel AB</text>
+  <text x="110" y="208" text-anchor="middle" style="font-family:Ubuntu, sans-serif; font-size:14px; fill:#ffffff">Vertel Sverige AB</text>
 </svg>

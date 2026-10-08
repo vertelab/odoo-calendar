@@ -105,11 +105,11 @@ Credits
 
 Authors
 ~~~~~~~
-* Vertel AB
+* Vertel Sverige AB
 
 Maintainers
 ~~~~~~~~~~~
-This module is maintained by Vertel AB.
+This module is maintained by Vertel Sverige AB.
 
 You can find this module at: https://vertel.se/apps/odoo-calendar/calendar_ics_invitations.
 This module is maintained at: https://github.com/vertelab/odoo-calendar.

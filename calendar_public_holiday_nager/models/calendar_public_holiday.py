@@ -1,4 +1,4 @@
-# Copyright 2025 Vertel AB
+# Copyright 2025 Vertel Sverige AB
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo import api, fields, models
