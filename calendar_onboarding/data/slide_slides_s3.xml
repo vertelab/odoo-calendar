@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SEKTION 3: Adressböcker — företagets och din egen
+         Slides: 3 (2 article, 1 quiz)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="slide_category_cal_s3" model="slide.slide">
+        <field name="name">3. Adressböcker — företagets och din egen</field>
+        <field name="is_category" eval="True"/>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="sequence">200</field>
+    </record>
+
+    <!-- SLIDE 3.1: Två adressböcker -->
+    <record id="slide_cal_s3_01" model="slide.slide">
+        <field name="name">Två adressböcker — och varför</field>
+        <field name="sequence">210</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.30</field>
+        <field name="html_content" type="html">
+<section class="s_cover o_cc o_cc3 pt160 pb160">
+    <div class="container">
+        <h1 class="display-3-fs" style="text-align: center;">Två adressböcker — och varför</h1>
+        <p class="lead" style="text-align: center;">Företagets gemensamma kontakter och din egen privata lista hålls åtskilda.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Varför två?</h2>
+        <p>Alla kontakter är inte av samma slag. Kundregister, leverantörer och kollegor hör till <strong>företaget</strong> — de ska vara tillgängliga för alla och hanteras centralt. Ditt lokala pizzaställe, din läkare och barnens skola hör till <strong>dig</strong> — de ska inte ligga i företagets register.</p>
+        <p>Vertel löser det med två separata adressböcker som synkroniseras till mobilen samtidigt men hålls åtskilda.</p>
+    </div>
+</section>
+
+<section class="s_text_image pt40 pb64">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">Företagets adressbok</h2>
+                <p>Innehåller kunder, leverantörer och samarbetspartners. <strong>Delad</strong> — alla i företaget ser samma poster.</p>
+                <p>Hanteras centralt i Odoo. Ändrar någon en kunds telefonnummer slår det igenom hos alla, direkt.</p>
+                <p class="small text-muted">Skrivskyddad från mobilen — du kan slå upp men inte redigera.</p>
+            </div>
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">Din privata adressbok</h2>
+                <p>Innehåller dina egna kontakter. <strong>Personlig</strong> — bara du ser den.</p>
+                <p>Du lägger till, ändrar och tar bort precis som i mobilens vanliga kontaktlista. Ingen annan påverkas.</p>
+                <p class="small text-muted">Fullt redigerbar från mobilen.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Din privata lista lämnar aldrig din telefon och Odoo</h3>
+                <p class="lead">Den synkroniseras mot er egen server — inte mot Google, Microsoft eller någon annan tredje part. Det är därför Vertel kan erbjuda båda listorna utan att blanda dem.</p>
+            </div>
+        </div>
+    </div>
+</section>
+        </field>
+        <field name="description">Varför Vertel har två adressböcker: företagets gemensamma register och din egen privata lista. Vad som skiljer dem och varför de hålls åtskilda.</field>
+    </record>
+
+    <!-- SLIDE 3.2: Så använder du dem -->
+    <record id="slide_cal_s3_02" model="slide.slide">
+        <field name="name">Så använder du dem i praktiken</field>
+        <field name="sequence">220</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="html_content" type="html">
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>I mobilen</h2>
+        <p>När du öppnar telefonens kontaktlista ser du båda adressböckerna sida vid sida. De brukar märkas med namn — det ena är företagets, det andra ditt eget. Beroende på telefon kan du filtrera vilka som visas.</p>
+        <p>När du söker efter en kontakt söker telefonen i båda listorna samtidigt. Du behöver inte veta vilken adressbok en person ligger i.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>När du skapar en ny kontakt</h2>
+        <p>Telefonen frågar vilken adressbok posten ska hamna i. Tumregel:</p>
+        <table class="table table-bordered">
+            <thead>
+                <tr><th>Situation</th><th>Välj</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Kund, leverantör, samarbetspartner</td><td>Företagets adressbok</td></tr>
+                <tr><td>Kollegas privata nummer (som inte ska i kundregistret)</td><td>Din privata</td></tr>
+                <tr><td>Vänner, familj, fritid</td><td>Din privata</td></tr>
+                <tr><td>Osäker</td><td>Din privata — den kan du alltid flytta senare</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <h2>I Odoo</h2>
+        <p>I Odoo-webben hittar du kontakterna under <strong>Kontakter</strong>. Företagets register är det som syns i huvudlistan. Din privata lista hanteras separat och är bara synlig för dig.</p>
+        <p class="small text-muted">Ändringar du gör i Odoo slår igenom i mobilen vid nästa synkronisering — och tvärtom.</p>
+    </div>
+</section>
+        </field>
+        <field name="description">Praktisk användning av de två adressböckerna: hur de visas i mobilen, vilken du ska välja när du skapar en kontakt, och hur det ser ut i Odoo.</field>
+    </record>
+
+    <!-- SLIDE 3.3: Quiz — Adressböcker -->
+    <record id="slide_cal_s3_03" model="slide.slide">
+        <field name="name">🧪 Testa dina kunskaper — Adressböcker</field>
+        <field name="sequence">230</field>
+        <field name="slide_category">quiz</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="False"/>
+        <field name="completion_time">0.25</field>
+        <field name="quiz_first_attempt_reward">100</field>
+        <field name="quiz_second_attempt_reward">75</field>
+        <field name="quiz_third_attempt_reward">50</field>
+        <field name="quiz_fourth_attempt_reward">25</field>
+        <field name="description">Testa att du har koll på skillnaden mellan företagets adressbok och din privata.</field>
+    </record>
+
+    <record id="slide_cal_s3_03_q1" model="slide.question">
+        <field name="question">Vem ser kontakterna i din privata adressbok?</field>
+        <field name="sequence">1</field>
+        <field name="slide_id" ref="slide_cal_s3_03"/>
+    </record>
+    <record id="slide_cal_s3_03_q1_a1" model="slide.answer">
+        <field name="text_value">Alla i företaget</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det är företagets adressbok. Den privata är just privat.</field>
+        <field name="question_id" ref="slide_cal_s3_03_q1"/>
+    </record>
+    <record id="slide_cal_s3_03_q1_a2" model="slide.answer">
+        <field name="text_value">Bara du</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Den privata adressboken är personlig och syns bara för dig.</field>
+        <field name="question_id" ref="slide_cal_s3_03_q1"/>
+    </record>
+    <record id="slide_cal_s3_03_q1_a3" model="slide.answer">
+        <field name="text_value">Din chef och IT-avdelningen</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — den är personlig, inte övervakad.</field>
+        <field name="question_id" ref="slide_cal_s3_03_q1"/>
+    </record>
+
+    <record id="slide_cal_s3_03_q2" model="slide.question">
+        <field name="question">Var hamnar en ny kund du lägger in i mobilen?</field>
+        <field name="sequence">2</field>
+        <field name="slide_id" ref="slide_cal_s3_03"/>
+    </record>
+    <record id="slide_cal_s3_03_q2_a1" model="slide.answer">
+        <field name="text_value">Företagets adressbok</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Kunder hör till företagets gemensamma register.</field>
+        <field name="question_id" ref="slide_cal_s3_03_q2"/>
+    </record>
+    <record id="slide_cal_s3_03_q2_a2" model="slide.answer">
+        <field name="text_value">Din privata adressbok</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — då blir kunden osynlig för kollegorna.</field>
+        <field name="question_id" ref="slide_cal_s3_03_q2"/>
+    </record>
+    <record id="slide_cal_s3_03_q2_a3" model="slide.answer">
+        <field name="text_value">Båda, automatiskt</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — telefonen frågar vilken adressbok posten ska tillhöra.</field>
+        <field name="question_id" ref="slide_cal_s3_03_q2"/>
+    </record>
+
+    <record id="slide_cal_s3_03_q3" model="slide.question">
+        <field name="question">Vart skickas din privata adressbok när den synkroniseras?</field>
+        <field name="sequence">3</field>
+        <field name="slide_id" ref="slide_cal_s3_03"/>
+    </record>
+    <record id="slide_cal_s3_03_q3_a1" model="slide.answer">
+        <field name="text_value">Till Google eller Microsoft</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — den lämnar aldrig er egen server.</field>
+        <field name="question_id" ref="slide_cal_s3_03_q3"/>
+    </record>
+    <record id="slide_cal_s3_03_q3_a2" model="slide.answer">
+        <field name="text_value">Till er egen Odoo-server</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Båda adressböckerna synkroniseras mot Vertels egen server — ingen tredje part inblandad.</field>
+        <field name="question_id" ref="slide_cal_s3_03_q3"/>
+    </record>
+    <record id="slide_cal_s3_03_q3_a3" model="slide.answer">
+        <field name="text_value">Den synkroniseras inte — den är bara lokal</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — den synkroniseras, annars skulle den försvinna om du byter telefon.</field>
+        <field name="question_id" ref="slide_cal_s3_03_q3"/>
+    </record>
+
+    </data>
+</odoo>

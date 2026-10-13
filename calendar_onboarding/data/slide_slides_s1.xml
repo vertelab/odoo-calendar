@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SEKTION 1: Grunderna — vad är CalDAV och CardDAV?
+         Slides: 4 (2 article, 1 infographic, 1 quiz)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- SECTION HEADER -->
+    <record id="slide_category_cal_s1" model="slide.slide">
+        <field name="name">1. Grunderna</field>
+        <field name="is_category" eval="True"/>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="sequence">0</field>
+    </record>
+
+    <!-- SLIDE 1.1: Vad är CalDAV och CardDAV? -->
+    <record id="slide_cal_s1_01" model="slide.slide">
+        <field name="name">Vad är CalDAV och CardDAV?</field>
+        <field name="sequence">10</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="html_content" type="html">
+<section class="s_cover parallax o_cc o_cc5 pt200 pb200" data-scroll-background-ratio="1">
+    <div class="container">
+        <h1 class="display-3-fs" style="text-align: center;">Vad är CalDAV och CardDAV?</h1>
+        <p class="lead" style="text-align: center;">Två öppna standarder som gör att kalender och kontakter följer med dig — oavsett apparat.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Problemet de löser</h2>
+        <p>Utan en gemensam standard skulle du behöva föra in varje möte och varje kontaktnummer för hand i varje apparat. Ändrar du ett telefonnummer i mobilen skulle datorn fortfarande ha det gamla. Lägger du in ett möte i Outlook skulle telefonen inte veta om det.</p>
+        <p><strong>CalDAV</strong> och <strong>CardDAV</strong> löser det genom att låta alla apparater läsa och skriva mot <strong>samma källa</strong>. Du ändrar något på ett ställe — det slår igenom överallt.</p>
+    </div>
+</section>
+
+<section class="s_text_image pt40 pb64">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">CalDAV — kalendern</h2>
+                <p><strong>C</strong> står för <em>Calendar</em>. CalDAV är standarden för att synkronisera <strong>kalenderhändelser</strong>.</p>
+                <p>Den hanterar möten, påminnelser, återkommande händelser och delade kalendrar. I Vertel är det här dina möten i Odoo blir synliga i mobilens kalenderapp.</p>
+            </div>
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">CardDAV — adressboken</h2>
+                <p><strong>Card</strong> står för <em>vCard</em>, filformatet för kontakter. CardDAV synkroniserar <strong>kontaktuppgifter</strong>.</p>
+                <p>Namn, telefonnummer, e-postadresser, organisation och adresser. I Vertel får du både företagets gemensamma adressbok och din egen privata lista.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Samma teknik som Google och iCloud använder</h3>
+                <p class="lead">CalDAV och CardDAV är öppna standarder (RFC 4791 och RFC 6352). Det innebär att du inte är inlåst hos en leverantör — vilken klient som helst som stöder standarden kan koppla upp sig.</p>
+            </div>
+        </div>
+    </div>
+</section>
+        </field>
+        <field name="description">Introduktion till CalDAV och CardDAV — de två öppna standarderna för kalender- respektive kontaktsynk. Varför de finns och vad de löser.</field>
+    </record>
+
+    <!-- SLIDE 1.2: Så hänger det ihop i Vertel -->
+    <record id="slide_cal_s1_02" model="slide.slide">
+        <field name="name">Så hänger det ihop i Vertel</field>
+        <field name="sequence">20</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.25</field>
+        <field name="html_content" type="html">
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>En källa — många apparater</h2>
+        <p>I Vertel bor kalendern och adressboken i <strong>Odoo</strong>. Odoo är alltså själva navet. Alla klienter — mobilen, Outlook, Thunderbird — kopplar upp sig mot samma server och ser samma innehåll.</p>
+    </div>
+</section>
+
+<section class="s_features pt32 pb64">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+                <i class="s_features_icon fa fa-server mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Servern (Odoo)</h3>
+                    <p>Här bor sanningen. Kalenderhändelser, kontakter, delade adressböcker och resurser. Ingenting lagras lokalt i klienterna.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <i class="s_features_icon fa fa-mobile mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Klienterna</h3>
+                    <p>Mobilen, Outlook, Thunderbird. De visar och redigerar innehållet, men äger det inte. Kopplar du bort en klient försvinner ingenting.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <i class="s_features_icon fa fa-exchange mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Synkroniseringen</h3>
+                    <p>Sker automatiskt i bakgrunden. Du ändrar i mobilen — datorn har ändringen inom någon minut.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_text_block pt40 pb64">
+    <div class="container s_allow_columns">
+        <h2>Vad du behöver</h2>
+        <p>För att koppla upp en klient behöver du tre saker:</p>
+        <table class="table table-bordered">
+            <thead>
+                <tr><th>Uppgift</th><th>Vad det är</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Serveradress</strong></td><td>Adressen till er Odoo-instans</td></tr>
+                <tr><td><strong>Användarnamn</strong></td><td>Din e-postadress i Vertel</td></tr>
+                <tr><td><strong>Lösenord</strong></td><td>Ditt vanliga Odoo-lösenord</td></tr>
+            </tbody>
+        </table>
+        <p class="small text-muted">Du behöver inget separat app-lösenord. Autentiseringen sker med samma inloggning som i Odoo-webben.</p>
+    </div>
+</section>
+        </field>
+        <field name="description">Hur kalender och kontakter är uppbyggda i Vertel: Odoo som nav, klienterna som fönster mot samma data. Vad du behöver för att koppla upp.</field>
+    </record>
+
+    <!-- SLIDE 1.3: Infographic — översikt -->
+    <record id="slide_cal_s1_03" model="slide.slide">
+        <field name="name">Översikt — från Odoo till mobilen</field>
+        <field name="sequence">30</field>
+        <field name="slide_category">infographic</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.10</field>
+        <field name="description">Flödesschema: hur en kalenderhändelse färdas från Odoo via CalDAV till mobilen, Outlook och Thunderbird — och tillbaka.</field>
+    </record>
+
+    <!-- SLIDE 1.4: Quiz — Grunderna -->
+    <record id="slide_cal_s1_04" model="slide.slide">
+        <field name="name">🧪 Testa dina kunskaper — Grunderna</field>
+        <field name="sequence">40</field>
+        <field name="slide_category">quiz</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="False"/>
+        <field name="completion_time">0.25</field>
+        <field name="quiz_first_attempt_reward">100</field>
+        <field name="quiz_second_attempt_reward">75</field>
+        <field name="quiz_third_attempt_reward">50</field>
+        <field name="quiz_fourth_attempt_reward">25</field>
+        <field name="description">Testa dina kunskaper om CalDAV, CardDAV och hur synkroniseringen är uppbyggd i Vertel.</field>
+    </record>
+
+    <record id="slide_cal_s1_04_q1" model="slide.question">
+        <field name="question">Vad synkroniserar CardDAV?</field>
+        <field name="sequence">1</field>
+        <field name="slide_id" ref="slide_cal_s1_04"/>
+    </record>
+    <record id="slide_cal_s1_04_q1_a1" model="slide.answer">
+        <field name="text_value">Kalenderhändelser och möten</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Inte riktigt — det är CalDAV. C:et i CardDAV står för vCard.</field>
+        <field name="question_id" ref="slide_cal_s1_04_q1"/>
+    </record>
+    <record id="slide_cal_s1_04_q1_a2" model="slide.answer">
+        <field name="text_value">Kontaktuppgifter — namn, telefon, e-post</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! CardDAV synkroniserar kontakter i vCard-format (RFC 6352).</field>
+        <field name="question_id" ref="slide_cal_s1_04_q1"/>
+    </record>
+    <record id="slide_cal_s1_04_q1_a3" model="slide.answer">
+        <field name="text_value">E-postmeddelanden och bilagor</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — e-post hanteras av IMAP/SMTP, inte DAV.</field>
+        <field name="question_id" ref="slide_cal_s1_04_q1"/>
+    </record>
+
+    <record id="slide_cal_s1_04_q2" model="slide.question">
+        <field name="question">Var lagras kalendern och kontakterna i Vertel?</field>
+        <field name="sequence">2</field>
+        <field name="slide_id" ref="slide_cal_s1_04"/>
+    </record>
+    <record id="slide_cal_s1_04_q2_a1" model="slide.answer">
+        <field name="text_value">Lokalt i varje apparat</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — då skulle apparaterna glida isär. Det är precis vad DAV förhindrar.</field>
+        <field name="question_id" ref="slide_cal_s1_04_q2"/>
+    </record>
+    <record id="slide_cal_s1_04_q2_a2" model="slide.answer">
+        <field name="text_value">I Odoo — klienterna är bara fönster mot samma data</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Odoo är navet. Klienterna läser och skriver, men äger ingenting.</field>
+        <field name="question_id" ref="slide_cal_s1_04_q2"/>
+    </record>
+    <record id="slide_cal_s1_04_q2_a3" model="slide.answer">
+        <field name="text_value">Hos Google eller Microsoft</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — Vertel kör egen server. Det är därför du inte är inlåst hos en leverantör.</field>
+        <field name="question_id" ref="slide_cal_s1_04_q2"/>
+    </record>
+
+    <record id="slide_cal_s1_04_q3" model="slide.question">
+        <field name="question">Vilket lösenord använder du när du kopplar upp mobilen?</field>
+        <field name="sequence">3</field>
+        <field name="slide_id" ref="slide_cal_s1_04"/>
+    </record>
+    <record id="slide_cal_s1_04_q3_a1" model="slide.answer">
+        <field name="text_value">Ett särskilt app-lösenord som man beställer</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — Vertel använder samma inloggning som Odoo-webben.</field>
+        <field name="question_id" ref="slide_cal_s1_04_q3"/>
+    </record>
+    <record id="slide_cal_s1_04_q3_a2" model="slide.answer">
+        <field name="text_value">Ditt vanliga Odoo-lösenord</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Autentiseringen sker med samma användarnamn och lösenord som i webbgränssnittet.</field>
+        <field name="question_id" ref="slide_cal_s1_04_q3"/>
+    </record>
+    <record id="slide_cal_s1_04_q3_a3" model="slide.answer">
+        <field name="text_value">Inget lösenord alls — det räcker med användarnamn</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — ett lösenord krävs alltid.</field>
+        <field name="question_id" ref="slide_cal_s1_04_q3"/>
+    </record>
+
+    </data>
+</odoo>

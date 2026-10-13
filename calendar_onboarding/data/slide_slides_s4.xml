@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SEKTION 4: Skrivbordet och resursbokning
+         Slides: 4 (2 article, 1 article, 1 quiz)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="slide_category_cal_s4" model="slide.slide">
+        <field name="name">4. Skrivbordet och resursbokning</field>
+        <field name="is_category" eval="True"/>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="sequence">300</field>
+    </record>
+
+    <!-- SLIDE 4.1: Outlook och Thunderbird -->
+    <record id="slide_cal_s4_01" model="slide.slide">
+        <field name="name">Outlook och Thunderbird</field>
+        <field name="sequence">310</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.30</field>
+        <field name="html_content" type="html">
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Samma server, samma data</h2>
+        <p>Skrivbordsklienterna kopplar upp sig mot exakt samma DAV-slutpunkt som mobilen. Det spelar ingen roll vilken klient du använder — alla ser samma kalender och samma adressböcker.</p>
+    </div>
+</section>
+
+<section class="s_text_image pt32 pb64">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">Thunderbird</h2>
+                <p>Öppen källkod, inbyggt stöd för både CalDAV och CardDAV. Det enklaste valet på skrivbordet.</p>
+                <ol class="small">
+                    <li>Öppna <strong>Kalender</strong>-fliken</li>
+                    <li><strong>Skapa ny kalender</strong> → <strong>På nätverket</strong></li>
+                    <li>Ange användarnamn och DAV-adress</li>
+                    <li>Thunderbird hittar kalendern automatiskt</li>
+                </ol>
+                <p class="small text-muted">Adressboken läggs till på samma sätt under <strong>Adressbok</strong> → <strong>Ny adressbok</strong> → <strong>CardDAV</strong>.</p>
+            </div>
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">Outlook</h2>
+                <p>Outlook har inget inbyggt CalDAV-stöd. Du behöver ett tillägg.</p>
+                <p><strong>CalDAV Synchronizer</strong> är det vanligaste — öppen källkod och gratis. Det lägger till CalDAV och CardDAV som kontotyper i Outlook.</p>
+                <p class="small text-muted">Installera tillägget, starta om Outlook, och lägg sedan till kontot under inställningarna med samma uppgifter som i mobilen.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Varför inte bara använda Odoo i webbläsaren?</h3>
+                <p class="lead">Det kan du göra — kalendern finns i Odoo. Men många föredrar att ha möten och kontakter i sitt vanliga skrivbordsprogram. DAV-synkroniseringen gör att du slipper välja: du kan använda båda mot samma data.</p>
+            </div>
+        </div>
+    </div>
+</section>
+        </field>
+        <field name="description">Så kopplar du upp Thunderbird (inbyggt stöd) och Outlook (kräver CalDAV Synchronizer) mot samma server som mobilen.</field>
+    </record>
+
+    <!-- SLIDE 4.2: Resursbokning -->
+    <record id="slide_cal_s4_02" model="slide.slide">
+        <field name="name">Boka rum och utrustning</field>
+        <field name="sequence">320</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.30</field>
+        <field name="html_content" type="html">
+<section class="s_cover o_cc o_cc3 pt160 pb160">
+    <div class="container">
+        <h1 class="display-3-fs" style="text-align: center;">Boka rum och utrustning</h1>
+        <p class="lead" style="text-align: center;">Resursbokning gör att mötesrum och projektorer slipper dubbelbokas.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Vad är en resurs?</h2>
+        <p>En resurs är något som är <strong>begränsat</strong> och som flera vill använda samtidigt — ett mötesrum, en projektor, en tjänstebil, en konferensutrustning. Istället för att mejla runt och fråga ”är rummet ledigt?” bokar du det direkt på mötet.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>Så bokar du</h2>
+        <ol>
+            <li>Skapa ett möte i Odoo-kalendern som vanligt.</li>
+            <li>Lägg till resursen som <strong>deltagare</strong> — precis som du lägger till en kollega.</li>
+            <li>Systemet kontrollerar om resursen är ledig den tiden.</li>
+            <li>Är den upptagen får du ett <strong>konfliktmeddelande</strong> och kan välja en annan tid.</li>
+            <li>Är den ledig bokas den och syns i mötets deltagarlista.</li>
+        </ol>
+    </div>
+</section>
+
+<section class="s_features pt32 pb64">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+                <i class="s_features_icon fa fa-calendar-check-o mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Ingen dubbelbokning</h3>
+                    <p>Systemet hindrar två möten från att boka samma resurs samma tid.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <i class="s_features_icon fa fa-search mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Översikt</h3>
+                    <p>Se när en resurs är ledig innan du föreslår en mötestid.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <i class="s_features_icon fa fa-clock-o mb-3 rounded bg-o-color-3"/>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Automatik</h3>
+                    <p>Bokningen sker i samma flöde som mötet — inget separat system att hålla reda på.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_text_block pt40 pb64">
+    <div class="container s_allow_columns">
+        <h2>Vem hanterar resurserna?</h2>
+        <p>Listan över bokningsbara resurser sköts centralt. Behöver ni lägga till ett nytt mötesrum eller en ny projektor kontaktar du IT — det är inte något man gör själv i mobilen.</p>
+    </div>
+</section>
+        </field>
+        <field name="description">Vad resursbokning är och hur du bokar mötesrum eller utrustning på ett möte utan att dubbelboka.</field>
+    </record>
+
+    <!-- SLIDE 4.3: Quiz — Skrivbordet och resurser -->
+    <record id="slide_cal_s4_03" model="slide.slide">
+        <field name="name">🧪 Testa dina kunskaper — Skrivbordet</field>
+        <field name="sequence">330</field>
+        <field name="slide_category">quiz</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="False"/>
+        <field name="completion_time">0.25</field>
+        <field name="quiz_first_attempt_reward">100</field>
+        <field name="quiz_second_attempt_reward">75</field>
+        <field name="quiz_third_attempt_reward">50</field>
+        <field name="quiz_fourth_attempt_reward">25</field>
+        <field name="description">Testa att du har koll på skrivbordsklienterna och resursbokningen.</field>
+    </record>
+
+    <record id="slide_cal_s4_03_q1" model="slide.question">
+        <field name="question">Vilken skrivbordsklient har inbyggt CalDAV-stöd?</field>
+        <field name="sequence">1</field>
+        <field name="slide_id" ref="slide_cal_s4_03"/>
+    </record>
+    <record id="slide_cal_s4_03_q1_a1" model="slide.answer">
+        <field name="text_value">Thunderbird</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Thunderbird stöder både CalDAV och CardDAV direkt.</field>
+        <field name="question_id" ref="slide_cal_s4_03_q1"/>
+    </record>
+    <record id="slide_cal_s4_03_q1_a2" model="slide.answer">
+        <field name="text_value">Outlook</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — Outlook kräver ett tillägg, till exempel CalDAV Synchronizer.</field>
+        <field name="question_id" ref="slide_cal_s4_03_q1"/>
+    </record>
+    <record id="slide_cal_s4_03_q1_a3" model="slide.answer">
+        <field name="text_value">Ingen av dem</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — Thunderbird har det inbyggt.</field>
+        <field name="question_id" ref="slide_cal_s4_03_q1"/>
+    </record>
+
+    <record id="slide_cal_s4_03_q2" model="slide.question">
+        <field name="question">Hur bokar du ett mötesrum i Odoo?</field>
+        <field name="sequence">2</field>
+        <field name="slide_id" ref="slide_cal_s4_03"/>
+    </record>
+    <record id="slide_cal_s4_03_q2_a1" model="slide.answer">
+        <field name="text_value">Lägg till rummet som deltagare på mötet</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Resurser hanteras som deltagare — systemet kontrollerar konflikter automatiskt.</field>
+        <field name="question_id" ref="slide_cal_s4_03_q2"/>
+    </record>
+    <record id="slide_cal_s4_03_q2_a2" model="slide.answer">
+        <field name="text_value">Skicka ett mejl till IT</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — bokningen gör du själv direkt på mötet.</field>
+        <field name="question_id" ref="slide_cal_s4_03_q2"/>
+    </record>
+    <record id="slide_cal_s4_03_q2_a3" model="slide.answer">
+        <field name="text_value">Skriva rummets namn i mötets titel</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det ger ingen konfliktkontroll och rummet blir inte bokningsbart.</field>
+        <field name="question_id" ref="slide_cal_s4_03_q2"/>
+    </record>
+
+    <record id="slide_cal_s4_03_q3" model="slide.question">
+        <field name="question">Vad händer om rummet redan är bokat den tiden?</field>
+        <field name="sequence">3</field>
+        <field name="slide_id" ref="slide_cal_s4_03"/>
+    </record>
+    <record id="slide_cal_s4_03_q3_a1" model="slide.answer">
+        <field name="text_value">Bokningen går igenom ändå</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det är precis vad resursbokningen förhindrar.</field>
+        <field name="question_id" ref="slide_cal_s4_03_q3"/>
+    </record>
+    <record id="slide_cal_s4_03_q3_a2" model="slide.answer">
+        <field name="text_value">Du får ett konfliktmeddelande och kan välja annan tid</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Systemet upptäcker konflikten och föreslår en ledig tid.</field>
+        <field name="question_id" ref="slide_cal_s4_03_q3"/>
+    </record>
+    <record id="slide_cal_s4_03_q3_a3" model="slide.answer">
+        <field name="text_value">Det gamla mötet flyttas automatiskt</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — inga möten flyttas utan att någon bestämt det.</field>
+        <field name="question_id" ref="slide_cal_s4_03_q3"/>
+    </record>
+
+    </data>
+</odoo>

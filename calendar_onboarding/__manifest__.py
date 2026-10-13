@@ -1,21 +1,36 @@
-# -*- coding: utf-8 -*-
+# Copyright (C) 2026 Vertel Sverige AB (<https://vertel.se>).
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 {
-    'name': 'Kalender & kontakter i Vertel',
-    'version': '18.0.1.0.0',
+    'name': 'Calendar: Onboarding (LMS)',
+    'version': '18.0.2.0.0',
     'summary': 'Onboardingskurs: kalender, kontakter och DAV-synk',
     'description': """
-Lär dig synka kalender och adressbok mot mobil, Outlook och Thunderbird — och boka resurser.
-""",
+Kalender & kontakter i Vertel
+=============================
+
+Onboardingskurs som lär ut hur kalender och adressbok synkroniseras mot
+mobil, Outlook och Thunderbird — och hur resurser bokas.
+
+4 sektioner, 14 slides (8 article, 1 infographic, 4 quiz):
+
+- Sektion 1: Grunderna — CalDAV, CardDAV och hur det hänger ihop i Vertel
+- Sektion 2: Koppla mobilen — DAVx⁵ på Android, inbyggt stöd i iOS
+- Sektion 3: Adressböcker — företagets gemensamma och din privata lista
+- Sektion 4: Skrivbordet och resursbokning — Thunderbird, Outlook, rum och utrustning
+
+Innehållet ligger i data/ (inte demo/) så att det laddas i alla databaser.
+    """,
     'author': 'Vertel Sverige AB',
-    'website': 'https://vertel.se',
-    'license': 'LGPL-3',
+    'website': 'https://vertel.se/apps/odoo-calendar/calendar_onboarding',
+    'license': 'AGPL-3',
     'category': 'Website/eLearning',
     'depends': ['website_slides'],
     'data': [
-        'views/slide_channel_data.xml',
-    ],
-    'demo': [
-        'demo/slide_slide_demo.xml',
+        'data/slide_channel.xml',
+        'data/slide_slides_s1.xml',
+        'data/slide_slides_s2.xml',
+        'data/slide_slides_s3.xml',
+        'data/slide_slides_s4.xml',
     ],
     'installable': True,
     'auto_install': False,
