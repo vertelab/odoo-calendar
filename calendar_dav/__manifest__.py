@@ -4,32 +4,34 @@
 {
     "name": "Calendar dav",
     "summary": "Extension of the base_dav module to work better with the calendar",
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.1.0',
     "category": "Calendar",
     "website": "https://vertel.se/apps/odoo-calendar/calendar_dav",
     "author": "Vertel Sverige AB, initOS GmbH, Odoo Community Association (OCA)",
     "license": "AGPL-3",
     "application": False,
     # ------------------------------------------------------------------
-    # INSTALLABLE: False — 2026-09-22
+    # INSTALLABLE: True — 2026-10-15
     #
-    # Detta är OCA-sparet (base_dav -> calendar_dav -> contact_carddav)
-    # som bygger pa Radicale. Vertel har ett EGET, fristaende CalDAV-spar:
-    # calendar_caldav (controllers/main.py + services/caldav.py, endpoint
-    # /caldav/). Bada registrerar /.well-known/caldav och kolliderar.
+    # Spärren 2026-09-22 togs bort sedan den visat sig bygga på en felaktig
+    # premiss. Konflikten gäller ENDAST den exakta sökvägen /.well-known/caldav
+    # (utan avslutande slash):
     #
-    # Beslut 2026-09-22: calendar_caldav ar standard. Se README
-    # "CalDAV: val av spar". Skal:
-    #   - calendar_caldav: DAV: 1, 2, calendar-access; RFC 6764-discovery;
-    #     HTTP Basic Auth mot Odoo (multi-DB); GET/PUT/PROPFIND fungerar.
-    #   - base_dav-sparet: 500 pa rot-PROPFIND
-    #     (collection.py:113, odoo_collection=None), 403 pa collections.
+    #   /.well-known/caldav/   (med slash)    -> calendar_caldav  307 -> /caldav/
+    #   /.well-known/caldav    (utan slash)   -> base_dav        301 -> /.dav
     #
-    # installable=False -> Odoo satter state='uninstallable' och vagrar
-    # bade installera och auto-installera modulen (db.py:54,90).
-    # Ta bort denna sparr ENDAST om base_dav-sparet repareras och valjs.
-    # ------------------------------------------------------------------
-    "installable": False,
+    # DAV-klienter (DAVx5, Thunderbird, iOS) använder formen MED slash, som
+    # fortfarande går till calendar_caldav. Båda routes samexisterar.
+    #
+    # Detta spår (base_dav -> calendar_dav -> contact_carddav) behövs för
+    # CardDAV (/.dav). Kalendern fortsätter gå via calendar_caldav.
+    #
+    # Verifierat i drift 2026-10-15:
+    #   /.well-known/caldav/  -> 307 -> /caldav/        (calendar_caldav)
+    #   /.well-known/carddav  -> 301 -> /.dav           (base_dav)
+    #   PROPFIND /.dav/       -> 207                    (base_dav/Radicale)
+    #
+    "installable": True,
     "auto_install": False,
     "post_init_hook": "post_init_hook",
     "depends": [
