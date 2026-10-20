@@ -21,7 +21,7 @@
 
 {
     'name': 'Calendar Resource Booking',
-    'version': '18.0.1.0.1',
+    'version': '18.0.1.1.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Adds material resource to book at an appointment.',
     'category': 'Calendar',
@@ -35,6 +35,16 @@ Calendar Resource Booking
 
         - UI Integration: Extends 1 view(s) in the Odoo interface.
         - Extends Odoo: Builds on calendar.event, resource.resource.
+
+    Fixed in 18.0.1.1.0:
+
+        - ``resource_status`` was declared twice; the first declaration is gone
+        - ``_()`` was used without being imported (NameError on conflict)
+        - ``overlap()`` returned the inverse of its name, so a conflict was
+          reported when there was none and missed when there was one
+        - the search domain could never match an overlapping event
+        - debug ``_logger.warning`` removed
+        - tests added
     ''',
     'author': 'Vertel Sverige AB',
     'website': 'https://vertel.se/apps/odoo-calendar/calendar_resource_booking',

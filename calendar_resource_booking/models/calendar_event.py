@@ -1,46 +1,70 @@
 # -*- coding: utf-8 -*-
-from odoo import models, fields, api
+from odoo import api, fields, models, _
 import logging
-from datetime import date, datetime
 
 _logger = logging.getLogger(__name__)
+
 
 class CalendarEventModify(models.Model):
     _inherit = "calendar.event"
 
-    resource_ids = fields.Many2many(comodel_name='resource.resource',string='Resource',domain="[('resource_type','=','material')]") # relation|column1|column2
-    resource_status = fields.Char(readonly=True)
-    resource_status = fields.Char(readonly=True,compute='onchange_resource')
-    
+    resource_ids = fields.Many2many(
+        comodel_name='resource.resource',
+        string='Resource',
+        domain=[('resource_type', '=', 'material')],
+        help="Material resources booked for this event.",
+    )
+    resource_status = fields.Char(
+        string='Resource status',
+        readonly=True,
+        compute='_compute_resource_status',
+        help="Shows a warning when a booked resource is already taken "
+             "by another event during the same period.",
+    )
 
-    @api.depends("resource_ids")
-    def onchange_resource(self):
-        
-        def overlap(self, other):
-            if other.start < self.start < other.stop:
-                return False
-            elif other.start < self.stop < other.stop:
-                return False
-            elif self.start < other.start < self.stop:
-                return False
-            elif self.start < other.stop < self.stop:
-                return False
-            return True
+    @api.depends('resource_ids', 'start', 'stop')
+    def _compute_resource_status(self):
+        """Flag double bookings of material resources.
 
-        calendars = self.env['calendar.event'].search(
-            [
-                ('stop_date','<=',self.start_date),
-                ('start_date','>=',self.start_date),
-               
-                ]
+        Two events overlap when one starts before the other ends and ends
+        after the other starts. The previous implementation inverted this
+        test and searched with a domain that could never match, so a
+        conflict was never reported.
+        """
+        for event in self:
+            event.resource_status = False
+            if not event.resource_ids or not event.start or not event.stop:
+                continue
+
+            # Overlap: existing.start < event.stop AND existing.stop > event.start
+            conflicts = self.env['calendar.event'].search([
+                ('id', '!=', event.id),
+                ('start', '<', event.stop),
+                ('stop', '>', event.start),
+            ])
+            if not conflicts:
+                continue
+
+            taken = conflicts.filtered(
+                lambda c: c.resource_ids & event.resource_ids
             )
-        _logger.warning(calendars)
-        self.resource_status=''
-        for c in calendars:
-            if overlap(self,c):
-                for r in self.resource_ids:
-                    if c.create_date < self.create_date:
-                        self.resource_status = _('%s are already booked by %s') % (r.name,c.name)
+            if not taken:
+                continue
+
+            messages = []
+            for resource in event.resource_ids:
+                for conflict in taken:
+                    if resource not in conflict.resource_ids:
+                        continue
+                    if conflict.create_date < event.create_date:
+                        messages.append(
+                            _("%(resource)s is already booked by %(event)s",
+                              resource=resource.name, event=conflict.name)
+                        )
                     else:
-                        self.resource_status = _('%s tries to book %s') % (c.name,r.name)
-        
+                        messages.append(
+                            _("%(event)s tries to book %(resource)s",
+                              event=conflict.name, resource=resource.name)
+                        )
+            if messages:
+                event.resource_status = "; ".join(messages)
