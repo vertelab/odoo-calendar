@@ -84,6 +84,10 @@ class MailMessage(models.Model):
             _logger.info(
                 '[iMIP] refusing %s from %s: organiser is %s',
                 itip['method'], sender or '<none>', organizer or '<none>')
+            # Silence is the worst outcome: a customer with a broken SPF
+            # record would never learn that their invitations are being
+            # dropped. Say so where the user will actually see it.
+            self._report_rejected_itip(itip, parsed, sender, organizer)
             return False
 
         recipient = self._recipient_user(parsed)
@@ -92,6 +96,53 @@ class MailMessage(models.Model):
             return False
 
         return self._apply_itip(itip, recipient)
+
+    def _report_rejected_itip(self, itip, parsed, sender, organizer):
+        """Post a note on the message explaining why nothing happened.
+
+        The invitation is *not* applied. This only makes the refusal
+        visible, so a misconfigured sender domain is diagnosable instead
+        of invisible.
+        """
+        reason = self._rejection_reason(sender, organizer, parsed)
+        summary = itip['event'].get('name') or '(no summary)'
+        body = (
+            '<p><strong>En mötesinbjudan togs inte emot.</strong></p>'
+            '<p>Bilagan <code>.ics</code> kunde inte verifieras som '
+            'kommande från arrangören, så ingen händelse skapades i '
+            'kalendern.</p>'
+            '<ul>'
+            '<li>Händelse: %s</li>'
+            '<li>Arrangör i bilagan: %s</li>'
+            '<li>Faktisk avsändare: %s</li>'
+            '<li>Orsak: %s</li>'
+            '</ul>'
+            '<p>Om avsändaren är seriös beror det oftast på att domänens '
+            'SPF/DKIM-post saknas eller är felaktig.</p>'
+        ) % (
+            summary,
+            organizer or '(saknas)',
+            sender or '(saknas)',
+            reason,
+        )
+        try:
+            self.sudo().message_post(
+                body=body,
+                subtype_xmlid='mail.mt_note',
+                message_type='notification',
+            )
+        except Exception as exc:  # reporting must never break mail delivery
+            _logger.warning('[iMIP] could not post rejection note: %s', exc)
+
+    def _rejection_reason(self, sender, organizer, parsed):
+        """Name the specific check that failed, so the note is actionable."""
+        if not sender:
+            return 'mejlet har ingen avsändaradress'
+        if not organizer:
+            return 'bilagan saknar ORGANIZER'
+        if sender != organizer:
+            return 'ORGANIZER i bilagan stämmer inte med avsändaren'
+        return 'avsändardomänen kunde inte verifieras (SPF/DKIM/DMARC)' 
 
     def _sender_may_speak_for(self, sender, organizer, message):
         """Only the organiser may send a REQUEST or CANCEL for their event."""

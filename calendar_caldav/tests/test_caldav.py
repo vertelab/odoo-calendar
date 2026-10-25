@@ -590,3 +590,61 @@ class TestItipOrganizerSerialization(common.TransactionCase):
             [('dav_type', '=', 'calendar')], limit=1)
         payload = collection.to_vobject(event).serialize()
         self.assertIn('internal-organiser@example.test', payload)
+
+
+class TestItipRejectionIsVisible(common.TransactionCase):
+    """A dropped invitation must be visible, not just logged.
+
+    A customer with a broken SPF record otherwise never learns that their
+    invitations are being discarded.
+    """
+
+    def _message(self, headers):
+        from email.mime.text import MIMEText
+        message = MIMEText('invitation follows')
+        for key, value in headers.items():
+            message[key] = value
+        return message
+
+    def _itip(self, organizer='anna@example.com'):
+        return {
+            'method': 'REQUEST',
+            'uid': 'reject-test-uid',
+            'sequence': 1,
+            'organizer': {'email': organizer, 'name': 'Anna'},
+            'attendees': [],
+            'event': {'name': 'Ska inte skapas'},
+            'recurrence_id': None,
+        }
+
+    def test_reason_names_a_mismatched_organizer(self):
+        Message = self.env['mail.message']
+        message = self._message({'From': 'attacker@evil.example'})
+        reason = Message._rejection_reason(
+            'attacker@evil.example', 'anna@example.com', message)
+        self.assertIn('stämmer inte med avsändaren', reason)
+
+    def test_reason_names_missing_authentication(self):
+        Message = self.env['mail.message']
+        message = self._message({'From': 'anna@example.com'})
+        reason = Message._rejection_reason(
+            'anna@example.com', 'anna@example.com', message)
+        self.assertIn('SPF/DKIM', reason)
+
+    def test_reason_names_missing_organizer(self):
+        Message = self.env['mail.message']
+        message = self._message({'From': 'anna@example.com'})
+        reason = Message._rejection_reason('anna@example.com', '', message)
+        self.assertIn('saknar ORGANIZER', reason)
+
+    def test_rejection_posts_a_note_and_creates_no_event(self):
+        """The whole point: visible to the user, inert in the calendar."""
+        before = self.env['calendar.event'].search_count(
+            [('uuid', '=', 'reject-test-uid')])
+        message = self._message({'From': 'attacker@evil.example'})
+        self.env['mail.message']._report_rejected_itip(
+            self._itip(), {'email_from': 'attacker@evil.example'},
+            'attacker@evil.example', 'anna@example.com')
+        after = self.env['calendar.event'].search_count(
+            [('uuid', '=', 'reject-test-uid')])
+        self.assertEqual(before, after, 'no event may be created')
