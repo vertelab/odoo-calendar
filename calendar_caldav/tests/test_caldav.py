@@ -98,8 +98,34 @@ class TestCaldavCollection(common.TransactionCase):
         records = collection.search_records().filtered(
             lambda r: r.recurrence_id)
         uids = [collection.record_uid(record) for record in records]
-        self.assertEqual(len(uids), len(set(uids)),
-                         'UIDs must be unique across occurrences')
+        # RFC 5545 §3.8.4.7: every instance of a series carries the
+        # master's UID and is told apart by RECURRENCE-ID. Giving each
+        # occurrence its own UID split the series into unrelated events,
+        # so no client could apply the rule or edit the series.
+        self.assertEqual(len(set(uids)), 1,
+                         'all occurrences must share the master UID')
+
+    def test_the_master_carries_the_rule(self):
+        """The master VEVENT must publish RRULE, built from the fields.
+
+        calendar.recurrence.rrule holds a whole ICS fragment whose DTSTART
+        is the moment the series was last edited, so it cannot be sent as
+        an RRULE value.
+        """
+        event = self.env['calendar.event'].create({
+            'name': 'DAV rule test',
+            'start': datetime(2026, 12, 1, 10, 0),
+            'stop': datetime(2026, 12, 1, 11, 0),
+            'partner_ids': [(6, 0, [self.user.partner_id.id])],
+            'recurrency': True,
+            'rrule': 'FREQ=DAILY;COUNT=3',
+        })
+        collection = self.collection.with_user_context(self.user)
+        payload = collection.to_vobject(event).serialize()
+        self.assertIn('RRULE', payload)
+        self.assertIn('FREQ=DAILY', payload)
+        self.assertNotIn('DTSTART:2026', payload.split('RRULE')[1].split('\n')[0],
+                         'the rule must not carry a DTSTART fragment')
 
     def test_get_record_resolves_every_listed_uid(self):
         """Every UID we hand out must be resolvable by ``get_record``.

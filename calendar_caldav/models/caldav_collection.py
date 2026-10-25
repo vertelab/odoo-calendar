@@ -321,17 +321,15 @@ class CaldavCollection(models.Model):
     def get_record(self, uid):
         """Single record by UID (or database id when no UID field is set).
 
-        A recurring event is stored as one row per occurrence, and
-        ``record_uid()`` gives each occurrence ``<master-uuid>-<start>``. The
-        lookup therefore has to accept that form: split the stamp off, find
-        the rows carrying the master UUID and pick the one whose start
-        matches. Without this every occurrence UID we hand out in
-        sync-collection was a 404 on GET.
+        A UID is ``<uuid>`` for a plain record and ``<uuid>-<recurrence>``
+        for a row of a recurring series, because Odoo reuses the uuid when
+        one series is edited into another and the recurrence is what tells
+        them apart. The lookup has to accept both forms.
         """
         self.ensure_one()
         if not uid:
             return self._model().browse()
-        base, stamp = self._split_uid(uid)
+        base, recurrence_id = self._split_uid(uid)
         if self.field_uuid:
             domain = [(self.field_uuid.name, '=', base)]
         else:
@@ -339,6 +337,8 @@ class CaldavCollection(models.Model):
                 domain = [('id', '=', int(base))]
             except (TypeError, ValueError):
                 return self._model().browse()
+        if recurrence_id and 'recurrence_id' in self._model()._fields:
+            domain = ['&', ('recurrence_id', '=', recurrence_id)] + domain
         # Keep the collection selector so a UID from another collection (or
         # another user's personal collection) cannot be read here.
         # ``'&'`` takes exactly two operands, so the selector has to be
@@ -348,35 +348,25 @@ class CaldavCollection(models.Model):
         selector = self._search_domain()
         if selector:
             domain = ['&'] + domain + selector
-        records = self._model().sudo().search(domain)
-        if stamp:
-            records = records.filtered(
-                lambda r: self._uid_stamp(r) == stamp)
-        return records[:1]
+        return self._model().sudo().search(domain)[:1]
 
     @staticmethod
     def _split_uid(uid):
-        """Split ``<base>-<YYYYMMDDTHHMMSSZ>`` into its two parts."""
+        """Split ``<uuid>-<recurrence-id>`` into its two parts."""
         head, _, tail = uid.rpartition('-')
-        if head and len(tail) == 16 and tail.endswith('Z') and 'T' in tail:
-            return head, tail
-        return uid, ''
-
-    def _uid_stamp(self, record):
-        """The ``<start>`` suffix ``record_uid()`` appends, or ''."""
-        if 'recurrence_id' not in record._fields or not record.recurrence_id:
-            return ''
-        return record.start.strftime('%Y%m%dT%H%M%SZ') if record.start else ''
+        if head and tail.isdigit():
+            return head, int(tail)
+        return uid, None
 
     def record_uid(self, record):
         """The UID this collection uses for ``record``.
 
-        Odoo stores a recurring event as one row per occurrence, and every
-        row inherits the same ``uuid`` from the master. A UID must identify
-        one resource, so occurrences get the master UID plus their start
-        time — the same convention iCalendar uses for RECURRENCE-ID. Without
-        this, five recurring series produced 353 rows sharing five UIDs, and
-        clients saw one event per series (ledningssystem 2026-10-25).
+        Every row of a recurring series shares the master's ``uuid``, and
+        that shared value *is* the UID: RFC 5545 §3.8.4.7 has all instances
+        of a series carry the master's UID and tell them apart by
+        RECURRENCE-ID. Giving each occurrence its own UID split one series
+        into as many unrelated events as it had rows, so no client could
+        apply the rule or edit the series (ledningssystem 2026-10-25).
         """
         self.ensure_one()
         base = None
@@ -384,10 +374,17 @@ class CaldavCollection(models.Model):
             base = record[self.field_uuid.name]
         if not base:
             base = str(record.id)
-        if 'recurrence_id' in record._fields and record.recurrence_id:
-            stamp = record.start.strftime('%Y%m%dT%H%M%SZ') if record.start \
-                else str(record.id)
-            return '%s-%s' % (base, stamp)
+        # Odoo reuses the uuid when a series is edited into a new one, so
+        # several independent recurrences can share it: one uuid here had
+        # three recurrences with 5, 44 and 65 instances. Sharing a UID
+        # across them merged three series into one 114-instance event with
+        # a single rule. The recurrence is what identifies a series, so it
+        # becomes part of the UID — for the master too, or the master and
+        # its instances would not share a UID.
+        recurrence = record.recurrence_id if 'recurrence_id' in record._fields \
+            else None
+        if recurrence:
+            return '%s-%s' % (base, recurrence.id)
         return base
 
     def record_rev(self, record):
@@ -601,6 +598,65 @@ class CaldavCollection(models.Model):
         calendar = vtodo.odoo_task_to_icalendar(record)
         return calendar.to_ical().decode('utf-8')
 
+    _WEEKDAYS = ('MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU')
+
+    @staticmethod
+    def _until_contradicts_events(recurrence):
+        """True when ``until`` is earlier than an instance that exists.
+
+        Odoo keeps the until date from whenever the series was last edited,
+        which can sit *before* instances it already generated — a series
+        with until 2026-08-09 held instances through 2026-08-13. Publishing
+        that UNTIL tells the client those instances should not exist, and it
+        deletes them. A COUNT covering what is actually there is safer.
+        """
+        starts = recurrence.calendar_event_ids.mapped('start')
+        if not starts or not recurrence.until:
+            return False
+        return max(starts).date() > recurrence.until
+
+    @staticmethod
+    def _rrule_value(recurrence):
+        """Build an RRULE from the recurrence's own fields.
+
+        ``calendar.recurrence.rrule`` holds a whole ICS fragment —
+        ``DTSTART:...\\nRRULE:FREQ=...`` — whose DTSTART is the moment the
+        series was last edited, not when it starts. Written out as an RRULE
+        value it is invalid, so the rule is rebuilt from the structured
+        fields instead: rrule_type, interval, the weekday flags, and either
+        count or until.
+        """
+        freq = (recurrence.rrule_type or '').upper()
+        if not freq:
+            return ''
+        parts = ['FREQ=%s' % freq]
+        if recurrence.interval and recurrence.interval > 1:
+            parts.append('INTERVAL=%s' % recurrence.interval)
+
+        days = [name for name, field in zip(
+            CaldavCollection._WEEKDAYS,
+            ('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'))
+            if recurrence[field]]
+        # BYDAY only means something for weekly and monthly rules; sending
+        # it on a daily rule makes clients generate the wrong set.
+        if days and freq in ('WEEKLY', 'MONTHLY'):
+            parts.append('BYDAY=%s' % ','.join(days))
+
+        if recurrence.end_type == 'count' and recurrence.count:
+            parts.append('COUNT=%s' % recurrence.count)
+        elif recurrence.end_type == 'end_date' and recurrence.until:
+            if CaldavCollection._until_contradicts_events(recurrence):
+                # Odoo's until is earlier than instances it already made.
+                # Publishing it would tell the client to delete them, so
+                # count what exists instead.
+                parts.append('COUNT=%s' % len(recurrence.calendar_event_ids))
+            else:
+                # UNTIL is inclusive and must be UTC. Odoo stores the last
+                # day, so use the end of that day.
+                parts.append('UNTIL=%sT235959Z'
+                             % recurrence.until.strftime('%Y%m%d'))
+        return ';'.join(parts)
+
     def _to_icalendar(self, record):
         self.ensure_one()
         import vobject
@@ -683,17 +739,18 @@ class CaldavCollection(models.Model):
         # start) and the master's UID, which is how iCalendar says an
         # occurrence overrides a generated instance.
         recurrence = event.recurrence_id
-        if recurrence and recurrence.rrule and not (
-                'recurrence_id' in event._fields and event.recurrence_id):
-            vevent.add('rrule').value = recurrence.rrule
-        if 'recurrence_id' in event._fields and event.recurrence_id \
-                and event.start:
+        is_master = bool(recurrence) and recurrence.base_event_id == event
+        if is_master:
+            rule = self._rrule_value(recurrence)
+            if rule:
+                vevent.add('rrule').value = rule
+        elif recurrence and event.start:
+            # An occurrence is identified by the start of the instance it
+            # replaces. Odoo keeps no original start once an instance is
+            # moved, so its current start is the only value available; it
+            # is correct for every instance that was never moved.
             vevent.add('recurrence-id').value = event.start.replace(
                 tzinfo=tz.UTC)
-        if recurrence and recurrence.until:
-            vevent.add('x-odoo-recurrence-until').value = (
-                recurrence.until.strftime('%Y%m%dT%H%M%SZ')
-            )
 
         rev = self.record_rev(event)
         if rev:
