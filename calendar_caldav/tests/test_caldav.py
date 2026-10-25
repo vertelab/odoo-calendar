@@ -14,7 +14,12 @@ things that actually broke in production (ledningssystem 2026-10-25):
 """
 from datetime import datetime
 
+import unittest
+
 from odoo.tests import common, tagged
+
+from ..services import urls
+
 
 
 @tagged('post_install', '-at_install')
@@ -82,6 +87,9 @@ class TestCaldavCollection(common.TransactionCase):
             'start': datetime(2026, 12, 1, 10, 0),
             'stop': datetime(2026, 12, 1, 11, 0),
             'partner_ids': [(6, 0, [self.user.partner_id.id])],
+            # Odoo 18 only builds the recurrence when recurrency is set;
+            # passing rrule alone leaves recurrence_id empty.
+            'recurrency': True,
             'rrule': 'FREQ=DAILY;COUNT=3',
         })
         self.assertTrue(event.recurrence_id,
@@ -92,6 +100,46 @@ class TestCaldavCollection(common.TransactionCase):
         uids = [collection.record_uid(record) for record in records]
         self.assertEqual(len(uids), len(set(uids)),
                          'UIDs must be unique across occurrences')
+
+    def test_get_record_resolves_every_listed_uid(self):
+        """Every UID we hand out must be resolvable by ``get_record``.
+
+        ``sync-collection`` lists ``record_uid()``; the client then GETs each
+        href. Two defects broke that contract: the selector was appended to
+        an ``'&'`` that only takes two operands (Odoo raised "Domain ... is
+        syntactically not correct" → HTTP 500), and occurrence UIDs carried a
+        ``-<start>`` suffix ``get_record`` never stripped (HTTP 404).
+        """
+        collection = self.collection.with_user_context(self.user)
+        records = collection.search_records()[:50]
+        for record in records:
+            with self.subTest(record=record.id):
+                uid = collection.record_uid(record)
+                found = collection.get_record(uid)
+                self.assertEqual(found, record,
+                                 'UID %r did not resolve back to %s'
+                                 % (uid, record.id))
+
+    def test_get_record_does_not_leak_other_users_private(self):
+        """The selector still guards ``get_record`` after the domain fix."""
+        event = self.env['calendar.event'].create({
+            'name': 'DAV private lookup test',
+            'start': datetime(2026, 11, 3, 10, 0),
+            'stop': datetime(2026, 11, 3, 11, 0),
+            'privacy': 'private',
+            'partner_ids': [(6, 0, [self.user.partner_id.id])],
+        })
+        other = self.env['res.users'].create({
+            'name': 'DAV Other Lookup',
+            'login': 'dav-other-lookup',
+            'email': 'dav-other-lookup@example.com',
+            'groups_id': [(6, 0, [self.env.ref(
+                'base.group_user').id])],
+        })
+        collection = self.collection.with_user_context(other)
+        self.assertFalse(
+            collection.get_record(collection.record_uid(event)),
+            "another user must not read a private event by UID")
 
     def test_every_listed_record_serialises(self):
         """PROPFIND lists hrefs; every one of them must serialise.
@@ -160,3 +208,197 @@ class TestCaldavXml(common.TransactionCase):
         props = xmlutil.requested_props(body)
         self.assertEqual(props, {('DAV:', 'displayname')})
         self.assertNotIn('root:', str(props))
+
+
+class TestCollectionProps(common.TransactionCase):
+    """The collection PROPFIND must announce what the client needs to sync.
+
+    Both bugs here made DAVx5 re-download the whole addressbook on every
+    poll: the sync token was only returned by the sync-collection REPORT,
+    never by PROPFIND, so the client had nothing to store; and the
+    addressbook announced the CalDAV report names, so clients probed for a
+    calendar that does not exist.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.user = self.env['res.users'].create({
+            'name': 'Props User',
+            'login': 'props.user@example.com',
+        })
+        self.collection = self.env['caldav.collection'].sudo().create({
+            'name': 'Props Contacts',
+            'slug': 'props-contacts',
+            'dav_type': 'addressbook',
+            'model_id': self.env['ir.model']._get_id('res.partner'),
+            'domain': '[]',
+        })
+
+    def _props(self):
+        from unittest.mock import patch
+        from ..controllers.main import _collection_props
+        with patch.object(urls, 'base_url',
+                          return_value='https://example.test'):
+            return _collection_props(self.collection)
+
+    def test_addressbook_announces_a_sync_token(self):
+        """Without DAV:sync-token in PROPFIND clients cannot do delta sync."""
+        props = self._props()
+        self.assertIn('<d:sync-token>', props)
+        token = props.split('<d:sync-token>', 1)[1].split('<', 1)[0]
+        self.assertTrue(token, 'the announced sync token must not be empty')
+        self.assertIn(self.collection.sync_token(), token)
+
+    def test_addressbook_announces_getctag(self):
+        """Legacy clients (older DAVx5, Apple) poll cs:getctag instead."""
+        self.assertIn('<cs:getctag>', self._props())
+
+    def test_addressbook_announces_carddav_reports(self):
+        props = self._props()
+        self.assertIn('<card:addressbook-query/>', props)
+        self.assertIn('<card:addressbook-multiget/>', props)
+        self.assertIn('<d:sync-collection/>', props)
+        # A CardDAV collection must not advertise the CalDAV reports.
+        self.assertNotIn('<cal:calendar-query/>', props)
+        self.assertNotIn('<cal:calendar-multiget/>', props)
+
+    def test_calendar_announces_caldav_reports(self):
+        calendar = self.env['caldav.collection'].sudo().create({
+            'name': 'Props Calendar',
+            'slug': 'props-calendar',
+            'dav_type': 'calendar',
+            'model_id': self.env['ir.model']._get_id('calendar.event'),
+            'domain': '[]',
+        })
+        from unittest.mock import patch
+        from ..controllers.main import _collection_props
+        with patch.object(urls, 'base_url',
+                          return_value='https://example.test'):
+            props = _collection_props(calendar)
+        self.assertIn('<cal:calendar-query/>', props)
+        self.assertIn('<cal:calendar-multiget/>', props)
+        self.assertNotIn('<card:addressbook-query/>', props)
+
+
+class TestBasicAuthRetry(unittest.TestCase):
+    """A serialization conflict must not be reported as a wrong password."""
+
+    def test_serialization_conflict_is_retryable(self):
+        from ..controllers.main import _is_retryable
+        exc = Exception(
+            'could not serialize access due to concurrent update')
+        self.assertTrue(_is_retryable(exc))
+
+    def test_deadlock_is_retryable(self):
+        from ..controllers.main import _is_retryable
+        self.assertTrue(_is_retryable(Exception('deadlock detected')))
+
+    def test_bad_credentials_are_not_retryable(self):
+        from ..controllers.main import _is_retryable
+        self.assertFalse(_is_retryable(Exception('Access Denied')))
+        self.assertFalse(_is_retryable(Exception('no such database')))
+
+
+class TestClientProperties(common.TransactionCase):
+    """PROPPATCH: a client must be able to store and read back its settings.
+
+    Thunderbird writes calendar-color/calendar-order right after discovery.
+    Before this existed we answered 405, so it logged a failure on every
+    sync and re-sent the request forever.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.collection = self.env['caldav.collection'].create({
+            'name': 'Work',
+            'slug': 'work-props',
+            'dav_type': 'calendar',
+            'model_id': self.env['ir.model']._get_id('calendar.event'),
+            'domain': '[("user_id", "=", user.id)]',
+        })
+
+    def test_displayname_defaults_to_name(self):
+        self.assertEqual(self.collection.client_property('{DAV:}displayname'),
+                         '')
+
+    def test_known_properties_land_in_columns(self):
+        self.collection.set_client_properties({
+            '{http://apple.com/ns/ical/}calendar-color': '#FF5733',
+            '{http://apple.com/ns/ical/}calendar-order': '7',
+            '{DAV:}displayname': 'Min jobbkalender',
+        })
+        self.assertEqual(self.collection.calendar_color, '#FF5733')
+        self.assertEqual(self.collection.calendar_order, 7)
+        self.assertEqual(self.collection.display_name, 'Min jobbkalender')
+        self.assertEqual(
+            self.collection.client_property('{DAV:}displayname'),
+            'Min jobbkalender')
+
+    def test_unknown_properties_round_trip_through_json(self):
+        self.collection.set_client_properties({
+            '{urn:example:}custom': 'kept',
+        })
+        self.assertEqual(
+            self.collection.client_property('{urn:example:}custom'), 'kept')
+
+    def test_none_removes_a_property(self):
+        self.collection.set_client_properties({
+            '{urn:example:}custom': 'kept',
+        })
+        self.collection.set_client_properties({'{urn:example:}custom': None})
+        self.assertEqual(self.collection.client_property('{urn:example:}custom'),
+                         '')
+
+    def test_bad_order_does_not_raise(self):
+        self.collection.set_client_properties({
+            '{http://apple.com/ns/ical/}calendar-order': 'not-a-number',
+        })
+        self.assertEqual(self.collection.calendar_order, 0)
+
+
+class TestSupportedReports(common.TransactionCase):
+    """A collection must announce exactly the reports it answers.
+
+    ``_collection_props`` builds absolute hrefs from the request, so the
+    tests patch ``base_url`` instead of standing up an HTTP request.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.calendar = self.env['caldav.collection'].create({
+            'name': 'Work',
+            'slug': 'work-reports',
+            'dav_type': 'calendar',
+            'model_id': self.env['ir.model']._get_id('calendar.event'),
+            'domain': '[]',
+        })
+
+    def _props(self):
+        from unittest.mock import patch
+        from ..controllers.main import _collection_props
+        with patch.object(urls, 'base_url', return_value='https://example.test'):
+            return _collection_props(self.calendar)
+
+    def test_free_busy_is_announced(self):
+        props = self._props()
+        self.assertIn('free-busy-query', props)
+        self.assertIn('calendar-query', props)
+        self.assertIn('sync-collection', props)
+        self.assertIn('expand-property', props)
+
+    def test_sync_token_and_getctag_are_properties(self):
+        props = self._props()
+        self.assertIn('<d:sync-token>', props)
+        self.assertIn('<cs:getctag>', props)
+
+    def test_supported_data_is_announced(self):
+        props = self._props()
+        self.assertIn('supported-calendar-data', props)
+        self.assertIn('calendar-timezone', props)
+
+    def test_dav_header_does_not_claim_extended_mkcol(self):
+        from ..controllers.main import DAV_CAPABILITIES
+        self.assertNotIn('extended-mkcol', DAV_CAPABILITIES)
+        # Class 2 means "supports locking" — we do not.
+        self.assertNotIn('2', [part.strip()
+                               for part in DAV_CAPABILITIES.split(',')])

@@ -1,7 +1,7 @@
 {
     "name": "Calendar CalDAV",
     "summary": "CalDAV support for Odoo Calendar",
-    "version": "18.0.1.6.5",
+    "version": "18.0.1.7.5",
     "category": "Calendar",
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se/apps/odoo-calendar/calendar_caldav",

@@ -117,6 +117,32 @@ def sync_token_from_body(data):
     return element.text.strip()
 
 
+def property_update_from_body(data):
+    """The ``{clark-name: value}`` a PROPPATCH asks us to set.
+
+    RFC 4918 §4.2: ``<d:propertyupdate>`` holds one or more ``<d:set>`` /
+    ``<d:remove>`` blocks, each with a ``<d:prop>``. A value of ``None``
+    means "remove this property". Only the first text child is kept, which
+    is what every client we care about sends (colour, order, displayname).
+    """
+    root = parse_body(data)
+    if root is None:
+        return {}
+    values = {}
+    for block in root:
+        tag = etree.QName(block).localname
+        if tag not in ('set', 'remove'):
+            continue
+        for prop in block.iter(qname(NS_DAV, 'prop')):
+            for element in prop:
+                name = etree.QName(element).text
+                if tag == 'remove':
+                    values[name] = None
+                else:
+                    values[name] = (element.text or '').strip()
+    return values
+
+
 def time_range_from_body(data):
     """The ``<cal:time-range start=... end=...>`` of a calendar-query.
 

@@ -27,6 +27,7 @@ Two rules that the Radicale track got wrong and that are load-bearing here:
    are unrestricted for ``base.group_user``. A CalDAV endpoint that just
    searched the domain would hand out other people's private events.
 """
+import json
 import logging
 import re
 
@@ -115,6 +116,28 @@ class CaldavCollection(models.Model):
         ondelete='cascade',
         help='Leave empty for a collection shared by all users. Set it for '
              'a personal collection (e.g. "Personal Contacts").',
+    )
+    # ── Client-owned display properties (WebDAV PROPPATCH) ───────────────
+    # Thunderbird and Evolution set these on the collection right after
+    # discovery. Before PROPPATCH existed they got 405 and logged an error
+    # on every sync; the values below are what they ask us to store.
+    display_name = fields.Char(
+        string='Display name (client)',
+        help='Name the client set with PROPPATCH. Falls back to "name".',
+    )
+    calendar_color = fields.Char(
+        string='Colour (client)',
+        help='#RRGGBB as set by the client (Apple calendar-color).',
+    )
+    calendar_order = fields.Integer(
+        string='Order (client)',
+        help='Sort order the client asked for (Apple calendar-order).',
+    )
+    client_properties = fields.Char(
+        string='Other client properties',
+        help='JSON object holding every other dead property a client set '
+             'with PROPPATCH. Kept so a client can read back what it wrote, '
+             'which RFC 4918 requires.',
     )
 
     _sql_constraints = [
@@ -271,21 +294,54 @@ class CaldavCollection(models.Model):
         return self._model().sudo().search(domain)
 
     def get_record(self, uid):
-        """Single record by UID (or database id when no UID field is set)."""
+        """Single record by UID (or database id when no UID field is set).
+
+        A recurring event is stored as one row per occurrence, and
+        ``record_uid()`` gives each occurrence ``<master-uuid>-<start>``. The
+        lookup therefore has to accept that form: split the stamp off, find
+        the rows carrying the master UUID and pick the one whose start
+        matches. Without this every occurrence UID we hand out in
+        sync-collection was a 404 on GET.
+        """
         self.ensure_one()
         if not uid:
             return self._model().browse()
+        base, stamp = self._split_uid(uid)
         if self.field_uuid:
-            domain = [(self.field_uuid.name, '=', uid)]
+            domain = [(self.field_uuid.name, '=', base)]
         else:
             try:
-                domain = [('id', '=', int(uid))]
+                domain = [('id', '=', int(base))]
             except (TypeError, ValueError):
                 return self._model().browse()
         # Keep the collection selector so a UID from another collection (or
         # another user's personal collection) cannot be read here.
-        domain = ['&'] + domain + self._search_domain()
-        return self._model().sudo().search(domain, limit=1)
+        # ``'&'`` takes exactly two operands, so the selector has to be
+        # combined with it, not appended to it — appending produced a domain
+        # like ['&', uid] + selector, which Odoo rejects as syntactically
+        # invalid and which surfaced as HTTP 500 on every CardDAV GET.
+        selector = self._search_domain()
+        if selector:
+            domain = ['&'] + domain + selector
+        records = self._model().sudo().search(domain)
+        if stamp:
+            records = records.filtered(
+                lambda r: self._uid_stamp(r) == stamp)
+        return records[:1]
+
+    @staticmethod
+    def _split_uid(uid):
+        """Split ``<base>-<YYYYMMDDTHHMMSSZ>`` into its two parts."""
+        head, _, tail = uid.rpartition('-')
+        if head and len(tail) == 16 and tail.endswith('Z') and 'T' in tail:
+            return head, tail
+        return uid, ''
+
+    def _uid_stamp(self, record):
+        """The ``<start>`` suffix ``record_uid()`` appends, or ''."""
+        if 'recurrence_id' not in record._fields or not record.recurrence_id:
+            return ''
+        return record.start.strftime('%Y%m%dT%H%M%SZ') if record.start else ''
 
     def record_uid(self, record):
         """The UID this collection uses for ``record``.
@@ -329,7 +385,63 @@ class CaldavCollection(models.Model):
         self.ensure_one()
         return '"%s-%s"' % (self.record_uid(record), self.record_rev(record))
 
-    # ── Sync token (RFC 6578) ────────────────────────────────────────────
+    # ── Client properties (PROPPATCH, RFC 4918 §4.2) ─────────────────────
+    #
+    # A DAV client stores its own settings on the collection: the name it
+    # shows, the colour, the sort order. Until now we answered 405, so
+    # Thunderbird logged a failure on every sync and re-sent the request
+    # forever. The three properties below have real columns; everything else
+    # goes into ``client_properties`` as JSON so the client can read back
+    # exactly what it wrote — RFC 4918 requires a server to keep dead
+    # properties it accepted.
+
+    #: Well-known client properties that map to a column.
+    CLIENT_PROPERTY_FIELDS = {
+        '{DAV:}displayname': 'display_name',
+        '{http://apple.com/ns/ical/}calendar-color': 'calendar_color',
+        '{http://apple.com/ns/ical/}calendar-order': 'calendar_order',
+    }
+
+    def client_property(self, name):
+        """The value a client stored for ``name``, or ``''``."""
+        self.ensure_one()
+        field_name = self.CLIENT_PROPERTY_FIELDS.get(name)
+        if field_name:
+            value = self[field_name]
+            return '' if value in (None, False) else str(value)
+        return (self._client_property_dict().get(name) or '')
+
+    def _client_property_dict(self):
+        self.ensure_one()
+        if not self.client_properties:
+            return {}
+        try:
+            value = json.loads(self.client_properties)
+        except (TypeError, ValueError):
+            return {}
+        return value if isinstance(value, dict) else {}
+
+    def set_client_properties(self, values):
+        """Store ``{clark-name: value}``; ``None`` removes the property."""
+        self.ensure_one()
+        columns = {}
+        extra = self._client_property_dict()
+        for name, value in values.items():
+            field_name = self.CLIENT_PROPERTY_FIELDS.get(name)
+            if field_name:
+                if field_name == 'calendar_order':
+                    try:
+                        columns[field_name] = int(value) if value else 0
+                    except (TypeError, ValueError):
+                        columns[field_name] = 0
+                else:
+                    columns[field_name] = value or False
+            elif value is None:
+                extra.pop(name, None)
+            else:
+                extra[name] = value
+        columns['client_properties'] = json.dumps(extra) if extra else False
+        self.write(columns)
 
     def sync_token(self, records=None):
         """A token that changes whenever the collection's content changes.

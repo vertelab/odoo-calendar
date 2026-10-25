@@ -28,6 +28,9 @@ Two rules run through the whole file:
 """
 import base64
 import logging
+import time
+import uuid
+from datetime import datetime
 
 from odoo import http
 from odoo.http import request
@@ -40,10 +43,44 @@ _logger = logging.getLogger(__name__)
 
 AUTH_HEADER = 'Basic realm="Odoo CalDAV", charset="UTF-8"'
 
+# Parallel DAV requests authenticate against the same res_users row; see
+# _basic_auth() for why a conflict must not be reported as a 401.
+AUTH_RETRIES = 3
+AUTH_RETRY_DELAY = 0.15
+
+# Defaults announced for a calendar that the client has not configured yet.
+DEFAULT_CALENDAR_COLOR = '#2A6B9C'
+DEFAULT_TIMEZONE = (
+    'BEGIN:VCALENDAR\r\n'
+    'VERSION:2.0\r\n'
+    'PRODID:-//Vertel//Odoo CalDAV//EN\r\n'
+    'BEGIN:VTIMEZONE\r\n'
+    'TZID:Europe/Stockholm\r\n'
+    'X-LIC-LOCATION:Europe/Stockholm\r\n'
+    'BEGIN:DAYLIGHT\r\n'
+    'TZOFFSETFROM:+0100\r\n'
+    'TZOFFSETTO:+0200\r\n'
+    'TZNAME:CEST\r\n'
+    'DTSTART:19700329T020000\r\n'
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU\r\n'
+    'END:DAYLIGHT\r\n'
+    'BEGIN:STANDARD\r\n'
+    'TZOFFSETFROM:+0200\r\n'
+    'TZOFFSETTO:+0100\r\n'
+    'TZNAME:CET\r\n'
+    'DTSTART:19701025T030000\r\n'
+    'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU\r\n'
+    'END:STANDARD\r\n'
+    'END:VTIMEZONE\r\n'
+    'END:VCALENDAR\r\n'
+)
+
 # DAV capabilities announced in OPTIONS. '3' is required for Evolution and
 # GNOME Online Accounts to use sync-collection (RFC 6578) instead of
 # reloading the whole collection on every poll.
-DAV_CAPABILITIES = '1, 2, 3, calendar-access, addressbook, extended-mkcol'
+# 'extended-mkcol' is deliberately absent: we answer 405 to MKCOL, and
+# advertising a capability we do not implement makes clients try it.
+DAV_CAPABILITIES = '1, 3, calendar-access, addressbook'
 
 XML_CONTENT_TYPE = 'application/xml; charset=utf-8'
 
@@ -54,7 +91,8 @@ XML_CONTENT_TYPE = 'application/xml; charset=utf-8'
 def _basic_auth():
     """Authenticate the Basic header against the configured databases.
 
-    Returns ``None`` on success, or a 401 response.
+    Returns ``None`` on success, a 401 when the credentials are wrong, or a
+    503 when the database was too contended to tell (see below).
     """
     auth = request.httprequest.headers.get('Authorization', '')
     if not auth.startswith('Basic '):
@@ -72,14 +110,61 @@ def _basic_auth():
         try:
             auth_info = request.session.authenticate(db_name, credential)
         except Exception as exc:
-            _logger.info('[DAV] auth failed db=%s: %s', db_name, exc)
-            continue
+            # A concurrent update is not a credential problem. Odoo's
+            # ``session.authenticate`` updates ``res_users.login_date``, so
+            # parallel DAV requests (DAVx5 opens several at once) collide on
+            # the same row and PostgreSQL aborts the transaction with
+            # "could not serialize access due to concurrent update".
+            # Answering 401 makes the client believe the password is wrong —
+            # it re-prompted and hammered the endpoint. Retry instead, and
+            # if the retries are exhausted answer 503 so the client backs
+            # off rather than dropping the credentials.
+            if _is_retryable(exc):
+                for attempt in range(AUTH_RETRIES):
+                    time.sleep(AUTH_RETRY_DELAY * (attempt + 1))
+                    try:
+                        auth_info = request.session.authenticate(
+                            db_name, credential)
+                    except Exception as retry_exc:  # noqa: BLE001
+                        exc = retry_exc
+                        if not _is_retryable(retry_exc):
+                            break
+                        continue
+                    else:
+                        exc = None
+                        break
+                if exc is not None:
+                    _logger.warning(
+                        '[DAV] auth retryable failure db=%s after %d '
+                        'attempts: %s', db_name, AUTH_RETRIES, exc)
+                    return _unavailable()
+            else:
+                _logger.info('[DAV] auth failed db=%s: %s', db_name, exc)
+                continue
         if auth_info.get('uid'):
             _logger.info('[DAV] auth ok login=%s db=%s uid=%s',
                          login, db_name, auth_info['uid'])
             return None
     _logger.info('[DAV] auth failed login=%s', login)
     return _unauthorized()
+
+
+def _is_retryable(exc):
+    """True when ``exc`` is a transient database conflict, not bad auth."""
+    message = str(exc).lower()
+    return ('could not serialize access' in message
+            or 'deadlock detected' in message
+            or 'concurrent update' in message)
+
+
+def _unavailable():
+    """503 so the client retries instead of discarding its credentials."""
+    return request.make_response(
+        'CalDAV: temporarily unavailable, retry',
+        headers=[('Retry-After', '2'),
+                 ('Content-Type', 'text/plain; charset=utf-8')],
+        status=503,
+    )
 
 
 def _unauthorized():
@@ -197,9 +282,20 @@ def _collection_props(collection):
         )
         extra = (
             '<cal:calendar-description>%s</cal:calendar-description>'
-            '<A:calendar-color>#2A6B9C</A:calendar-color>'
+            '<A:calendar-color>%s</A:calendar-color>'
+            '<A:calendar-order>%s</A:calendar-order>'
             '<cal:max-resource-size>10485760</cal:max-resource-size>'
-            % xmlutil.escape(collection.name)
+            '<cal:supported-calendar-data>'
+            '<cal:calendar-data content-type="text/calendar" '
+            'version="2.0"/>'
+            '</cal:supported-calendar-data>'
+            '<cal:calendar-timezone>%s</cal:calendar-timezone>'
+            % (xmlutil.escape(collection.name),
+               xmlutil.escape(collection.client_property(
+                   '{http://apple.com/ns/ical/}calendar-color')
+                   or DEFAULT_CALENDAR_COLOR),
+               collection.calendar_order or 0,
+               xmlutil.escape(DEFAULT_TIMEZONE))
         )
     else:
         resourcetype = xmlutil.ADDRESSBOOK_RESOURCETYPE
@@ -207,7 +303,47 @@ def _collection_props(collection):
         extra = (
             '<card:addressbook-description>%s</card:addressbook-description>'
             '<card:max-resource-size>10485760</card:max-resource-size>'
+            '<card:supported-address-data>'
+            '<card:address-data-type content-type="text/vcard" '
+            'version="3.0"/>'
+            '</card:supported-address-data>'
             % xmlutil.escape(collection.name)
+        )
+    # The sync token has to be announced here, not only in the
+    # sync-collection response. DAVx5 (and every other RFC 6578 client) reads
+    # ``DAV:sync-token`` from the collection's PROPFIND first; without it the
+    # client never stores a token and falls back to a full download on every
+    # poll — which is what kept CardDAV from ever finishing its first sync.
+    # ``cs:getctag`` is the legacy CalendarServer equivalent, still used by
+    # older DAVx5 builds and by Apple's clients.
+    sync_token = collection.sync_token()
+    # Announce the reports this collection actually answers. A CardDAV
+    # collection must advertise addressbook-query/addressbook-multiget;
+    # announcing the CalDAV ones made clients probe for a calendar that is
+    # not there.
+    if collection.dav_type == 'calendar':
+        report_set = (
+            '<d:supported-report><d:report><cal:calendar-query/></d:report>'
+            '</d:supported-report>'
+            '<d:supported-report><d:report><cal:calendar-multiget/></d:report>'
+            '</d:supported-report>'
+            '<d:supported-report><d:report><d:sync-collection/></d:report>'
+            '</d:supported-report>'
+            '<d:supported-report><d:report><cal:free-busy-query/></d:report>'
+            '</d:supported-report>'
+            '<d:supported-report><d:report><d:expand-property/></d:report>'
+            '</d:supported-report>'
+        )
+    else:
+        report_set = (
+            '<d:supported-report><d:report><card:addressbook-query/></d:report>'
+            '</d:supported-report>'
+            '<d:supported-report><d:report>'
+            '<card:addressbook-multiget/></d:report></d:supported-report>'
+            '<d:supported-report><d:report><d:sync-collection/></d:report>'
+            '</d:supported-report>'
+            '<d:supported-report><d:report><d:expand-property/></d:report>'
+            '</d:supported-report>'
         )
     return (
         '<d:resourcetype>%s</d:resourcetype>'
@@ -217,6 +353,8 @@ def _collection_props(collection):
         '<d:current-user-principal><d:href>%s</d:href></d:current-user-principal>'
         '<cal:calendar-home-set><d:href>%s</d:href></cal:calendar-home-set>'
         '<card:addressbook-home-set><d:href>%s</d:href></card:addressbook-home-set>'
+        '<d:sync-token>%s</d:sync-token>'
+        '<cs:getctag>%s</cs:getctag>'
         '<d:current-user-privilege-set>'
         '<d:privilege><d:read/></d:privilege>'
         '<d:privilege><d:write/></d:privilege>'
@@ -225,15 +363,45 @@ def _collection_props(collection):
         '<d:privilege><d:bind/></d:privilege>'
         '<d:privilege><d:unbind/></d:privilege>'
         '</d:current-user-privilege-set>'
-        '<d:supported-report-set>'
-        '<d:supported-report><d:report><cal:calendar-query/></d:report></d:supported-report>'
-        '<d:supported-report><d:report><cal:calendar-multiget/></d:report></d:supported-report>'
-        '<d:supported-report><d:report><d:sync-collection/></d:report></d:supported-report>'
-        '</d:supported-report-set>'
+        '<d:supported-report-set>%s</d:supported-report-set>'
         '%s%s'
-        % (resourcetype, xmlutil.escape(collection.name), home, home, home,
-           home, component_set, extra)
+        % (resourcetype,
+           xmlutil.escape(collection.display_name or collection.name),
+           home, home, home, home,
+           xmlutil.escape(sync_token), xmlutil.escape(sync_token),
+           report_set, component_set, extra)
     )
+
+
+#: Clark notation prefix -> the prefix we declare in every multistatus.
+_CLARK_PREFIXES = {
+    'DAV:': 'd',
+    'urn:ietf:params:xml:ns:caldav': 'cal',
+    'urn:ietf:params:xml:ns:carddav': 'card',
+    'http://calendarserver.org/ns/': 'cs',
+    'http://apple.com/ns/ical/': 'A',
+}
+
+
+def _dav_error(condition, description, status=403):
+    """A DAV:error body (RFC 4918 §16) so clients can report *why*."""
+    return request.make_response(
+        '<?xml version="1.0" encoding="utf-8"?>'
+        '<d:error xmlns:d="DAV:"><d:%s/>'
+        '<d:responsedescription>%s</d:responsedescription></d:error>'
+        % (condition, xmlutil.escape(description)),
+        headers=[('Content-Type', XML_CONTENT_TYPE)],
+        status=status,
+    )
+
+
+def _clark_to_xml(name):
+    """``{ns}local`` -> ``prefix:local`` for the namespaces we declare."""
+    if not name.startswith('{'):
+        return name
+    namespace, _, local = name[1:].partition('}')
+    prefix = _CLARK_PREFIXES.get(namespace)
+    return '%s:%s' % (prefix, local) if prefix else local
 
 
 def _record_props(collection, record):
@@ -376,7 +544,8 @@ class CalDAVController(http.Controller):
     @http.route(
         ['/caldav/<string:slug>', '/caldav/<string:slug>/'],
         type='http', auth='public', csrf=False,
-        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'REPORT'],
+        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'REPORT',
+                 'PROPPATCH'],
         strict_slashes=False,
     )
     def caldav_collection(self, slug):
@@ -385,7 +554,8 @@ class CalDAVController(http.Controller):
     @http.route(
         ['/carddav/<string:slug>', '/carddav/<string:slug>/'],
         type='http', auth='public', csrf=False,
-        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'REPORT'],
+        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'REPORT',
+                 'PROPPATCH'],
         strict_slashes=False,
     )
     def carddav_collection(self, slug):
@@ -413,11 +583,88 @@ class CalDAVController(http.Controller):
 
         if method == 'PROPFIND':
             return self._propfind_collection(bound, user)
+        if method == 'PROPPATCH':
+            return self._proppatch_collection(bound)
         if method == 'REPORT':
             return self._report_collection(bound, user)
         if method in ('GET', 'HEAD'):
             return self._get_collection(bound, user)
         return _options_response()
+
+    @http.route(
+        ['/caldav', '/caldav/', '/carddav', '/carddav/',
+         '/caldav/<string:slug>', '/caldav/<string:slug>/',
+         '/carddav/<string:slug>', '/carddav/<string:slug>/'],
+        type='http', auth='public', csrf=False,
+        methods=['MKCOL'],
+        strict_slashes=False,
+    )
+    def dav_mkcol_home(self, slug=None):
+        return self._mkcol()
+
+    @http.route(
+        ['/caldav/<string:slug>', '/caldav/<string:slug>/',
+         '/carddav/<string:slug>', '/carddav/<string:slug>/',
+         '/caldav/<string:slug>/<string:filename>',
+         '/carddav/<string:slug>/<string:filename>'],
+        type='http', auth='public', csrf=False,
+        methods=['LOCK', 'UNLOCK'],
+        strict_slashes=False,
+    )
+    def dav_lock(self, slug, filename=None):
+        """RFC 4918 §6: we advertise class 1 and 3, not 2.
+
+        Class 2 means "supports locking". We do not, and we no longer claim
+        to, so a compliant client will not send LOCK. If one does anyway,
+        answer with a DAV error rather than 405 so it stops retrying.
+        """
+        auth = _basic_auth()
+        if auth:
+            return auth
+        return _dav_error(
+            'lock-token-submitted',
+            'This server does not support locking (DAV class 2).',
+            status=405)
+
+    def _mkcol(self):
+        """RFC 4918 §9.3: we do not create collections from a client.
+
+        Collections are Odoo records with a domain and a model; a client
+        cannot invent one. Answer 403 with a DAV error body so the client
+        reports "server does not allow creating collections" instead of
+        retrying a bare 405.
+        """
+        auth = _basic_auth()
+        if auth:
+            return auth
+        _logger.info('[DAV] MKCOL %s: refused',
+                     request.httprequest.path)
+        return _dav_error(
+            'cannot-modify-protected-property',
+            'Collections are managed in Odoo; a client cannot create one.')
+
+    def _proppatch_collection(self, collection):
+        """Store the dead properties a client sets (RFC 4918 §9.2).
+
+        Thunderbird writes ``calendar-color`` and ``calendar-order`` right
+        after discovery; answering 405 made it log a failure and retry on
+        every sync. A PROPPATCH is atomic: either every property is stored
+        or none is, and the response reports a status per property.
+        """
+        body = _request_body()
+        values = xmlutil.property_update_from_body(body)
+        if not values:
+            return _bad_request()
+        _logger.info('[DAV] PROPPATCH %s: %s', collection.slug,
+                     ', '.join(sorted(values)))
+        collection.set_client_properties(values)
+        # xmlutil.response() wraps its payload in one propstat, so the
+        # properties go in as a flat list of empty elements.
+        props = ''.join('<%s/>' % _clark_to_xml(name) for name in values)
+        return _xml_response(xmlutil.multistatus([
+            xmlutil.response(
+                xmlutil.escape(urls.collection_url(collection)),
+                props)]))
 
     def _propfind_collection(self, collection, user):
         depth = request.httprequest.headers.get('Depth', '0')
@@ -479,11 +726,79 @@ class CalDAVController(http.Controller):
             return self._report_sync(collection, body)
         if report in ('calendar-query', 'addressbook-query'):
             return self._report_query(collection, body)
+        if report == 'free-busy-query':
+            return self._report_free_busy(collection, body)
+        if report == 'expand-property':
+            return self._report_expand_property(collection, body)
         if report == 'principal-property-search':
-            return _xml_response(xmlutil.multistatus([]))
+            # Answer with the principal itself so a client that searches for
+            # a user finds one instead of an empty multistatus.
+            user = urls.user_for_request()
+            href = xmlutil.escape(urls.root_url(collection.dav_type) + '/')
+            return _xml_response(xmlutil.multistatus([
+                xmlutil.response(href, _home_props(collection.dav_type))]))
 
         _logger.info('[DAV] unsupported report: %s', report)
         return _xml_response(xmlutil.multistatus([]), status=403)
+
+    def _report_free_busy(self, collection, body):
+        """RFC 4791 §7.10: answer with a VFREEBUSY of busy periods.
+
+        Thunderbird asks for this when it shows an attendee's availability.
+        We have no per-attendee free/busy data beyond the events the user can
+        see, so the answer is built from this collection's own records —
+        which is exactly what the collection's domain already scopes.
+        """
+        time_range = xmlutil.time_range_from_body(body)
+        records = collection.search_records()
+        if time_range:
+            records = self._filter_time_range(records, time_range)
+        start = (time_range or {}).get('start') or '19700101T000000Z'
+        end = (time_range or {}).get('end') or '20380101T000000Z'
+        periods = []
+        for record in records:
+            rec_start = getattr(record, 'start', None)
+            if not rec_start:
+                continue
+            rec_stop = getattr(record, 'stop', None) or rec_start
+            periods.append(
+                'FREEBUSY;FBTYPE=BUSY:%s/%s'
+                % (rec_start.strftime('%Y%m%dT%H%M%SZ'),
+                   rec_stop.strftime('%Y%m%dT%H%M%SZ')))
+        payload = (
+            'BEGIN:VCALENDAR\r\n'
+            'VERSION:2.0\r\n'
+            'PRODID:-//Vertel//Odoo CalDAV//EN\r\n'
+            'BEGIN:VFREEBUSY\r\n'
+            'UID:%s\r\n'
+            'DTSTAMP:%s\r\n'
+            'DTSTART:%s\r\n'
+            'DTEND:%s\r\n'
+            '%s'
+            'END:VFREEBUSY\r\n'
+            'END:VCALENDAR\r\n'
+            % (uuid.uuid4(),
+               datetime.utcnow().strftime('%Y%m%dT%H%M%SZ'),
+               start, end,
+               ''.join(period + '\r\n' for period in periods))
+        )
+        _logger.info('[DAV] free-busy %s -> %d periods',
+                     collection.slug, len(periods))
+        return request.make_response(
+            payload,
+            headers=[('Content-Type', 'text/calendar; charset=utf-8')])
+
+    def _report_expand_property(self, collection, body):
+        """RFC 3253 §3.8: return the requested properties, expanded.
+
+        Clients use it to resolve ``calendar-home-set``/``addressbook-home-
+        set`` in one round trip instead of a PROPFIND per level. Our home
+        sets are plain hrefs, so expansion is the property itself.
+        """
+        return _xml_response(xmlutil.multistatus([
+            xmlutil.response(
+                xmlutil.escape(urls.collection_url(collection)),
+                _collection_props(collection))]))
 
     def _report_multiget(self, collection, body):
         hrefs = xmlutil.hrefs_from_body(body)
@@ -643,7 +958,8 @@ class CalDAVController(http.Controller):
         ['/caldav/<string:slug>/<string:filename>',
          '/carddav/<string:slug>/<string:filename>'],
         type='http', auth='public', csrf=False,
-        methods=['GET', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'PROPFIND'],
+        methods=['GET', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'PROPFIND',
+                 'MOVE', 'COPY'],
         strict_slashes=False,
     )
     def dav_record(self, slug, filename):
@@ -705,6 +1021,19 @@ class CalDAVController(http.Controller):
             _logger.info('[DAV] DELETE %s/%s (id=%s)', slug, uid, record.id)
             record.sudo().unlink()
             return request.make_response('', status=204)
+
+        if method in ('MOVE', 'COPY'):
+            # A record belongs to one collection by construction: the
+            # collection's domain decides which records it contains, so
+            # there is no second collection to move it into. Say so with a
+            # DAV error instead of a bare 405, which clients report as a
+            # protocol failure.
+            _logger.info('[DAV] %s %s/%s: not supported', method, slug, uid)
+            return _dav_error(
+                'cannot-modify-protected-property',
+                '%s is not supported: a record is selected by its '
+                "collection's domain, it cannot be moved between "
+                'collections.' % method)
 
         return _options_response()
 
