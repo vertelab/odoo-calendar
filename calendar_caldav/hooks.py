@@ -71,6 +71,7 @@ def post_init_hook(env):
     """
     _backfill_event_uuids(env)
     _backfill_partner_uuids(env)
+    _backfill_task_uuids(env)
     _link_uuid_fields(env)
     install_body_capture()
 
@@ -100,6 +101,22 @@ def _backfill_partner_uuids(env):
     count = env.cr.rowcount
     if count:
         _logger.info('calendar_caldav: backfilled caldav_uuid on %s partners',
+                     count)
+
+
+def _backfill_task_uuids(env):
+    """Give every task a CalDAV UID.
+
+    There are over ten thousand tasks, so this is SQL: no business logic is
+    involved and the alternative is ten thousand ORM writes on install.
+    """
+    env.cr.execute(
+        "UPDATE project_task SET caldav_uuid = gen_random_uuid()::text "
+        "WHERE caldav_uuid IS NULL"
+    )
+    count = env.cr.rowcount
+    if count:
+        _logger.info('calendar_caldav: backfilled caldav_uuid on %s tasks',
                      count)
 
 

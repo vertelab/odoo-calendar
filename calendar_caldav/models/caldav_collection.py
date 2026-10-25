@@ -44,6 +44,7 @@ _logger = logging.getLogger(__name__)
 DAV_TYPE_SELECTION = [
     ('calendar', 'Calendar'),
     ('addressbook', 'Addressbook'),
+    ('tasks', 'Tasks'),
 ]
 
 
@@ -187,10 +188,14 @@ class CaldavCollection(models.Model):
     @api.depends('dav_type')
     def _compute_component(self):
         for collection in self:
-            collection.component = (
-                'VCALENDAR' if collection.dav_type == 'calendar'
-                else 'VCARD'
-            )
+            if collection.dav_type == 'calendar':
+                collection.component = 'VCALENDAR'
+            elif collection.dav_type == 'tasks':
+                # A VTODO travels inside a VCALENDAR envelope (RFC 5545
+                # §3.4), so the content type is the same as for events.
+                collection.component = 'VCALENDAR'
+            else:
+                collection.component = 'VCARD'
 
     @api.constrains('domain')
     def _check_domain(self):
@@ -563,7 +568,24 @@ class CaldavCollection(models.Model):
         self.ensure_one()
         if self.dav_type == 'calendar':
             return self._to_icalendar(record)
+        if self.dav_type == 'tasks':
+            return self._to_vtodo(record)
         return self._to_vcard(record)
+
+    def _to_vtodo(self, record):
+        """Serialise a task as a VTODO.
+
+        ``vobject`` is used for calendars and addressbooks; a VTODO is
+        built with ``icalendar`` in ``services/vtodo.py`` because that
+        library already carries the iTIP half and understands VTODO
+        properties natively. The return value is a string, which
+        ``to_vobject``'s callers serialise the same way.
+        """
+        self.ensure_one()
+        from ..services import vtodo
+
+        calendar = vtodo.odoo_task_to_icalendar(record)
+        return calendar.to_ical().decode('utf-8')
 
     def _to_icalendar(self, record):
         self.ensure_one()
@@ -800,6 +822,10 @@ class CaldavCollection(models.Model):
         body is not the component this collection serves.
         """
         self.ensure_one()
+        if self.dav_type == 'tasks':
+            # A VTODO is parsed by icalendar, not vobject; see _to_vtodo.
+            return self._from_vtodo(vobject_item)
+
         import vobject
 
         if isinstance(vobject_item, (str, bytes)):
@@ -812,6 +838,24 @@ class CaldavCollection(models.Model):
         if self.dav_type == 'calendar':
             return self._from_icalendar(vobject_item)
         return self._from_vcard(vobject_item)
+
+    def _from_vtodo(self, body):
+        """Values for a ``project.task`` from a VTODO body.
+
+        Category names are returned under ``_categories`` because turning
+        them into ``tag_ids`` needs a lookup this method cannot do without
+        creating records; the controller resolves them before the write.
+        """
+        self.ensure_one()
+        from ..services import vtodo
+
+        if isinstance(body, bytes):
+            body = body.decode('utf-8', errors='replace')
+        try:
+            values = vtodo.parse_vtodo(body)
+        except Exception:  # noqa: BLE001 - a malformed body is a client error
+            return None
+        return values
 
     def _from_icalendar(self, calendar):
         self.ensure_one()

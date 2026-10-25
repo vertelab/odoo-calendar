@@ -41,6 +41,10 @@ NAMESPACES = {
 CALENDAR_RESOURCETYPE = '<d:collection/><cal:calendar/>'
 ADDRESSBOOK_RESOURCETYPE = '<d:collection/><card:addressbook/>' 
 
+#: A task collection is a calendar whose component set is VTODO (RFC 4791
+#: §5.2). It uses the calendar resourcetype, not a type of its own.
+TASKS_RESOURCETYPE = '<d:collection/><cal:calendar/>'
+
 
 def qname(namespace, tag):
     """Clark notation for an lxml element tag."""

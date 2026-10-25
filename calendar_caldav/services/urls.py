@@ -45,7 +45,9 @@ def base_url():
 
 def root_url(dav_type):
     """The home-set URL for a collection type."""
-    root = CALDAV_ROOT if dav_type == 'calendar' else CARDDAV_ROOT
+    # A task collection is a calendar (RFC 4791 §5.2), so it lives under
+    # /caldav/ like any other; the slug tells it apart from the event ones.
+    root = CARDDAV_ROOT if dav_type == 'addressbook' else CALDAV_ROOT
     return '%s%s' % (base_url(), root)
 
 
@@ -61,7 +63,7 @@ def scheduling_url(dav_type, segment):
 
 def record_url(collection, record):
     """The URL of one record inside a collection."""
-    extension = 'ics' if collection.dav_type == 'calendar' else 'vcf'
+    extension = 'vcf' if collection.dav_type == 'addressbook' else 'ics'
     return '%s%s.%s' % (
         collection_url(collection),
         collection.record_uid(record),

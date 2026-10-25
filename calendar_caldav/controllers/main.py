@@ -259,8 +259,8 @@ def _home_props(dav_type):
     root = urls.root_url(dav_type)
     href = xmlutil.escape(root + '/')
     resourcetype = (
-        xmlutil.CALENDAR_RESOURCETYPE if dav_type == 'calendar'
-        else xmlutil.ADDRESSBOOK_RESOURCETYPE)
+        xmlutil.ADDRESSBOOK_RESOURCETYPE if dav_type == 'addressbook'
+        else xmlutil.CALENDAR_RESOURCETYPE)
     # The home set itself is a plain collection, but clients expect the
     # calendar/addressbook resourcetype on the *home*, so advertise both.
     return (
@@ -352,7 +352,33 @@ def _collection_props(collection, user=None):
     """Properties of one collection (calendar or addressbook)."""
     href = xmlutil.escape(urls.collection_url(collection))
     home = xmlutil.escape(urls.root_url(collection.dav_type) + '/')
-    if collection.dav_type == 'calendar':
+    if collection.dav_type == 'tasks':
+        # Thunderbird hides a collection from its task view unless VTODO is
+        # advertised here. It is the only component this collection serves.
+        resourcetype = xmlutil.TASKS_RESOURCETYPE
+        component_set = (
+            '<cal:supported-calendar-component-set>'
+            '<cal:comp name="VTODO"/>'
+            '</cal:supported-calendar-component-set>'
+        )
+        extra = (
+            '<cal:calendar-description>%s</cal:calendar-description>'
+            '<A:calendar-color>%s</A:calendar-color>'
+            '<A:calendar-order>%s</A:calendar-order>'
+            '<cal:max-resource-size>10485760</cal:max-resource-size>'
+            '<cal:supported-calendar-data>'
+            '<cal:calendar-data content-type="text/calendar" '
+            'version="2.0"/>'
+            '</cal:supported-calendar-data>'
+            '<cal:calendar-timezone>%s</cal:calendar-timezone>'
+            % (xmlutil.escape(collection.name),
+               xmlutil.escape(collection.client_property(
+                   '{http://apple.com/ns/ical/}calendar-color')
+                   or DEFAULT_CALENDAR_COLOR),
+               collection.calendar_order or 0,
+               xmlutil.escape(DEFAULT_TIMEZONE))
+        )
+    elif collection.dav_type == 'calendar':
         resourcetype = xmlutil.CALENDAR_RESOURCETYPE
         component_set = (
             '<cal:supported-calendar-component-set>'
@@ -504,14 +530,55 @@ def _clark_to_xml(name):
     return '%s:%s' % (prefix, local) if prefix else local
 
 
+def _prepare_task_values(collection, values, uid):
+    """Turn parsed VTODO values into something ``project.task`` accepts.
+
+    Two things a client sends have no direct field: CATEGORIES becomes
+    ``tag_ids`` (records that may not exist yet) and the UID has to be the
+    one in the URL, so a rename cannot fork the task. A task created by a
+    client is personal — it belongs to the authenticated user and has no
+    project, which is what Odoo's own to-do view shows.
+    """
+    values = dict(values)
+    progress = values.pop('_progress', None)
+    if progress is not None and 'progress' in collection._model()._fields:
+        values['progress'] = progress
+    categories = values.pop('_categories', None)
+    if categories:
+        tags = collection._model().env['project.tags']
+        tag_ids = []
+        for name in categories:
+            name = (name or '').strip()
+            if not name:
+                continue
+            tag = tags.search([('name', '=', name)], limit=1)
+            if not tag:
+                tag = tags.create({'name': name})
+            tag_ids.append(tag.id)
+        if tag_ids:
+            values['tag_ids'] = [(6, 0, tag_ids)]
+
+    if uid and collection.field_uuid:
+        values[collection.field_uuid.name] = uid
+
+    # A VTODO in this collection is a personal to-do by definition: the
+    # collection's domain already restricts it to tasks without a project.
+    values.setdefault('project_id', False)
+    user = urls.user_for_request()
+    if user:
+        values.setdefault('user_ids', [(6, 0, [user.id])])
+
+    return values
+
+
 def _record_props(collection, record):
     """Properties of one event/contact resource (no body)."""
     return (
         '<d:resourcetype/>'
         '<d:getcontenttype>%s</d:getcontenttype>'
         '<d:getetag>%s</d:getetag>'
-        % ('text/calendar' if collection.dav_type == 'calendar'
-           else 'text/vcard',
+        % ('text/vcard' if collection.dav_type == 'addressbook'
+           else 'text/calendar',
            xmlutil.escape(collection.record_etag(record)))
     )
 
@@ -520,6 +587,10 @@ def _record_body(collection, record):
     """Serialised .ics/.vcf for one record, or ``None`` on failure."""
     try:
         obj = collection.to_vobject(record)
+        # A VTODO is built by icalendar and comes back as text; vobject
+        # components (events, cards) need an explicit serialise call.
+        if isinstance(obj, str):
+            return obj
         return obj.serialize()
     except Exception as exc:
         _logger.warning('[DAV] could not serialise %s %s: %s',
@@ -593,7 +664,14 @@ class CalDAVController(http.Controller):
                 xmlutil.response(root_href, _home_props(dav_type))
             ]
             if depth in ('1', 'infinity'):
-                for collection in urls.collections_for(dav_type, user):
+                # A task collection is a calendar, so it is listed under
+                # /caldav/ next to the event collections.
+                types = (dav_type, 'tasks') if dav_type == 'calendar' \
+                    else (dav_type,)
+                listed = urls.collections_for(dav_type, user)
+                for extra_type in types[1:]:
+                    listed |= urls.collections_for(extra_type, user)
+                for collection in listed:
                     responses.append(xmlutil.response(
                         xmlutil.escape(urls.collection_url(collection)),
                         _collection_props(collection)))
@@ -645,6 +723,11 @@ class CalDAVController(http.Controller):
     def caldav_collection(self, slug):
         return self._collection_dispatch('calendar', slug)
 
+    # A task collection is a calendar whose component set is VTODO. It is
+    # addressed by its slug like any other collection; the type lookup in
+    # _collection_dispatch falls back to 'tasks' when no event collection
+    # owns the slug, so /caldav/tasks/ resolves without a route of its own.
+
     @http.route(
         ['/carddav/<string:slug>', '/carddav/<string:slug>/'],
         type='http', auth='public', csrf=False,
@@ -668,6 +751,11 @@ class CalDAVController(http.Controller):
             return auth
 
         collection = urls.find_collection(dav_type, slug)
+        if not collection and dav_type == 'calendar':
+            # /caldav/<slug>/ serves both event and task collections: a
+            # task collection is a calendar with a VTODO component set, so
+            # it shares the root. Only the type differs.
+            collection = urls.find_collection('tasks', slug)
         if not collection:
             _logger.info('[DAV] collection not found: %s/%s', dav_type, slug)
             return _not_found()
@@ -1220,6 +1308,12 @@ class CalDAVController(http.Controller):
             return auth
 
         collection = urls.find_collection(dav_type, slug)
+        if not collection and dav_type == 'calendar':
+            # /caldav/<slug>/<file> serves task collections too: a task
+            # collection is a calendar with a VTODO component set and shares
+            # the root. Without this a PUT to /caldav/tasks/x.ics 404s even
+            # though the collection itself resolves.
+            collection = urls.find_collection('tasks', slug)
         if not collection:
             return _not_found()
         user = urls.user_for_request()
@@ -1503,6 +1597,9 @@ class CalDAVController(http.Controller):
 
         if not values:
             return _bad_request('Body contained no usable component')
+
+        if collection.dav_type == 'tasks':
+            values = _prepare_task_values(collection, values, uid)
 
         model = collection._model()
         if existing:

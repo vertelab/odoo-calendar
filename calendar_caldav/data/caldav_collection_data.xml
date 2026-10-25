@@ -44,5 +44,19 @@
             <field name="domain">[('user_id', '=', user.id)]</field>
         </record>
 
+        <!-- Thunderbird's task list. A task with no project is what Odoo's
+             own Att-göra view (project_todo) shows, so a VTODO created in
+             a mail client lands in /odoo/to-do without any glue. The
+             collection is per user for the same reason: a personal to-do
+             list is not a shared calendar. -->
+        <record id="collection_tasks" model="caldav.collection">
+            <field name="name">Tasks</field>
+            <field name="sequence">40</field>
+            <field name="dav_type">tasks</field>
+            <field name="model_id" ref="project.model_project_task"/>
+            <field name="field_uuid" ref="field_project_task__caldav_uuid"/>
+            <field name="domain">[('project_id', '=', False), ('user_ids', 'in', [user.id])]</field>
+        </record>
+
     </data>
 </odoo>

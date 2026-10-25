@@ -901,3 +901,201 @@ class TestRequestBodyWithoutContentType(common.TransactionCase):
 
         environ = _make_environ_with_body_capture(original)(None)
         self.assertNotIn(BODY_ENVIRON_KEY, environ)
+
+
+class TestReportBodyCapture(common.TransactionCase):
+    """The DAV body must survive Odoo's eager form parsing.
+
+    DAVx5 sends its CardDAV REPORT with a content type Odoo's dispatcher
+    treats as a form (or with none at all). Werkzeug's form parser then
+    drains the stream before the controller runs, ``_request_body()`` saw
+    an empty body, the root element was ``None`` and every sync got 400 —
+    which DAVx5 reported as "0 contacts" (ledningssystem 2026-10-25).
+
+    ``hooks._make_environ_with_body_capture`` reads the bytes in werkzeug's
+    ``make_environ``, before Odoo touches them. These tests pin that
+    behaviour, because a regression here is silent: the endpoint keeps
+    answering, just with nothing in it.
+    """
+
+    BODY = (
+        b'<?xml version="1.0"?>'
+        b'<card:addressbook-query xmlns:d="DAV:" '
+        b'xmlns:card="urn:ietf:params:xml:ns:carddav">'
+        b'<d:prop><d:getetag/></d:prop>'
+        b'</card:addressbook-query>'
+    )
+
+    def _environ(self, content_type, body=None):
+        """A minimal WSGI environ carrying ``body`` as the request body."""
+        import io
+        body = self.BODY if body is None else body
+        environ = {
+            'REQUEST_METHOD': 'REPORT',
+            'CONTENT_LENGTH': str(len(body)),
+            'wsgi.input': io.BytesIO(body),
+        }
+        if content_type is not None:
+            environ['CONTENT_TYPE'] = content_type
+        return environ
+
+    def _capture(self, environ):
+        """Run the real capture wrapper over an environ."""
+        from ..hooks import _make_environ_with_body_capture
+
+        original = lambda _handler: environ  # noqa: E731
+        return _make_environ_with_body_capture(original)(None)
+
+    def test_body_is_captured_for_every_content_type(self):
+        """Form-encoded, text/xml, application/xml and absent all work."""
+        from ..hooks import BODY_ENVIRON_KEY
+
+        for content_type in (
+            'application/x-www-form-urlencoded',
+            'multipart/form-data; boundary=x',
+            'text/xml; charset=utf-8',
+            'application/xml; charset=utf-8',
+            None,
+        ):
+            with self.subTest(content_type=content_type):
+                environ = self._capture(self._environ(content_type))
+                self.assertEqual(
+                    environ.get(BODY_ENVIRON_KEY), self.BODY,
+                    'body lost for content type %r' % (content_type,))
+
+    def test_stream_is_rewound_for_the_dispatcher(self):
+        """Odoo must still be able to read the body after the capture."""
+        environ = self._capture(
+            self._environ('application/x-www-form-urlencoded'))
+        self.assertEqual(environ['wsgi.input'].read(), self.BODY)
+
+    def test_empty_body_is_not_captured(self):
+        """A body-less PROPFIND must not be recorded as an empty capture."""
+        from ..hooks import BODY_ENVIRON_KEY
+
+        environ = self._capture(self._environ('application/xml', body=b''))
+        self.assertNotIn(BODY_ENVIRON_KEY, environ)
+
+    def test_captured_body_parses_to_the_expected_root(self):
+        """The captured bytes are what the REPORT dispatcher parses."""
+        from ..hooks import BODY_ENVIRON_KEY
+        from ..services import xmlutil
+
+        environ = self._capture(
+            self._environ('application/x-www-form-urlencoded'))
+        self.assertEqual(
+            xmlutil.body_root_name(environ[BODY_ENVIRON_KEY]),
+            'addressbook-query')
+
+
+class TestVtodo(common.TransactionCase):
+    """A VTODO is a project.task with no project.
+
+    That is what Odoo's own Att-göra view (project_todo) shows, so a task
+    written from Thunderbird appears in /odoo/to-do without any glue.
+    Thunderbird hides a collection from its task view unless the collection
+    advertises VTODO in supported-calendar-component-set, which is why tasks
+    "did not work" while the calendar did.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.collection = cls.env['caldav.collection'].create({
+            'name': 'Tasks Test',
+            'slug': 'tasks-test',
+            'dav_type': 'tasks',
+            'model_id': cls.env['ir.model']._get_id('project.task'),
+            'domain': "[('project_id', '=', False)]",
+            'field_uuid': cls.env['ir.model.fields']._get(
+                'project.task', 'caldav_uuid').id,
+        })
+        cls.Task = cls.env['project.task']
+
+    def _vtodo(self, **overrides):
+        values = {
+            'summary': 'Write the report',
+            'description': 'Before Friday',
+            'status': 'NEEDS-ACTION',
+            'priority': '1',
+            'due': '20261030T120000Z',
+        }
+        values.update(overrides)
+        lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VTODO',
+                 'UID:vtodo-test-1']
+        for key, value in values.items():
+            if value is not None:
+                lines.append('%s:%s' % (key.upper(), value))
+        lines += ['END:VTODO', 'END:VCALENDAR']
+        return '\r\n'.join(lines) + '\r\n'
+
+    def test_a_vtodo_parses_into_task_values(self):
+        values = self.collection.from_vobject(self._vtodo())
+        self.assertEqual(values['name'], 'Write the report')
+        self.assertEqual(values['description'], 'Before Friday')
+        self.assertEqual(values['state'], '01_in_progress')
+        self.assertEqual(values['priority'], '1')
+        self.assertEqual(values['caldav_uuid'], 'vtodo-test-1')
+        self.assertTrue(values['date_deadline'])
+
+    def test_a_completed_vtodo_is_done(self):
+        values = self.collection.from_vobject(
+            self._vtodo(status='COMPLETED', **{'percent-complete': 100}))
+        self.assertEqual(values['state'], '1_done')
+        # ``progress`` lives in project_todo, which is not a hard dependency,
+        # so the parser hands it back under a private key that the controller
+        # only writes when the field exists.
+        self.assertEqual(values['_progress'], 100.0)
+
+    def test_a_cancelled_vtodo_is_cancelled(self):
+        values = self.collection.from_vobject(self._vtodo(status='CANCELLED'))
+        self.assertEqual(values['state'], '1_canceled')
+
+    def test_a_task_serialises_to_a_vtodo(self):
+        task = self.Task.create({
+            'name': 'Write the report',
+            'project_id': False,
+            'user_ids': [(6, 0, [self.env.user.id])],
+        })
+        body = self.collection.to_vobject(task)
+        self.assertIn('BEGIN:VTODO', body)
+        self.assertIn('SUMMARY:Write the report', body)
+        self.assertIn('UID:%s' % task.caldav_uuid, body)
+
+    def test_a_done_task_reads_as_completed(self):
+        task = self.Task.create({
+            'name': 'Done already',
+            'project_id': False,
+            'state': '1_done',
+        })
+        body = self.collection.to_vobject(task)
+        self.assertIn('STATUS:COMPLETED', body)
+        self.assertIn('PERCENT-COMPLETE:100', body)
+
+    def test_a_vevent_in_a_task_collection_is_rejected(self):
+        """A client may PUT the wrong component; that must be an error."""
+        vevent = ('BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\n'
+                  'UID:x\r\nSUMMARY:Not a task\r\n'
+                  'DTSTART:20261030T120000Z\r\nEND:VEVENT\r\n'
+                  'END:VCALENDAR\r\n')
+        self.assertIsNone(self.collection.from_vobject(vevent))
+
+    def test_the_collection_announces_vtodo(self):
+        """Without this line Thunderbird hides the collection entirely.
+
+        Checked through the source rather than through _collection_props,
+        which needs a request to build absolute URLs.
+        """
+        import inspect
+        from ..controllers import main as controller
+
+        source = inspect.getsource(controller._collection_props)
+        tasks_branch = source.split("dav_type == 'tasks'")[1]
+        tasks_branch = tasks_branch.split("dav_type == 'calendar'")[0]
+        self.assertIn('<cal:comp name="VTODO"/>', tasks_branch)
+        self.assertNotIn('VEVENT', tasks_branch)
+
+    def test_a_task_gets_a_uid_on_create(self):
+        task = self.Task.create({'name': 'Needs a UID',
+                                 'project_id': False})
+        self.assertTrue(task.caldav_uuid)
