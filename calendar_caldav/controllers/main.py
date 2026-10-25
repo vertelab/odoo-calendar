@@ -1155,9 +1155,25 @@ class CalDAVController(http.Controller):
             responses.append(xmlutil.response(
                 xmlutil.escape(urls.record_url(collection, record)),
                 _record_props(collection, record)
-                + '<cal:calendar-data>%s</cal:calendar-data>'
-                % xmlutil.escape(payload)))
+                + self._data_element(collection, payload)))
         return _xml_response(xmlutil.multistatus(responses))
+
+    @staticmethod
+    def _data_element(collection, payload):
+        """Wrap a record body in the element the collection's type expects.
+
+        RFC 6352 §10.4 gives address books ``card:address-data``; calendars
+        use ``cal:calendar-data`` (RFC 4791 §9.6). A client that asks for
+        address-data and gets calendar-data back sees a well-formed
+        multistatus with no data in it, so it silently shows an empty
+        address book — which is exactly what DAVx5, Thunderbird and GNOME
+        Contacts all did.
+        """
+        if collection.dav_type == 'addressbook':
+            tag = 'card:address-data'
+        else:
+            tag = 'cal:calendar-data'
+        return '<%s>%s</%s>' % (tag, xmlutil.escape(payload), tag)
 
     def _report_sync(self, collection, body):
         old_token = xmlutil.sync_token_from_body(body)
@@ -1173,8 +1189,7 @@ class CalDAVController(http.Controller):
             responses.append(xmlutil.response(
                 xmlutil.escape(urls.record_url(collection, record)),
                 _record_props(collection, record)
-                + '<cal:calendar-data>%s</cal:calendar-data>'
-                % xmlutil.escape(payload)))
+                + self._data_element(collection, payload)))
         for uid in deleted:
             responses.append(xmlutil.response(
                 xmlutil.escape('%s%s' % (
@@ -1205,8 +1220,7 @@ class CalDAVController(http.Controller):
             responses.append(xmlutil.response(
                 xmlutil.escape(urls.record_url(collection, record)),
                 _record_props(collection, record)
-                + '<cal:calendar-data>%s</cal:calendar-data>'
-                % xmlutil.escape(payload)))
+                + self._data_element(collection, payload)))
         return _xml_response(xmlutil.multistatus(responses))
 
     def _filter_addressbook(self, records, body):
