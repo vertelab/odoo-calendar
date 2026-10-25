@@ -294,13 +294,11 @@ def _bad_request(message='Malformed request body'):
 
 def _home_props(dav_type):
     """Properties of the principal / home-set resource."""
-    root = urls.root_url(dav_type)
-    href = xmlutil.escape(root + '/')
-    resourcetype = (
-        xmlutil.ADDRESSBOOK_RESOURCETYPE if dav_type == 'addressbook'
-        else xmlutil.CALENDAR_RESOURCETYPE)
-    # The home set itself is a plain collection, but clients expect the
-    # calendar/addressbook resourcetype on the *home*, so advertise both.
+    href = xmlutil.escape(urls.root_url(dav_type) + '/')
+    principal = xmlutil.escape(urls.principal_url(dav_type))
+    # The home set is a plain collection; the principal is a separate
+    # resource that points back at it. They must not share a URL — see
+    # urls.principal_url().
     return (
         '<d:resourcetype><d:collection/></d:resourcetype>'
         '<d:displayname>%s</d:displayname>'
@@ -316,7 +314,7 @@ def _home_props(dav_type):
         '<d:privilege><d:bind/></d:privilege>'
         '<d:privilege><d:unbind/></d:privilege>'
         '</d:current-user-privilege-set>'
-        % (xmlutil.escape(dav_type), href, href, href, href)
+        % (xmlutil.escape(dav_type), principal, principal, href, href)
     )
 
 
@@ -748,6 +746,43 @@ class CalDAVController(http.Controller):
     )
     def carddav_home(self):
         return self._home_set('addressbook')
+
+    @http.route(
+        ['/caldav/principal', '/caldav/principal/',
+         '/carddav/principal', '/carddav/principal/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS'],
+        strict_slashes=False,
+    )
+    def dav_principal(self):
+        """The principal resource (RFC 3744 §4).
+
+        Declared before the collection routes so that ``principal`` is not
+        mistaken for a collection slug.
+        """
+        if request.httprequest.method == 'OPTIONS':
+            return _options_response()
+        auth = _basic_auth()
+        if auth:
+            return auth
+        dav_type = urls.split_path(request.httprequest.path)[0] or 'calendar'
+        href = xmlutil.escape(urls.principal_url(dav_type))
+        home = xmlutil.escape(urls.root_url(dav_type) + '/')
+        email = request.env.user.partner_id.email or ''
+        props = (
+            '<d:resourcetype><d:principal/></d:resourcetype>'
+            '<d:displayname>%s</d:displayname>'
+            '<d:current-user-principal><d:href>%s</d:href></d:current-user-principal>'
+            '<d:principal-URL><d:href>%s</d:href></d:principal-URL>'
+            '<cal:calendar-home-set><d:href>%s</d:href></cal:calendar-home-set>'
+            '<card:addressbook-home-set><d:href>%s</d:href></card:addressbook-home-set>'
+            '<cal:calendar-user-address-set><d:href>mailto:%s</d:href>'
+            '</cal:calendar-user-address-set>'
+            % (xmlutil.escape(email or 'principal'), href, href, home, home,
+               xmlutil.escape(email))
+        )
+        return _xml_response(xmlutil.multistatus([
+            xmlutil.response(href, props)]))
 
     # ── Collection and record level ──────────────────────────────────────
 

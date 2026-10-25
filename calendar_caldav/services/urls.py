@@ -51,6 +51,20 @@ def root_url(dav_type):
     return '%s%s' % (base_url(), root)
 
 
+def principal_url(dav_type):
+    """The principal resource, which must not be the home set itself.
+
+    RFC 3744 §4 gives every user a principal resource, and RFC 4791 §6.2.1
+    points ``calendar-home-set`` at the collections inside it. Advertising
+    the home set *as* the principal makes the two indistinguishable: a
+    client that walks principal -> home-set -> children gets the principal
+    back as one of its own children. Thunderbird gave up at that point and
+    showed an empty calendar, while DAVx5 tolerated it.
+    """
+    root = CARDDAV_ROOT if dav_type == 'addressbook' else CALDAV_ROOT
+    return '%s%s/principal/' % (base_url(), root)
+
+
 def collection_url(collection):
     """The collection's own URL."""
     return '%s/%s/' % (root_url(collection.dav_type), collection.slug)
