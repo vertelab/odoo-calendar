@@ -33,7 +33,7 @@ import time
 import uuid
 from datetime import datetime
 
-from odoo import http
+from odoo import api, http
 from odoo.http import request
 from odoo.service import db
 
@@ -113,6 +113,7 @@ def _basic_auth():
         return _unauthorized()
 
     credential = {'type': 'password', 'login': login, 'password': password}
+    _detach_website_visitor_hook()
     for db_name in db.exp_list():
         try:
             auth_info = request.session.authenticate(db_name, credential)
@@ -129,6 +130,15 @@ def _basic_auth():
             if _is_retryable(exc):
                 for attempt in range(AUTH_RETRIES):
                     time.sleep(AUTH_RETRY_DELAY * (attempt + 1))
+                    # An aborted transaction poisons the cursor: every
+                    # later statement fails with "current transaction is
+                    # aborted" no matter what it is. Retrying without
+                    # rolling back first can therefore never succeed, and
+                    # the retry loop becomes three guaranteed failures.
+                    try:
+                        request.env.cr.rollback()
+                    except Exception:  # noqa: BLE001
+                        pass
                     try:
                         auth_info = request.session.authenticate(
                             db_name, credential)
@@ -156,12 +166,40 @@ def _basic_auth():
     return _unauthorized()
 
 
+def _detach_website_visitor_hook():
+    """Keep ``website``'s authenticate() override out of DAV requests.
+
+    ``website/models/res_users.py:79`` calls
+    ``website.visitor._get_visitor_from_request()`` before the credentials
+    are checked, to merge an anonymous visitor into the logging-in user's
+    one. That only makes sense for a browser: on a DAV request there is no
+    session to merge, and the lookup raises, aborting the transaction so
+    the whole request fails with 503.
+
+    The override is a no-op when ``request.env.uid`` is falsy, so clearing
+    the environment for the duration of the call keeps it out of the way.
+    It is restored straight afterwards; nothing else in a DAV request
+    relies on the pre-authentication environment.
+    """
+    try:
+        request.env = api.Environment(request.env.cr, None, {})
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def _is_retryable(exc):
     """True when ``exc`` is a transient database conflict, not bad auth."""
     message = str(exc).lower()
     return ('could not serialize access' in message
             or 'deadlock detected' in message
-            or 'concurrent update' in message)
+            or 'concurrent update' in message
+            # website.visitor hooks itself into every authenticate() call
+            # (website/models/res_users.py:79). On a DAV request there is no
+            # browser session, so the visitor lookup raises and aborts the
+            # transaction before the credentials are even checked. The
+            # transaction is recoverable by rolling back, so treat it as
+            # transient rather than reporting a bad password.
+            or 'current transaction is aborted' in message)
 
 
 def _unavailable():
