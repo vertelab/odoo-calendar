@@ -104,6 +104,37 @@ def _backfill_partner_uuids(env):
                      count)
 
 
+def _seed_sync_log(env):
+    """Record the records that already exist in the sync log.
+
+    The sync counter only advances on writes the module sees, so records
+    that predate the module — every contact imported into Odoo, every
+    event created in the UI — were never logged. A client that synced once
+    then held a token claiming to know the collection, and was told
+    "nothing changed" forever after. Seeding the log makes the token tell
+    the truth about what the collection contains.
+    """
+    import json
+
+    Collection = env['caldav.collection']
+    for collection in Collection.search([]):
+        try:
+            records = collection.search_records()
+        except Exception:  # noqa: BLE001 - a broken domain must not block install
+            _logger.warning('calendar_caldav: cannot seed %s', collection.slug,
+                            exc_info=True)
+            continue
+        uids = [collection.record_uid(record) for record in records]
+        new_rev = (collection.sync_rev or 0) + 1
+        log = {str(uid): new_rev for uid in uids if uid}
+        collection.write({
+            'sync_rev': new_rev,
+            'sync_rev_log': json.dumps(log),
+        })
+        _logger.info('calendar_caldav: seeded sync log for %s with %s records',
+                     collection.slug, len(log))
+
+
 def _backfill_task_uuids(env):
     """Give every task a CalDAV UID.
 

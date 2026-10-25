@@ -831,7 +831,14 @@ class TestSyncChanges(common.TransactionCase):
         This is the case that used to be wrong in the other direction: the
         old string comparison found nothing ever again after the first
         sync, so the client never learned about later writes either.
+
+        The log is seeded first: a token only means "you know everything"
+        once the collection's records are in the log. An unseeded log must
+        answer with the records, not with silence.
         """
+        self.collection.bump_sync_rev(
+            uids=[self.collection.record_uid(r)
+                  for r in self.collection.search_records()])
         token = self.collection.sync_token()
         changed, deleted = self.collection.sync_changes(token)
         self.assertFalse(changed)
@@ -1144,3 +1151,18 @@ class TestVtodo(common.TransactionCase):
             # The two must never collapse onto the same path, which is the
             # bug: principal and home set answered with one href.
             self.assertNotEqual(root + '/principal/', root + '/')
+
+    def test_a_token_that_knows_nothing_still_gets_the_records(self):
+        """A token must not hide records the log never saw.
+
+        The counter only advances on writes we see. Contacts imported into
+        Odoo predate the log, so a client holding a token was told
+        "nothing changed" and kept an empty address book while the server
+        reported success.
+        """
+        collection = self.collection
+        collection.write({'sync_rev': 1, 'sync_rev_log': '{}'})
+        token = collection.sync_token()
+        changed, deleted = collection.sync_changes(token)
+        self.assertTrue(changed, 'a token must not hide unlogged records')
+        self.assertEqual(deleted, [])

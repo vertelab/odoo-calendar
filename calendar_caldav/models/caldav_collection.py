@@ -537,12 +537,26 @@ class CaldavCollection(models.Model):
             old_rev = int(tail)
         except (IndexError, ValueError):
             return records, []
-        if old_rev >= (self.sync_rev or 0):
-            return [], []
         try:
             log = json.loads(self.sync_rev_log or '{}')
         except (ValueError, TypeError):
             return records, []
+        if old_rev >= (self.sync_rev or 0):
+            # The token matches our counter, but that counter only advances
+            # on writes we saw. Records that existed before the log did —
+            # every contact imported into Odoo, for instance — were never
+            # logged, so a client holding this token has never been told
+            # about them. Answering "nothing changed" leaves its address
+            # book permanently empty while the server reports success.
+            # Compare against the real record count instead of trusting the
+            # counter alone.
+            if len(records) > len(log):
+                return records, []
+            # Everything the client holds is logged, but the log may still
+            # be stamped with revisions at or below the one the client
+            # already has. Nothing changed since, so an empty answer is
+            # correct here.
+            return [], []
         if not log:
             # No history at all: we cannot say what changed, so say everything.
             return records, []
