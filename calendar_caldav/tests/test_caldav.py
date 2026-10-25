@@ -1099,3 +1099,24 @@ class TestVtodo(common.TransactionCase):
         task = self.Task.create({'name': 'Needs a UID',
                                  'project_id': False})
         self.assertTrue(task.caldav_uuid)
+
+    def test_an_addressbook_answers_with_card_address_data(self):
+        """RFC 6352 §10.4: a card body is card:address-data, not calendar-data.
+
+        Answering with cal:calendar-data produces a valid multistatus that
+        no client can read, so every address book renders empty while the
+        server reports 207 and thousands of records.
+        """
+        from types import SimpleNamespace
+
+        from ..controllers.main import CalDAVController
+
+        addressbook = SimpleNamespace(dav_type='addressbook')
+        card = CalDAVController._data_element(
+            addressbook, 'BEGIN:VCARD\r\nEND:VCARD\r\n')
+        self.assertTrue(card.startswith('<card:address-data>'))
+        self.assertNotIn('calendar-data', card)
+
+        event = CalDAVController._data_element(
+            self.collection, 'BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n')
+        self.assertTrue(event.startswith('<cal:calendar-data>'))
