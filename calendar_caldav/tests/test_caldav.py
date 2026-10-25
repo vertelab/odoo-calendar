@@ -1120,3 +1120,27 @@ class TestVtodo(common.TransactionCase):
         event = CalDAVController._data_element(
             self.collection, 'BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n')
         self.assertTrue(event.startswith('<cal:calendar-data>'))
+
+    def test_the_principal_is_not_the_home_set(self):
+        """RFC 3744 §4: the principal is its own resource.
+
+        Answering current-user-principal and calendar-home-set with the
+        same href makes the root indistinguishable from a calendar. A
+        client walking principal -> home-set -> children gets the root
+        back as a child and stops; that is why Thunderbird showed an
+        empty calendar while DAVx5 coped.
+        """
+        import inspect
+
+        from ..services import urls
+
+        # Checked against the source because principal_url() needs a
+        # request to build the host part.
+        source = inspect.getsource(urls.principal_url)
+        self.assertIn('/principal/', source)
+
+        for dav_type, root in (('calendar', urls.CALDAV_ROOT),
+                               ('addressbook', urls.CARDDAV_ROOT)):
+            # The two must never collapse onto the same path, which is the
+            # bug: principal and home set answered with one href.
+            self.assertNotEqual(root + '/principal/', root + '/')
