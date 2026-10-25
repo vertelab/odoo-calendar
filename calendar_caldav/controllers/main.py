@@ -1,362 +1,746 @@
+# -*- coding: utf-8 -*-
+# Copyright 2026 Vertel Sverige AB (<https://vertel.se>)
+# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
+"""CalDAV/CardDAV endpoint.
+
+URL space (see ``services/urls.py``)::
+
+    /.well-known/{caldav,carddav,webdav}   discovery, both slash forms
+    /caldav/                               principal + calendar home set
+    /caldav/<slug>/                        one calendar
+    /caldav/<slug>/<uid>.ics               one event
+    /carddav/                              addressbook home set
+    /carddav/<slug>/                       one addressbook
+    /carddav/<slug>/<uid>.vcf              one contact
+
+Two rules run through the whole file:
+
+1. **The collection's domain is evaluated as the authenticated user.**
+   ``caldav.collection.search_records()`` calls ``sudo()`` internally, so
+   the user has to be handed over in the context (``with_user_context``).
+   Without that the domain is evaluated as OdooBot and every user sees
+   OdooBot's records — the defect that made the Radicale track return an
+   empty multistatus.
+
+2. **Never ``search([])``.** Every record comes from a collection, and
+   every collection carries a domain. A bare search would hand out other
+   people's private events.
+"""
 import base64
 import logging
-from html import escape
 
 from odoo import http
 from odoo.http import request
 from odoo.service import db
-from ..services.caldav import odoo_event_to_icalendar, odoo_events_to_icalendar, icalendar_to_odoo_event
+
+from ..services import urls, xmlutil
+from ..services.caldav import icalendar_to_odoo_event
 
 _logger = logging.getLogger(__name__)
 
 AUTH_HEADER = 'Basic realm="Odoo CalDAV", charset="UTF-8"'
 
+# DAV capabilities announced in OPTIONS. '3' is required for Evolution and
+# GNOME Online Accounts to use sync-collection (RFC 6578) instead of
+# reloading the whole collection on every poll.
+DAV_CAPABILITIES = '1, 2, 3, calendar-access, addressbook, extended-mkcol'
+
+XML_CONTENT_TYPE = 'application/xml; charset=utf-8'
+
+
+# ── Authentication ───────────────────────────────────────────────────────
+
 
 def _basic_auth():
-    auth = request.httprequest.headers.get("Authorization", "")
-    if not auth.startswith("Basic "):
-        _logger.info("_basic_auth: no Basic auth header")
+    """Authenticate the Basic header against the configured databases.
+
+    Returns ``None`` on success, or a 401 response.
+    """
+    auth = request.httprequest.headers.get('Authorization', '')
+    if not auth.startswith('Basic '):
+        _logger.info('[DAV] no Basic auth header')
         return _unauthorized()
     try:
-        decoded = base64.b64decode(auth[6:]).decode("utf-8")
-        login, password = decoded.split(":", 1)
+        decoded = base64.b64decode(auth[6:]).decode('utf-8')
+        login, password = decoded.split(':', 1)
     except Exception:
-        _logger.info("_basic_auth: failed to decode auth header")
+        _logger.info('[DAV] could not decode auth header')
         return _unauthorized()
-    _logger.info("_basic_auth: trying login=%s across %s databases", login, db.exp_list())
-    credential = {"type": "password", "login": login, "password": password}
+
+    credential = {'type': 'password', 'login': login, 'password': password}
     for db_name in db.exp_list():
         try:
             auth_info = request.session.authenticate(db_name, credential)
-            if auth_info.get("uid"):
-                _logger.info("_basic_auth: success login=%s db=%s uid=%s", login, db_name, auth_info["uid"])
-                return
-        except Exception as e:
-            _logger.info("_basic_auth: failed db=%s: %s", db_name, e)
-    _logger.info("_basic_auth: auth failed login=%s", login)
+        except Exception as exc:
+            _logger.info('[DAV] auth failed db=%s: %s', db_name, exc)
+            continue
+        if auth_info.get('uid'):
+            _logger.info('[DAV] auth ok login=%s db=%s uid=%s',
+                         login, db_name, auth_info['uid'])
+            return None
+    _logger.info('[DAV] auth failed login=%s', login)
     return _unauthorized()
 
 
 def _unauthorized():
     return request.make_response(
-        "CalDAV: Authorization required",
-        headers=[("WWW-Authenticate", AUTH_HEADER), ("Content-Type", "text/plain; charset=utf-8")],
+        'CalDAV: Authorization required',
+        headers=[('WWW-Authenticate', AUTH_HEADER),
+                 ('Content-Type', 'text/plain; charset=utf-8')],
         status=401,
     )
 
 
-def _options_response():
+def _options_response(allow='OPTIONS, GET, HEAD, PROPFIND, REPORT, PUT, DELETE'):
     return request.make_response(
-        "",
+        '',
         headers=[
-            ("DAV", "1, 2, calendar-access"),
-            ("Allow", "OPTIONS, GET, HEAD, PROPFIND, REPORT, PUT"),
-            ("Content-Length", "0"),
+            ('DAV', DAV_CAPABILITIES),
+            ('Allow', allow),
+            ('Content-Length', '0'),
         ],
     )
 
 
-def _event_href(base_url, event):
-    return f"{escape(base_url)}/caldav/events/{event.id}.ics"
+def _xml_response(body, status=207):
+    return request.make_response(
+        body,
+        headers=[('Content-Type', XML_CONTENT_TYPE)],
+        status=status,
+    )
 
 
-def _calendar_prop_xml(base_url, display_name):
+def _not_found():
+    return request.make_response(
+        'Not found', status=404,
+        headers=[('Content-Type', 'text/plain; charset=utf-8')])
+
+
+def _request_body():
+    """The raw request body, whatever the client claimed its type is.
+
+    ``request.httprequest.data`` is empty when the client sends a body
+    without ``Content-Type: application/xml`` — and some clients do. DAV
+    bodies are always XML, so fall back to the raw stream and parse it
+    ourselves. Reading the stream twice is safe: Werkzeug caches it.
+    """
+    httprequest = request.httprequest
+    data = httprequest.data
+    if data:
+        return data
+    # Werkzeug's ``data`` property is empty for a body whose mimetype is
+    # not form-like. ``get_data()`` reads the cached stream, but Odoo's
+    # Request proxy may already have consumed it — so read the cached
+    # value first and only then fall back to the raw environ stream.
+    try:
+        data = httprequest.get_data(cache=True)
+        if data:
+            return data
+    except Exception:  # noqa: BLE001 - a broken stream is a client error
+        pass
+    stream = httprequest.environ.get('wsgi.input')
+    if stream is None:
+        return b''
+    try:
+        return stream.read() or b''
+    except Exception:  # noqa: BLE001
+        return b''
+
+
+def _bad_request(message='Malformed request body'):
+    return request.make_response(
+        message, status=400,
+        headers=[('Content-Type', 'text/plain; charset=utf-8')])
+
+
+# ── PROPFIND building blocks ─────────────────────────────────────────────
+
+
+def _home_props(dav_type):
+    """Properties of the principal / home-set resource."""
+    root = urls.root_url(dav_type)
+    href = xmlutil.escape(root + '/')
+    resourcetype = (
+        xmlutil.CALENDAR_RESOURCETYPE if dav_type == 'calendar'
+        else xmlutil.ADDRESSBOOK_RESOURCETYPE)
+    # The home set itself is a plain collection, but clients expect the
+    # calendar/addressbook resourcetype on the *home*, so advertise both.
     return (
-        '<d:prop>'
-        f'<d:displayname>{escape(display_name)}</d:displayname>'
-        '<d:resourcetype><d:collection/><cal:calendar/></d:resourcetype>'
-        f'<cal:calendar-description>{escape(display_name)} calendar</cal:calendar-description>'
-        '<A:calendar-color>#2A6B9C</A:calendar-color>'
-        '<d:getcontenttype>httpd/unix-directory</d:getcontenttype>'
-        f'<d:owner><d:href>{escape(base_url)}/caldav/</d:href></d:owner>'
-        f'<d:current-user-principal><d:href>{escape(base_url)}/caldav/</d:href></d:current-user-principal>'
-        f'<cal:calendar-home-set><d:href>{escape(base_url)}/caldav/</d:href></cal:calendar-home-set>'
+        '<d:resourcetype><d:collection/></d:resourcetype>'
+        '<d:displayname>%s</d:displayname>'
+        '<d:current-user-principal><d:href>%s</d:href></d:current-user-principal>'
+        '<d:principal-URL><d:href>%s</d:href></d:principal-URL>'
+        '<cal:calendar-home-set><d:href>%s</d:href></cal:calendar-home-set>'
+        '<card:addressbook-home-set><d:href>%s</d:href></card:addressbook-home-set>'
         '<d:current-user-privilege-set>'
         '<d:privilege><d:read/></d:privilege>'
         '<d:privilege><d:write/></d:privilege>'
         '<d:privilege><d:write-properties/></d:privilege>'
         '<d:privilege><d:write-content/></d:privilege>'
-        '<d:privilege><d:unlock/></d:privilege>'
         '<d:privilege><d:bind/></d:privilege>'
         '<d:privilege><d:unbind/></d:privilege>'
         '</d:current-user-privilege-set>'
-        '</d:prop>'
+        % (xmlutil.escape(dav_type), href, href, href, href)
     )
 
 
-def _propfind_caldav(base_url, events, display_name):
-    parts = [
-        '<?xml version="1.0" encoding="utf-8"?>',
-        '<d:multistatus xmlns:d="DAV:" xmlns:cal="urn:ietf:params:xml:ns:caldav" xmlns:A="http://apple.com/ns/ical/">',
-        '<d:response>',
-        f'<d:href>{escape(base_url)}/caldav/</d:href>',
-        '<d:propstat>',
-        _calendar_prop_xml(base_url, display_name),
-        '<d:status>HTTP/1.1 200 OK</d:status>',
-        '</d:propstat>',
-        '</d:response>',
-    ]
-    for event in events:
-        href = _event_href(base_url, event)
-        parts.append('<d:response>')
-        parts.append(f'<d:href>{href}</d:href>')
-        parts.append('<d:propstat>')
-        parts.append('<d:prop>')
-        parts.append(f'<d:displayname>{escape(event.name)}</d:displayname>')
-        parts.append('<d:resourcetype/>')
-        parts.append('<d:getcontenttype>text/calendar</d:getcontenttype>')
-        etag = str(event.dav_last_modified) if event.dav_last_modified else ""
-        parts.append(f'<d:getetag>"{escape(etag)}"</d:getetag>')
-        parts.append('</d:prop>')
-        parts.append('<d:status>HTTP/1.1 200 OK</d:status>')
-        parts.append('</d:propstat>')
-        parts.append('</d:response>')
-    parts.append('</d:multistatus>')
-    return "\n".join(parts)
+def _collection_props(collection):
+    """Properties of one collection (calendar or addressbook)."""
+    href = xmlutil.escape(urls.collection_url(collection))
+    home = xmlutil.escape(urls.root_url(collection.dav_type) + '/')
+    if collection.dav_type == 'calendar':
+        resourcetype = xmlutil.CALENDAR_RESOURCETYPE
+        component_set = (
+            '<cal:supported-calendar-component-set>'
+            '<cal:comp name="VEVENT"/>'
+            '</cal:supported-calendar-component-set>'
+        )
+        extra = (
+            '<cal:calendar-description>%s</cal:calendar-description>'
+            '<A:calendar-color>#2A6B9C</A:calendar-color>'
+            '<cal:max-resource-size>10485760</cal:max-resource-size>'
+            % xmlutil.escape(collection.name)
+        )
+    else:
+        resourcetype = xmlutil.ADDRESSBOOK_RESOURCETYPE
+        component_set = ''
+        extra = (
+            '<card:addressbook-description>%s</card:addressbook-description>'
+            '<card:max-resource-size>10485760</card:max-resource-size>'
+            % xmlutil.escape(collection.name)
+        )
+    return (
+        '<d:resourcetype>%s</d:resourcetype>'
+        '<d:displayname>%s</d:displayname>'
+        '<d:getcontenttype>httpd/unix-directory</d:getcontenttype>'
+        '<d:owner><d:href>%s</d:href></d:owner>'
+        '<d:current-user-principal><d:href>%s</d:href></d:current-user-principal>'
+        '<cal:calendar-home-set><d:href>%s</d:href></cal:calendar-home-set>'
+        '<card:addressbook-home-set><d:href>%s</d:href></card:addressbook-home-set>'
+        '<d:current-user-privilege-set>'
+        '<d:privilege><d:read/></d:privilege>'
+        '<d:privilege><d:write/></d:privilege>'
+        '<d:privilege><d:write-properties/></d:privilege>'
+        '<d:privilege><d:write-content/></d:privilege>'
+        '<d:privilege><d:bind/></d:privilege>'
+        '<d:privilege><d:unbind/></d:privilege>'
+        '</d:current-user-privilege-set>'
+        '<d:supported-report-set>'
+        '<d:supported-report><d:report><cal:calendar-query/></d:report></d:supported-report>'
+        '<d:supported-report><d:report><cal:calendar-multiget/></d:report></d:supported-report>'
+        '<d:supported-report><d:report><d:sync-collection/></d:report></d:supported-report>'
+        '</d:supported-report-set>'
+        '%s%s'
+        % (resourcetype, xmlutil.escape(collection.name), home, home, home,
+           home, component_set, extra)
+    )
 
 
-def _find_event(event_id_or_uuid):
+def _record_props(collection, record):
+    """Properties of one event/contact resource (no body)."""
+    return (
+        '<d:resourcetype/>'
+        '<d:getcontenttype>%s</d:getcontenttype>'
+        '<d:getetag>%s</d:getetag>'
+        % ('text/calendar' if collection.dav_type == 'calendar'
+           else 'text/vcard',
+           xmlutil.escape(collection.record_etag(record)))
+    )
+
+
+def _record_body(collection, record):
+    """Serialised .ics/.vcf for one record, or ``None`` on failure."""
     try:
-        eid = int(event_id_or_uuid)
-        return request.env["calendar.event"].browse(eid).exists()
-    except (ValueError, TypeError):
-        return request.env["calendar.event"]
+        obj = collection.to_vobject(record)
+        return obj.serialize()
+    except Exception as exc:
+        _logger.warning('[DAV] could not serialise %s %s: %s',
+                        collection.model_name, record.id, exc)
+        return None
+
+
+# ── Controller ───────────────────────────────────────────────────────────
 
 
 class CalDAVController(http.Controller):
 
+    # ── RFC 6764 discovery ───────────────────────────────────────────────
+    #
+    # Clients (GNOME Online Accounts, DAVx5, Thunderbird, Evolution) start
+    # by GETting /.well-known/caldav WITHOUT a trailing slash. Both forms
+    # are owned here for both protocols so discovery is unambiguous.
+    #
+    # 307, not 301: a PROPFIND that follows a 301 becomes a GET per RFC
+    # 7231, and the client then reads the reply as an HTML page instead of
+    # a multistatus.
+
     @http.route(
-        "/.well-known/caldav/",
-        type="http",
-        auth="public",
-        csrf=False,
-        methods=["GET", "PROPFIND", "OPTIONS"],
+        ['/.well-known/caldav', '/.well-known/caldav/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'PROPFIND', 'OPTIONS', 'HEAD'],
         strict_slashes=False,
     )
-    def well_known_discovery(self):
-        _logger.info("[CalDAV] well-known: %s -> 307 to /caldav/", request.httprequest.method)
-        base_url = request.httprequest.url_root.rstrip("/")
-        return request.redirect(f"{base_url}/caldav/", code=307)
+    def well_known_caldav(self):
+        _logger.info('[DAV] well-known caldav: %s -> /caldav/',
+                     request.httprequest.method)
+        return request.redirect('/caldav/', code=307, local=True)
 
-    @http.route([
-        "/caldav/events/<string:event_uuid>.ics",
-        "/caldav/<string:event_uuid>.ics",
-    ], type="http", auth="public", csrf=False, methods=["GET"])
-    def get_event(self, event_uuid):
-        _logger.info("[CalDAV] GET event: uuid=%s", event_uuid)
-        auth_result = _basic_auth()
-        if auth_result:
-            return auth_result
-        event = _find_event(event_uuid)
-        if not event:
-            _logger.info("[CalDAV] GET event: not found uuid=%s", event_uuid)
-            return request.not_found()
-        base_url = request.httprequest.url_root.rstrip("/")
-        ical = odoo_event_to_icalendar(event, base_url=base_url)
-        last_modified = event.dav_last_modified
-        last_modified_str = last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT") if last_modified else ""
-        etag = str(last_modified) if last_modified else ""
-        return request.make_response(
-            ical.to_ical(),
-            headers=[
-                ("Content-Type", "text/calendar"),
-                ("ETag", f'"{etag}"'),
-                ("Last-Modified", last_modified_str),
-            ],
-        )
+    @http.route(
+        ['/.well-known/carddav', '/.well-known/carddav/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'PROPFIND', 'OPTIONS', 'HEAD'],
+        strict_slashes=False,
+    )
+    def well_known_carddav(self):
+        _logger.info('[DAV] well-known carddav: %s -> /carddav/',
+                     request.httprequest.method)
+        return request.redirect('/carddav/', code=307, local=True)
 
-    @http.route([
-        "/caldav/events/<string:event_uuid>.ics",
-        "/caldav/<string:event_uuid>.ics",
-    ], type="http", auth="public", csrf=False, methods=["PUT"])
-    def update_event(self, event_uuid):
-        _logger.info("[CalDAV] PUT event: uuid=%s", event_uuid)
-        auth_result = _basic_auth()
-        if auth_result:
-            return auth_result
-        ical_str = request.httprequest.data.decode("utf-8")
-        event = _find_event(event_uuid)
-        if not event:
-            _logger.info("[CalDAV] PUT event: not found uuid=%s, creating new", event_uuid)
-            event = icalendar_to_odoo_event(ical_str)
-        else:
-            event = icalendar_to_odoo_event(ical_str, event)
-        etag = str(event.dav_last_modified) if event.dav_last_modified else ""
-        return request.make_response("", headers=[("ETag", f'"{etag}"')])
+    @http.route(
+        ['/.well-known/webdav', '/.well-known/webdav/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'PROPFIND', 'OPTIONS', 'HEAD'],
+        strict_slashes=False,
+    )
+    def well_known_webdav(self):
+        # No separate WebDAV service: the caldav endpoint answers the
+        # principal PROPFIND and leads the client on from there.
+        _logger.info('[DAV] well-known webdav: %s -> /caldav/',
+                     request.httprequest.method)
+        return request.redirect('/caldav/', code=307, local=True)
 
-    @http.route("/caldav/", type="http", auth="public", csrf=False, strict_slashes=False)
-    def caldav_dispatch(self):
+    # ── Home sets ────────────────────────────────────────────────────────
+
+    def _home_set(self, dav_type):
+        """PROPFIND/GET on /caldav/ or /carddav/."""
         method = request.httprequest.method
-        _logger.info("[CalDAV] dispatch: method=%s", method)
+        if method == 'OPTIONS':
+            return _options_response()
+        auth = _basic_auth()
+        if auth:
+            return auth
 
-        if method == "OPTIONS":
-            _logger.info("[CalDAV] OPTIONS (no auth required)")
+        user = urls.user_for_request()
+        depth = request.httprequest.headers.get('Depth', '0')
+        body = _request_body()
+
+        if method == 'PROPFIND':
+            props = xmlutil.requested_props(body)
+            root_href = xmlutil.escape(urls.root_url(dav_type) + '/')
+            responses = [
+                xmlutil.response(root_href, _home_props(dav_type))
+            ]
+            if depth in ('1', 'infinity'):
+                for collection in urls.collections_for(dav_type, user):
+                    responses.append(xmlutil.response(
+                        xmlutil.escape(urls.collection_url(collection)),
+                        _collection_props(collection)))
+            return _xml_response(xmlutil.multistatus(responses))
+
+        if method in ('GET', 'HEAD'):
+            # Some clients GET the home set to check it exists. Answer with
+            # a multistatus listing the collections rather than HTML.
+            responses = [
+                xmlutil.response(
+                    xmlutil.escape(urls.root_url(dav_type) + '/'),
+                    _home_props(dav_type))
+            ]
+            for collection in urls.collections_for(dav_type, user):
+                responses.append(xmlutil.response(
+                    xmlutil.escape(urls.collection_url(collection)),
+                    _collection_props(collection)))
+            return _xml_response(xmlutil.multistatus(responses))
+
+        return _options_response()
+
+    @http.route(
+        ['/caldav', '/caldav/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'REPORT'],
+        strict_slashes=False,
+    )
+    def caldav_home(self):
+        return self._home_set('calendar')
+
+    @http.route(
+        ['/carddav', '/carddav/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'REPORT'],
+        strict_slashes=False,
+    )
+    def carddav_home(self):
+        return self._home_set('addressbook')
+
+    # ── Collection and record level ──────────────────────────────────────
+
+    @http.route(
+        ['/caldav/<string:slug>', '/caldav/<string:slug>/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'REPORT'],
+        strict_slashes=False,
+    )
+    def caldav_collection(self, slug):
+        return self._collection_dispatch('calendar', slug)
+
+    @http.route(
+        ['/carddav/<string:slug>', '/carddav/<string:slug>/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'REPORT'],
+        strict_slashes=False,
+    )
+    def carddav_collection(self, slug):
+        return self._collection_dispatch('addressbook', slug)
+
+    def _collection_dispatch(self, dav_type, slug):
+        method = request.httprequest.method
+        if method == 'OPTIONS':
+            return _options_response()
+        auth = _basic_auth()
+        if auth:
+            return auth
+
+        collection = urls.find_collection(dav_type, slug)
+        if not collection:
+            _logger.info('[DAV] collection not found: %s/%s', dav_type, slug)
+            return _not_found()
+
+        user = urls.user_for_request()
+        # Personal collections are invisible to anyone else.
+        if collection.user_id and collection.user_id != user:
+            _logger.info('[DAV] collection %s belongs to another user', slug)
+            return _not_found()
+        bound = urls.bind_user(collection, user)
+
+        if method == 'PROPFIND':
+            return self._propfind_collection(bound, user)
+        if method == 'REPORT':
+            return self._report_collection(bound, user)
+        if method in ('GET', 'HEAD'):
+            return self._get_collection(bound, user)
+        return _options_response()
+
+    def _propfind_collection(self, collection, user):
+        depth = request.httprequest.headers.get('Depth', '0')
+        body = _request_body()
+        responses = [
+            xmlutil.response(
+                xmlutil.escape(urls.collection_url(collection)),
+                _collection_props(collection))
+        ]
+        if depth in ('1', 'infinity'):
+            records = collection.search_records()
+            _logger.info('[DAV] PROPFIND %s depth=%s -> %d records',
+                         collection.slug, depth, len(records))
+            for record in records:
+                responses.append(xmlutil.response(
+                    xmlutil.escape(urls.record_url(collection, record)),
+                    _record_props(collection, record)))
+        return _xml_response(xmlutil.multistatus(responses))
+
+    def _get_collection(self, collection, user):
+        """GET on a collection returns the whole set as one .ics/.vcf."""
+        records = collection.search_records()
+        if collection.dav_type == 'calendar':
+            parts = []
+            for record in records:
+                body = _record_body(collection, record)
+                if not body:
+                    continue
+                # Strip the VCALENDAR wrapper: one wrapper for the whole set.
+                inner = body.split('BEGIN:VEVENT', 1)
+                if len(inner) == 2:
+                    parts.append('BEGIN:VEVENT' + inner[1].split(
+                        'END:VCALENDAR', 1)[0])
+            payload = (
+                'BEGIN:VCALENDAR\r\nVERSION:2.0\r\n'
+                'PRODID:-//Vertel//Odoo CalDAV//EN\r\n'
+                + ''.join(parts) + 'END:VCALENDAR\r\n'
+            )
+            content_type = 'text/calendar; charset=utf-8'
+        else:
+            payload = ''.join(
+                _record_body(collection, record) or ''
+                for record in records)
+            content_type = 'text/vcard; charset=utf-8'
+        return request.make_response(
+            payload, headers=[('Content-Type', content_type)])
+
+    def _report_collection(self, collection, user):
+        body = _request_body()
+        report = xmlutil.body_root_name(body)
+        _logger.info('[DAV] REPORT %s root=%s', collection.slug, report)
+
+        if not report:
+            return _bad_request()
+
+        if report in ('calendar-multiget', 'addressbook-multiget'):
+            return self._report_multiget(collection, body)
+        if report == 'sync-collection':
+            return self._report_sync(collection, body)
+        if report in ('calendar-query', 'addressbook-query'):
+            return self._report_query(collection, body)
+        if report == 'principal-property-search':
+            return _xml_response(xmlutil.multistatus([]))
+
+        _logger.info('[DAV] unsupported report: %s', report)
+        return _xml_response(xmlutil.multistatus([]), status=403)
+
+    def _report_multiget(self, collection, body):
+        hrefs = xmlutil.hrefs_from_body(body)
+        responses = []
+        for href in hrefs:
+            _dav_type, _slug, uid = urls.split_path(href)
+            if not uid:
+                responses.append(xmlutil.response(
+                    xmlutil.escape(href), status='HTTP/1.1 404 Not Found'))
+                continue
+            record = collection.get_record(uid)
+            if not record:
+                responses.append(xmlutil.response(
+                    xmlutil.escape(href), status='HTTP/1.1 404 Not Found'))
+                continue
+            payload = _record_body(collection, record)
+            if payload is None:
+                responses.append(xmlutil.response(
+                    xmlutil.escape(href),
+                    status='HTTP/1.1 500 Internal Server Error'))
+                continue
+            responses.append(xmlutil.response(
+                xmlutil.escape(urls.record_url(collection, record)),
+                _record_props(collection, record)
+                + '<cal:calendar-data>%s</cal:calendar-data>'
+                % xmlutil.escape(payload)))
+        return _xml_response(xmlutil.multistatus(responses))
+
+    def _report_sync(self, collection, body):
+        old_token = xmlutil.sync_token_from_body(body)
+        records = collection.search_records()
+        changed, deleted = collection.sync_changes(old_token, records)
+        _logger.info('[DAV] sync-collection %s token=%r -> %d changed',
+                     collection.slug, old_token, len(changed))
+        responses = []
+        for record in changed:
+            payload = _record_body(collection, record)
+            if payload is None:
+                continue
+            responses.append(xmlutil.response(
+                xmlutil.escape(urls.record_url(collection, record)),
+                _record_props(collection, record)
+                + '<cal:calendar-data>%s</cal:calendar-data>'
+                % xmlutil.escape(payload)))
+        for uid in deleted:
+            responses.append(xmlutil.response(
+                xmlutil.escape('%s%s' % (
+                    urls.collection_url(collection), uid)),
+                status='HTTP/1.1 404 Not Found'))
+        # The token goes last, after the responses, as RFC 6578 requires.
+        document = xmlutil.multistatus(responses).replace(
+            '</d:multistatus>',
+            '<d:sync-token>%s</d:sync-token></d:multistatus>'
+            % xmlutil.escape(collection.sync_token(records)))
+        return _xml_response(document)
+
+    def _report_query(self, collection, body):
+        time_range = xmlutil.time_range_from_body(body)
+        records = collection.search_records()
+        if time_range:
+            records = self._filter_time_range(records, time_range)
+        if collection.dav_type == 'addressbook':
+            records = self._filter_addressbook(records, body)
+        _logger.info('[DAV] %s query %s -> %d records',
+                     collection.dav_type,
+                     'time-range' if time_range else 'all', len(records))
+        responses = []
+        for record in records:
+            payload = _record_body(collection, record)
+            if payload is None:
+                continue
+            responses.append(xmlutil.response(
+                xmlutil.escape(urls.record_url(collection, record)),
+                _record_props(collection, record)
+                + '<cal:calendar-data>%s</cal:calendar-data>'
+                % xmlutil.escape(payload)))
+        return _xml_response(xmlutil.multistatus(responses))
+
+    def _filter_addressbook(self, records, body):
+        """Apply the text-match filters of an addressbook-query.
+
+        Matched against the same fields the vCard export uses, so a search
+        for "anders" finds the contact whose FN contains it.
+        """
+        filters = xmlutil.addressbook_prop_filters(body)
+        if not filters:
+            return records
+
+        def matches(record):
+            name = (record.name or '').lower()
+            email = ''
+            if 'email' in record._fields and record.email:
+                email = record.email.lower()
+            for prop, value, match_type in filters:
+                needle = value.lower()
+                if prop in ('FN', 'N', 'NICKNAME'):
+                    haystack = name
+                elif prop == 'EMAIL':
+                    haystack = email
+                elif prop == 'ORG':
+                    haystack = (record.parent_id.name or '').lower() \
+                        if 'parent_id' in record._fields and record.parent_id \
+                        else ''
+                else:
+                    # Unknown property: do not filter it out, the client may
+                    # be asking for something we do not map.
+                    continue
+                found = (haystack == needle if match_type == 'equals'
+                         else needle in haystack)
+                if not found:
+                    return False
+            return True
+
+        return records.filtered(matches)
+
+    def _filter_time_range(self, records, time_range):
+        """Keep records overlapping the requested window.
+
+        Odoo already stores one row per occurrence of a recurring event, so
+        a plain overlap test on start/stop is correct — no RRULE expansion
+        is needed here.
+        """
+        from datetime import datetime
+
+        def parse(value):
+            if not value:
+                return None
+            try:
+                return datetime.strptime(value, '%Y%m%dT%H%M%SZ')
+            except ValueError:
+                try:
+                    return datetime.strptime(value, '%Y%m%d')
+                except ValueError:
+                    return None
+
+        start = parse(time_range.get('start'))
+        end = parse(time_range.get('end'))
+        if not start and not end:
+            return records
+
+        def overlaps(record):
+            rec_start = record.start
+            rec_stop = record.stop or rec_start
+            if rec_start is None:
+                return False
+            if end and rec_start >= end:
+                return False
+            if start and rec_stop and rec_stop <= start:
+                return False
+            return True
+
+        return records.filtered(overlaps)
+
+    # ── Single record: GET / PUT / DELETE ────────────────────────────────
+
+    @http.route(
+        ['/caldav/<string:slug>/<string:filename>',
+         '/carddav/<string:slug>/<string:filename>'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'PROPFIND'],
+        strict_slashes=False,
+    )
+    def dav_record(self, slug, filename):
+        method = request.httprequest.method
+        if method == 'OPTIONS':
             return _options_response()
 
-        if method == "HEAD":
-            auth_result = _basic_auth()
-            if auth_result:
-                return auth_result
-            return request.make_response("", headers=[("Content-Type", "text/html; charset=utf-8")])
+        dav_type, _slug, uid = urls.split_path(request.httprequest.path)
+        if not dav_type or not uid:
+            return _not_found()
 
-        if method == "GET":
-            auth_result = _basic_auth()
-            if auth_result:
-                return auth_result
-            cal_name = request.env.user.partner_id.name
-            base_url = request.httprequest.url_root.rstrip("/")
-            events = request.env["calendar.event"].search([])
-            ical = odoo_events_to_icalendar(events, cal_name=cal_name, base_url=base_url)
-            return request.make_response(
-                ical.to_ical(),
-                headers=[("Content-Type", "text/calendar")],
-            )
+        auth = _basic_auth()
+        if auth:
+            return auth
 
-        if method == "PROPFIND":
-            auth_result = _basic_auth()
-            if auth_result:
-                return auth_result
-            depth = request.httprequest.headers.get("Depth", "0")
-            body = request.httprequest.data
-            if body:
-                _logger.info("[CalDAV] PROPFIND body (first 500): %s", body.decode("utf-8", errors="replace")[:500])
-            _logger.info("[CalDAV] PROPFIND depth=%s", depth)
-            cal_name = request.env.user.partner_id.name
-            events = request.env["calendar.event"].search([]) if depth in ("1", "infinity") else []
-            base_url = request.httprequest.url_root.rstrip("/")
-            xml = _propfind_caldav(base_url, events, cal_name)
-            _logger.info("[CalDAV] PROPFIND depth=%s -> %d events", depth, len(events))
-            return request.make_response(xml, headers=[("Content-Type", "application/xml; charset=utf-8")])
+        collection = urls.find_collection(dav_type, slug)
+        if not collection:
+            return _not_found()
+        user = urls.user_for_request()
+        if collection.user_id and collection.user_id != user:
+            return _not_found()
+        bound = urls.bind_user(collection, user)
 
-        if method == "REPORT":
-            auth_result = _basic_auth()
-            if auth_result:
-                return auth_result
-            base_url = request.httprequest.url_root.rstrip("/")
-            body = request.httprequest.data or b""
-            _logger.info("[CalDAV] REPORT body (first 500): %s", body.decode("utf-8", errors="replace")[:500])
+        if method == 'PROPFIND':
+            record = bound.get_record(uid)
+            if not record:
+                return _not_found()
+            return _xml_response(xmlutil.multistatus([
+                xmlutil.response(
+                    xmlutil.escape(urls.record_url(bound, record)),
+                    _record_props(bound, record))
+            ]))
 
-            if b"calendar-multiget" in body:
-                import re
-                hrefs = re.findall(rb'<d:href>([^<]+)</d:href>', body)
-                parts = [
-                    '<?xml version="1.0" encoding="utf-8"?>',
-                    '<d:multistatus xmlns:d="DAV:" xmlns:cal="urn:ietf:params:xml:ns:caldav">',
-                ]
-                for href_bytes in hrefs:
-                    href = href_bytes.decode("utf-8")
-                    m = re.search(r'/caldav/events/(\d+)\.ics', href)
-                    if not m:
-                        parts.append(f'<d:response><d:href>{escape(href)}</d:href><d:status>HTTP/1.1 404 Not Found</d:status></d:response>')
-                        continue
-                    event = request.env["calendar.event"].browse(int(m.group(1))).exists()
-                    if not event:
-                        parts.append(f'<d:response><d:href>{escape(href)}</d:href><d:status>HTTP/1.1 404 Not Found</d:status></d:response>')
-                        continue
-                    ical = odoo_event_to_icalendar(event, base_url=base_url)
-                    etag = str(event.dav_last_modified) if event.dav_last_modified else ""
-                    parts.append('<d:response>')
-                    parts.append(f'<d:href>{escape(href)}</d:href>')
-                    parts.append('<d:propstat>')
-                    parts.append('<d:prop>')
-                    parts.append(f'<d:getetag>"{escape(etag)}"</d:getetag>')
-                    parts.append(f'<cal:calendar-data>{escape(ical.to_ical().decode("utf-8"))}</cal:calendar-data>')
-                    parts.append('</d:prop>')
-                    parts.append('<d:status>HTTP/1.1 200 OK</d:status>')
-                    parts.append('</d:propstat>')
-                    parts.append('</d:response>')
-                parts.append('</d:multistatus>')
+        if method in ('GET', 'HEAD'):
+            record = bound.get_record(uid)
+            if not record:
+                _logger.info('[DAV] GET %s/%s: not found', slug, uid)
+                return _not_found()
+            payload = _record_body(bound, record)
+            if payload is None:
                 return request.make_response(
-                    "\n".join(parts),
-                    headers=[("Content-Type", "application/xml; charset=utf-8")],
-                )
-
-            _logger.info("[CalDAV] REPORT (sync): returning all events")
-            events = request.env["calendar.event"].search([])
-            parts = [
-                '<?xml version="1.0" encoding="utf-8"?>',
-                '<d:multistatus xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">',
+                    'Could not serialise record', status=500)
+            headers = [
+                ('Content-Type',
+                 'text/calendar; charset=utf-8'
+                 if dav_type == 'calendar'
+                 else 'text/vcard; charset=utf-8'),
+                ('ETag', bound.record_etag(record)),
             ]
-            for event in events:
-                href = _event_href(base_url, event)
-                etag = str(event.dav_last_modified) if event.dav_last_modified else ""
-                parts.append('<d:response>')
-                parts.append(f'<d:href>{href}</d:href>')
-                parts.append('<d:propstat>')
-                parts.append('<d:prop>')
-                parts.append(f'<d:getetag>"{escape(etag)}"</d:getetag>')
-                parts.append('</d:prop>')
-                parts.append('<d:status>HTTP/1.1 200 OK</d:status>')
-                parts.append('</d:propstat>')
-                parts.append('</d:response>')
-            parts.append('</d:multistatus>')
-            return request.make_response(
-                "\n".join(parts),
-                headers=[("Content-Type", "application/xml; charset=utf-8")],
-            )
+            return request.make_response(payload, headers=headers)
 
-        if method == "PUT":
-            auth_result = _basic_auth()
-            if auth_result:
-                return auth_result
-            body = request.httprequest.data or b""
-            _logger.info("[CalDAV] PUT on /caldav/ - body (%d bytes): %s", len(body), body.decode("utf-8", errors="replace"))
-            try:
-                from icalendar import Calendar as ICal
-                cal = ICal.from_ical(body)
-                last_etag = ""
-                for component in cal.walk():
-                    if component.name != "VEVENT":
-                        continue
-                    event_uid = str(component.get("uid", ""))
-                    event_name = str(component.get("summary", ""))
-                    start = component.get("dtstart")
-                    start_dt = start.dt if start else None
-                    if not event_uid and not event_name:
-                        continue
-                    event = request.env["calendar.event"].browse()
-                    if event_uid:
-                        matches = event.search([("uuid", "=", event_uid)])
-                        if len(matches) == 1:
-                            event = matches
-                        elif len(matches) > 1 and event_name:
-                            narrow = matches.filtered(lambda e: e.name == event_name)
-                            if len(narrow) == 1:
-                                event = narrow
-                            elif len(narrow) > 1 and start_dt:
-                                narrow = narrow.filtered(lambda e: e.start == start_dt)
-                                if narrow:
-                                    event = narrow[:1]
-                    if not event and event_name:
-                        event = event.search([("name", "=", event_name)], limit=1)
-                    if not event and event_uid:
-                        try:
-                            from uuid import UUID as UuidLib
-                            event = request.env["calendar.event"].browse(UuidLib(event_uid).int).exists()
-                        except Exception:
-                            pass
-                    ical_str = ICal()
-                    ical_str.add("prodid", "-//Odoo Calendar//EN")
-                    ical_str.add("version", "2.0")
-                    ical_str.add_component(component)
-                    ical_str = ical_str.to_ical().decode("utf-8")
-                    if not event:
-                        _logger.info("[CalDAV] PUT on /caldav/ -> creating new event (uid=%s, name=%s)", event_uid, event_name)
-                        event = icalendar_to_odoo_event(ical_str)
-                    else:
-                        event = icalendar_to_odoo_event(ical_str, event)
-                    last_modified = event.dav_last_modified
-                    last_etag = str(last_modified) if last_modified else ""
-                    _logger.info("[CalDAV] PUT on /caldav/ -> processed event id=%s (uid=%s)", event.id, event_uid)
-                return request.make_response(
-                    "",
-                    headers=[("ETag", f'"{last_etag}"')],
-                )
-            except Exception as e:
-                _logger.info("[CalDAV] PUT on /caldav/ -> error: %s", e)
-                import traceback
-                _logger.info(traceback.format_exc())
-            return request.make_response("Calendar update not supported via this URL", status=405)
+        if method == 'PUT':
+            return self._put_record(bound, uid)
 
-        _logger.info("[CalDAV] unsupported method=%s", method)
-        return request.not_found()
+        if method == 'DELETE':
+            record = bound.get_record(uid)
+            if not record:
+                return _not_found()
+            _logger.info('[DAV] DELETE %s/%s (id=%s)', slug, uid, record.id)
+            record.sudo().unlink()
+            return request.make_response('', status=204)
+
+        return _options_response()
+
+    def _put_record(self, collection, uid):
+        """Create or replace one record from an .ics/.vcf body."""
+        body = _request_body()
+        if not body:
+            return _bad_request('Empty body')
+        _logger.info('[DAV] PUT %s/%s (%d bytes)',
+                     collection.slug, uid, len(body))
+
+        existing = collection.get_record(uid)
+        try:
+            values = collection.from_vobject(
+                body.decode('utf-8', errors='replace'))
+        except Exception as exc:
+            _logger.warning('[DAV] PUT could not parse body: %s', exc)
+            return _bad_request('Could not parse body: %s' % exc)
+
+        if not values:
+            return _bad_request('Body contained no usable component')
+
+        model = collection._model()
+        if existing:
+            # Never let a client move a record out of its own collection:
+            # the domain decided it was visible, so the write is allowed,
+            # but the owner is not negotiable.
+            existing.sudo().write(values)
+            record = existing
+            status = 204
+        else:
+            record = model.sudo().create(values)
+            status = 201
+
+        return request.make_response(
+            '',
+            headers=[('ETag', collection.record_etag(record))],
+            status=status,
+        )
