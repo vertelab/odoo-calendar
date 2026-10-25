@@ -1,20 +1,23 @@
 {
     "name": "Calendar CalDAV",
     "summary": "CalDAV support for Odoo Calendar",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.6.5",
     "category": "Calendar",
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se/apps/odoo-calendar/calendar_caldav",
     "license": "AGPL-3",
-    "depends": ["calendar"],
+    # base_dav (the Radicale track) was dropped 2026-10-25: it is retired and
+    # this module no longer reads dav.collection. personal_contact_carddav
+    # stays — res.ppartner is the personal address book, and the model lives
+    # there. That module is installable=False too, but it is already
+    # installed, so the dependency resolves.
+    "depends": ["calendar", "personal_contact_carddav"],
     "data": [
         "security/ir.model.access.csv",
-    ],
-    "test": [
-        "tests/test_caldav.py",
+        "data/caldav_collection_data.xml",
     ],
     "external_dependencies": {
-        "python": ["icalendar"],
+        "python": ["icalendar", "vobject"],
     },
     "post_init_hook": "post_init_hook",
     "installable": True,

@@ -31,7 +31,16 @@
     #   /.well-known/carddav  -> 301 -> /.dav           (base_dav)
     #   PROPFIND /.dav/       -> 207                    (base_dav/Radicale)
     #
-    "installable": True,
+        # Retired 2026-10-25: the Radicale-based DAV track is superseded by
+    # calendar_caldav, which is the single CalDAV+CardDAV server for
+    # ledningssystem. Both tracks registered /.well-known/caldav, and
+    # whichever answered first won — the Radicale track answered and
+    # returned an empty 207 for every client (DAVx5, Thunderbird,
+    # Evolution). The routes are unregistered in the code, not here:
+    # installable=False also stops Odoo from loading the module's
+    # models, which broke res.ppartner and caldav.collection.
+    'installable': True,
+    # code stays available for reference and data migration.
     "auto_install": False,
     "post_init_hook": "post_init_hook",
     "depends": [
