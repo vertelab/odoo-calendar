@@ -6,6 +6,62 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+# Where the captured body is stashed in the WSGI environ.
+BODY_ENVIRON_KEY = 'calendar_caldav.body'
+
+
+def _make_environ_with_body_capture(original):
+    """Wrap ``RequestHandler.make_environ`` to keep a copy of the body.
+
+    This is the earliest point where the body still exists: werkzeug's
+    ``make_environ`` puts the raw socket stream in ``wsgi.input`` and
+    Odoo's dispatcher later drains it while parsing a form-encoded body.
+    Reading here and handing the dispatcher a fresh stream over the same
+    bytes is the only way a controller can still see an XML body that
+    arrived with a form content type.
+    """
+
+    def make_environ(handler):
+        environ = original(handler)
+        stream = environ.get('wsgi.input')
+        length = environ.get('CONTENT_LENGTH')
+        if stream is None or not length:
+            return environ
+        try:
+            length = int(length)
+        except (TypeError, ValueError):
+            return environ
+        if length <= 0:
+            return environ
+        try:
+            body = stream.read(length)
+        except Exception:  # noqa: BLE001 - a broken stream is the client's
+            return environ
+        environ[BODY_ENVIRON_KEY] = body
+        import io
+        environ['wsgi.input'] = io.BytesIO(body)
+        return environ
+
+    return make_environ
+
+
+def install_body_capture():
+    """Install the body capture. Safe to call more than once.
+
+    The patch goes on werkzeug's ``WSGIRequestHandler`` rather than on
+    Odoo's subclass: the server binds its handler class when the HTTP
+    thread is spawned, which happens after module import, so patching the
+    subclass here would be too late to take effect.
+    """
+    from werkzeug.serving import WSGIRequestHandler
+
+    if getattr(WSGIRequestHandler, '_caldav_body_capture', False):
+        return
+    WSGIRequestHandler.make_environ = _make_environ_with_body_capture(
+        WSGIRequestHandler.make_environ)
+    WSGIRequestHandler._caldav_body_capture = True
+    _logger.info('calendar_caldav: WSGI body capture installed')
+
 
 def post_init_hook(env):
     """Backfill event UUIDs and import collections from the Radicale track.
@@ -16,6 +72,7 @@ def post_init_hook(env):
     _backfill_event_uuids(env)
     _backfill_partner_uuids(env)
     _link_uuid_fields(env)
+    install_body_capture()
 
 
 def _backfill_event_uuids(env):

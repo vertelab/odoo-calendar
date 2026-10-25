@@ -757,3 +757,147 @@ END:VCALENDAR"""
         self.assertIsNotNone(result['recurrence_id'])
         self.assertEqual(result['recurrence_id'].hour, 9)
         self.assertNotIn('_recurrence_id', result['event'])
+
+
+class TestBrokenPhotoDoesNotKillTheResponse(common.TransactionCase):
+    """One unreadable image must not cost the client every contact.
+
+    ``res.partner.image_1920`` is a binary field backed by the filestore.
+    When the blob is gone, reading the field raises, and that exception used
+    to escape ``_to_vcard()`` and abort the whole ``addressbook-query``
+    multistatus — DAVx5 received a truncated 4 303-contact response and
+    discarded the entire sync (ledningssystem 2026-10-25: attachment 21470
+    pointed at filestore b5/b51549b0..., which does not exist).
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.collection = self.env['caldav.collection'].search(
+            [('dav_type', '=', 'addressbook')], limit=1)
+        if not self.collection:
+            self.skipTest('no addressbook collection configured')
+
+    def test_unreadable_image_serialises_without_photo(self):
+        partner = self.env['res.partner'].create({'name': 'Dead Photo Test'})
+        original = type(partner).image_1920
+
+        # Simulate the missing blob: the field raises on read.
+        def boom(self):
+            raise FileNotFoundError('filestore blob is gone')
+
+        type(partner).image_1920 = property(boom)
+        try:
+            card = self.collection._to_vcard(partner)
+        finally:
+            type(partner).image_1920 = original
+
+        self.assertIsNotNone(card)
+        payload = card.serialize()
+        self.assertIn('BEGIN:VCARD', payload)
+        self.assertIn('Dead Photo Test', payload)
+        self.assertNotIn('PHOTO', payload)
+
+
+class TestSyncChanges(common.TransactionCase):
+    """sync-collection must notice writes *and* deletes.
+
+    The previous token was derived from the newest write_date and compared
+    as a string, so a client that polled once saw "0 changes" until a
+    record happened to be written later. DAVx5 reported an empty address
+    book because of it.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.Partner = cls.env['res.partner']
+        cls.collection = cls.env['caldav.collection'].create({
+            'name': 'Sync Test',
+            'slug': 'sync-test',
+            'dav_type': 'addressbook',
+            'model_id': cls.env['ir.model']._get_id('res.partner'),
+            'domain': "[]",
+        })
+        cls.partner = cls.Partner.create({'name': 'Sync One'})
+
+    def test_first_sync_returns_everything(self):
+        changed, deleted = self.collection.sync_changes('')
+        self.assertIn(self.partner, changed)
+        self.assertEqual(deleted, [])
+
+    def test_polling_without_changes_returns_nothing(self):
+        """A poll with the current token must be cheap and empty.
+
+        This is the case that used to be wrong in the other direction: the
+        old string comparison found nothing ever again after the first
+        sync, so the client never learned about later writes either.
+        """
+        token = self.collection.sync_token()
+        changed, deleted = self.collection.sync_changes(token)
+        self.assertFalse(changed)
+        self.assertEqual(deleted, [])
+
+    def test_a_write_moves_the_token_and_reports_the_record(self):
+        token = self.collection.sync_token()
+        other = self.Partner.create({'name': 'Sync Two'})
+        self.collection.bump_sync_rev(uids=[self.collection.record_uid(other)])
+        changed, deleted = self.collection.sync_changes(token)
+        self.assertIn(other, changed)
+        self.assertNotIn(self.partner, changed)
+
+    def test_a_delete_is_reported(self):
+        """Without this a client keeps showing a contact that is gone."""
+        token = self.collection.sync_token()
+        uid = self.collection.record_uid(self.partner)
+        self.collection.bump_sync_rev(removed=[uid])
+        changed, deleted = self.collection.sync_changes(token)
+        self.assertEqual(deleted, [uid])
+
+    def test_an_unknown_token_falls_back_to_a_full_resync(self):
+        changed, deleted = self.collection.sync_changes('not-a-token')
+        self.assertIn(self.partner, changed)
+        self.assertEqual(deleted, [])
+
+    def test_the_token_changes_when_the_revision_moves(self):
+        before = self.collection.sync_token()
+        self.collection.bump_sync_rev(
+            uids=[self.collection.record_uid(self.partner)])
+        self.assertNotEqual(before, self.collection.sync_token())
+
+
+class TestRequestBodyWithoutContentType(common.TransactionCase):
+    """A DAV body must be readable whatever Content-Type the client sent.
+
+    curl defaults to application/x-www-form-urlencoded and DAVx5 sometimes
+    sends no type at all. Odoo's dispatcher parses a form body before the
+    controller runs, which drained the stream and made every REPORT answer
+    400 Malformed request body.
+    """
+
+    def test_the_body_is_captured_at_the_wsgi_layer(self):
+        from ..hooks import BODY_ENVIRON_KEY, _make_environ_with_body_capture
+        import io
+
+        payload = b'<?xml version="1.0"?><d:propfind xmlns:d="DAV:"/>'
+
+        def original(handler):
+            return {
+                'wsgi.input': io.BytesIO(payload),
+                'CONTENT_LENGTH': str(len(payload)),
+                'CONTENT_TYPE': 'application/x-www-form-urlencoded',
+            }
+
+        environ = _make_environ_with_body_capture(original)(None)
+        self.assertEqual(environ[BODY_ENVIRON_KEY], payload)
+        # The dispatcher must still be able to read the same bytes.
+        self.assertEqual(environ['wsgi.input'].read(), payload)
+
+    def test_a_request_without_a_body_is_left_alone(self):
+        from ..hooks import BODY_ENVIRON_KEY, _make_environ_with_body_capture
+        import io
+
+        def original(handler):
+            return {'wsgi.input': io.BytesIO(b''), 'CONTENT_LENGTH': '0'}
+
+        environ = _make_environ_with_body_capture(original)(None)
+        self.assertNotIn(BODY_ENVIRON_KEY, environ)

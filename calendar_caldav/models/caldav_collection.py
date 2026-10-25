@@ -117,6 +117,26 @@ class CaldavCollection(models.Model):
         help='Leave empty for a collection shared by all users. Set it for '
              'a personal collection (e.g. "Personal Contacts").',
     )
+    # ── Sync state (RFC 6578) ────────────────────────────────────────────
+    # A token derived from the newest write_date cannot express deletions,
+    # and comparing write_date strings only finds records written *after*
+    # the token — so a client that polled once saw "0 changes" forever.
+    # A counter that moves on every write is the only state that survives
+    # both edits and deletions. It is bumped by the record models, not here.
+    sync_rev = fields.Integer(
+        default=0,
+        readonly=True,
+        copy=False,
+        help='Monotonic revision of this collection. Bumped on every write '
+             'and delete so sync-collection can tell what changed.',
+    )
+    sync_rev_log = fields.Char(
+        readonly=True,
+        copy=False,
+        help='JSON map of record UID -> sync_rev at the time of its last '
+             'change. Lets a client holding an older token learn exactly '
+             'which records moved, including deletions.',
+    )
     # ── Client-owned display properties (WebDAV PROPPATCH) ───────────────
     # Thunderbird and Evolution set these on the collection right after
     # discovery. Before PROPPATCH existed they got 405 and logged an error
@@ -444,60 +464,93 @@ class CaldavCollection(models.Model):
         self.write(columns)
 
     def sync_token(self, records=None):
-        """A token that changes whenever the collection's content changes.
+        """An opaque token for the collection's current state.
 
-        RFC 6578 wants an opaque token; clients only compare it. Deriving it
-        from the newest revision in the collection (plus the record count)
-        means a token can be recomputed at any time without storing state,
-        and a deleted record still moves the token because the count drops.
-
-        Without a working token clients fall back to downloading everything
-        on every poll — which is what the Radicale track did, and why
-        DAVx5 hammered the endpoint every 30 minutes.
+        RFC 6578 wants the token opaque; clients only compare it. It is
+        built from the collection's own monotonic counter, so it changes on
+        every write *and* every delete — the two things a client must be
+        able to notice.
         """
         self.ensure_one()
-        if records is None:
-            records = self.search_records()
-        newest = ''
-        for record in records:
-            rev = self.record_rev(record)
-            if rev > newest:
-                newest = rev
-        return 'http://vertel.se/ns/sync/%s/%s-%s' % (
-            self.slug or self.id, len(records), newest or 'empty')
+        return 'http://vertel.se/ns/sync/%s/%s' % (
+            self.slug or self.id, self.sync_rev or 0)
+
+    def bump_sync_rev(self, uids=(), removed=()):
+        """Advance the collection revision and record which UIDs moved.
+
+        Called by the record models on write/unlink. ``uids`` are records
+        that changed, ``removed`` are UIDs that no longer exist. Both are
+        recorded in ``sync_rev_log`` so a client holding an older token can
+        be told precisely what happened instead of being sent everything.
+        """
+        self.ensure_one()
+        import json
+        log = {}
+        if self.sync_rev_log:
+            try:
+                log = json.loads(self.sync_rev_log)
+            except (ValueError, TypeError):
+                log = {}
+        new_rev = (self.sync_rev or 0) + 1
+        for uid in uids:
+            if uid:
+                log[str(uid)] = new_rev
+        for uid in removed:
+            if uid:
+                # -1 marks "gone"; the client deletes it and we can forget it
+                # once no client can still hold that token.
+                log[str(uid)] = -1
+        # Keep the log bounded: a collection with tens of thousands of
+        # records would otherwise grow without limit. Dropping the oldest
+        # entries only costs a client an occasional full resync.
+        if len(log) > 20000:
+            keep = sorted(
+                log.items(), key=lambda kv: kv[1], reverse=True)[:15000]
+            log = dict(keep)
+        self.write({
+            'sync_rev': new_rev,
+            'sync_rev_log': json.dumps(log),
+        })
+        return new_rev
 
     def sync_changes(self, old_token, records=None):
         """Records changed since ``old_token``.
 
         Returns ``(changed, deleted_uids)``. A token this server did not
-        issue (or one from before a purge) is answered with the full set and
-        ``deleted_uids`` empty: RFC 6578 allows the server to fall back to a
-        full resync, and it is the only safe answer when history is gone.
+        issue (or one from before the log was trimmed) is answered with the
+        full set and no deletions: RFC 6578 allows a full resync, and it is
+        the only safe answer when history is gone.
         """
         self.ensure_one()
+        import json
         if records is None:
             records = self.search_records()
-        current = self.sync_token(records)
-        if not old_token or old_token == current:
-            return ([] if old_token else records, [])
-
-        # Token format: .../<slug>/<count>-<newest_rev>
+        if not old_token:
+            return records, []
         try:
             tail = old_token.rsplit('/', 1)[1]
-            _count, _, old_newest = tail.partition('-')
+            old_rev = int(tail)
         except (IndexError, ValueError):
             return records, []
-
-        changed = records.filtered(
-            lambda r: self.record_rev(r) > old_newest)
-        # Deletions cannot be reconstructed from a stateless token: the
-        # client is told to drop anything it holds that is no longer in the
-        # changed set only when the count shrank. A shrinking count is the
-        # only signal available, so report every current UID as changed and
-        # let the client prune — this is what "full resync" means.
-        if int(_count or 0) > len(records):
+        if old_rev >= (self.sync_rev or 0):
+            return [], []
+        try:
+            log = json.loads(self.sync_rev_log or '{}')
+        except (ValueError, TypeError):
             return records, []
-        return changed, []
+        if not log:
+            # No history at all: we cannot say what changed, so say everything.
+            return records, []
+        changed_uids = set()
+        deleted = []
+        for uid, rev in log.items():
+            if rev == -1:
+                deleted.append(uid)
+            elif rev > old_rev:
+                changed_uids.add(uid)
+        changed = records.filtered(
+            lambda r: self.record_uid(r) in changed_uids)
+        return changed, deleted
 
     # ── vobject conversion ───────────────────────────────────────────────
 
@@ -706,10 +759,26 @@ class CaldavCollection(models.Model):
         # — so the value goes in as plain base64 and vobject emits the
         # vCard 4.0 style line. Clients that only speak 3.0 simply ignore an
         # unparsable PHOTO; they do not reject the card.
+        #
+        # A binary field whose filestore entry is gone raises on read, and
+        # that exception used to escape _to_vcard() and abort the whole
+        # multistatus: one contact with a dangling photo made DAVx5 receive
+        # a truncated 4 303-contact response and discard the entire sync
+        # (ledningssystem 2026-10-25, filestore b5/b51549b0...). A card
+        # without a picture is worth far more than no cards at all, so a
+        # missing blob degrades to "no PHOTO" and is logged.
         image = None
         for field_name in ('image_1920', 'image'):
-            if field_name in record._fields and record[field_name]:
+            if field_name not in record._fields:
+                continue
+            try:
                 image = record[field_name]
+            except Exception as exc:  # noqa: BLE001
+                _logger.warning(
+                    '[DAV] %s %s: %s unreadable (%s), serialising without '
+                    'PHOTO', self.model_name, record.id, field_name, exc)
+                image = None
+            if image:
                 break
         if image:
             if isinstance(image, bytes):

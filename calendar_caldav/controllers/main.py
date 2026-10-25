@@ -5,7 +5,8 @@
 
 URL space (see ``services/urls.py``)::
 
-    /.well-known/{caldav,carddav,webdav}   discovery, both slash forms
+    /.well-known/{caldav,carddav}          discovery, both slash forms
+                                           (webdav belongs to dms_webdav)
     /caldav/                               principal + calendar home set
     /caldav/<slug>/                        one calendar
     /caldav/<slug>/<uid>.ics               one event
@@ -210,26 +211,32 @@ def _not_found():
 def _request_body():
     """The raw request body, whatever the client claimed its type is.
 
-    ``request.httprequest.data`` is empty when the client sends a body
-    without ``Content-Type: application/xml`` — and some clients do. DAV
-    bodies are always XML, so fall back to the raw stream and parse it
-    ourselves. Reading the stream twice is safe: Werkzeug caches it.
+    Odoo's dispatcher calls ``request.httprequest.form`` before the
+    controller runs, and werkzeug's form parser consumes the stream for
+    ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
+    By the time we look, ``.data`` and ``get_data()`` are both empty and
+    the raw stream is at EOF — which made a DAV REPORT sent by curl (whose
+    default content type is form-urlencoded) look like an empty body and
+    produce a 400.
+
+    The body is therefore captured in ``_capture_body`` at the WSGI layer,
+    before Odoo touches it, and stashed in ``environ``. This function only
+    reads that copy, falling back to the normal paths for requests that
+    did not go through the capture.
     """
+    from ..hooks import BODY_ENVIRON_KEY
+    environ = request.httprequest.environ
+    captured = environ.get(BODY_ENVIRON_KEY)
+    if captured:
+        return captured
     httprequest = request.httprequest
-    data = httprequest.data
-    if data:
-        return data
-    # Werkzeug's ``data`` property is empty for a body whose mimetype is
-    # not form-like. ``get_data()`` reads the cached stream, but Odoo's
-    # Request proxy may already have consumed it — so read the cached
-    # value first and only then fall back to the raw environ stream.
     try:
         data = httprequest.get_data(cache=True)
         if data:
             return data
     except Exception:  # noqa: BLE001 - a broken stream is a client error
         pass
-    stream = httprequest.environ.get('wsgi.input')
+    stream = environ.get('wsgi.input')
     if stream is None:
         return b''
     try:
@@ -557,18 +564,12 @@ class CalDAVController(http.Controller):
                      request.httprequest.method)
         return request.redirect('/carddav/', code=307, local=True)
 
-    @http.route(
-        ['/.well-known/webdav', '/.well-known/webdav/'],
-        type='http', auth='public', csrf=False,
-        methods=['GET', 'PROPFIND', 'OPTIONS', 'HEAD'],
-        strict_slashes=False,
-    )
-    def well_known_webdav(self):
-        # No separate WebDAV service: the caldav endpoint answers the
-        # principal PROPFIND and leads the client on from there.
-        _logger.info('[DAV] well-known webdav: %s -> /caldav/',
-                     request.httprequest.method)
-        return request.redirect('/caldav/', code=307, local=True)
+    # NOTE: /.well-known/webdav is deliberately NOT owned here. It belongs
+    # to dms_webdav, which redirects it to /webdav/ for file access. This
+    # module used to claim both spellings and send them to /caldav/, which
+    # made a DMS client's discovery land in the calendar — it got a window
+    # that was not DMS at all. Only the two protocols this module actually
+    # serves are announced.
 
     # ── Home sets ────────────────────────────────────────────────────────
 
@@ -656,6 +657,10 @@ class CalDAVController(http.Controller):
 
     def _collection_dispatch(self, dav_type, slug):
         method = request.httprequest.method
+        # Read the body before anything else touches the request: Odoo
+        # parses a form-encoded body eagerly, and once it has, the raw
+        # stream is gone and a DAV REPORT looks empty.
+        body = _request_body()
         if method == 'OPTIONS':
             return _options_response()
         auth = _basic_auth()
@@ -679,7 +684,7 @@ class CalDAVController(http.Controller):
         if method == 'PROPPATCH':
             return self._proppatch_collection(bound)
         if method == 'REPORT':
-            return self._report_collection(bound, user)
+            return self._report_collection(bound, user, body)
         if method in ('GET', 'HEAD'):
             return self._get_collection(bound, user)
         return _options_response()
@@ -950,8 +955,9 @@ class CalDAVController(http.Controller):
         return request.make_response(
             payload, headers=[('Content-Type', content_type)])
 
-    def _report_collection(self, collection, user):
-        body = _request_body()
+    def _report_collection(self, collection, user, body=None):
+        if body is None:
+            body = _request_body()
         report = xmlutil.body_root_name(body)
         _logger.info('[DAV] REPORT %s root=%s', collection.slug, report)
 
@@ -1258,6 +1264,9 @@ class CalDAVController(http.Controller):
                 return _not_found()
             _logger.info('[DAV] DELETE %s/%s (id=%s)', slug, uid, record.id)
             record.sudo().unlink()
+            # A deletion must move the sync token, otherwise a client that
+            # polled once never learns the record is gone.
+            bound.bump_sync_rev(removed=[uid])
             return request.make_response('', status=204)
 
         if method in ('MOVE', 'COPY'):
@@ -1506,6 +1515,8 @@ class CalDAVController(http.Controller):
         else:
             record = model.sudo().create(values)
             status = 201
+
+        collection.bump_sync_rev(uids=[collection.record_uid(record)])
 
         return request.make_response(
             '',
