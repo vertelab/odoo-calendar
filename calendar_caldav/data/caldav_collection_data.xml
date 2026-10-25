@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!--
+          Collections exposed to CalDAV/CardDAV clients.
+
+          Selection semantics (decided 2026-10-25): the domain mirrors what
+          Odoo's own calendar shows a user by default — events the user is an
+          attendee of, plus events the user owns. Odoo's "Everybody's
+          calendars" toggle is a client-side setting that a CalDAV client
+          cannot read, so it is not exposed; each user gets their own
+          calendar, which is what CalDAV clients expect.
+
+          Privacy is enforced separately in caldav.collection._privacy_domain
+          and cannot be switched off by editing these domains.
+        -->
+
+        <record id="collection_calendar" model="caldav.collection">
+            <field name="name">Calendar</field>
+            <field name="sequence">10</field>
+            <field name="dav_type">calendar</field>
+            <field name="model_id" ref="calendar.model_calendar_event"/>
+            <field name="domain">['|', ('partner_ids', 'in', user.partner_id.id), ('user_id', '=', user.id)]</field>
+            <field name="field_uuid" ref="calendar_caldav.field_calendar_event__uuid"/>
+            <field name="field_write_date" ref="calendar_caldav.field_calendar_event__dav_last_modified"/>
+        </record>
+
+        <record id="collection_contacts" model="caldav.collection">
+            <field name="name">Contacts</field>
+            <field name="sequence">20</field>
+            <field name="dav_type">addressbook</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="field_uuid" ref="field_res_partner__caldav_uuid"/>
+            <field name="domain">[]</field>
+        </record>
+
+        <record id="collection_personal_contacts" model="caldav.collection">
+            <field name="name">Personal Contacts</field>
+            <field name="sequence">30</field>
+            <field name="dav_type">addressbook</field>
+            <field name="model_id" ref="personal_contact_carddav.model_res_ppartner"/>
+            <field name="field_uuid" ref="field_res_ppartner__caldav_uuid"/>
+            <field name="domain">[('user_id', '=', user.id)]</field>
+        </record>
+
+    </data>
+</odoo>
