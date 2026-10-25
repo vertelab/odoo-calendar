@@ -38,6 +38,12 @@ from odoo.service import db
 
 from ..services import urls, xmlutil
 from ..services.caldav import icalendar_to_odoo_event
+from ..services.ical import (
+    PARTSTAT_TO_STATE,
+    SUPPORTED_METHODS,
+    ItipError,
+    parse_itip,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -1037,6 +1043,146 @@ class CalDAVController(http.Controller):
 
         return _options_response()
 
+    # ── iTIP (RFC 5546) ─────────────────────────────────────────────
+    def _put_itip(self, collection, uid, body):
+        """Apply an iTIP message delivered over CalDAV.
+
+        Returns a response when the payload was an iTIP message we handled,
+        or ``None`` when it should fall through to the generic PUT.
+        """
+        try:
+            message = parse_itip(body)
+        except ItipError as exc:
+            _logger.info('[DAV] PUT %s/%s is not usable iTIP: %s',
+                         collection.slug, uid, exc)
+            return None
+
+        method = message['method']
+        if method not in SUPPORTED_METHODS:
+            _logger.info('[DAV] PUT %s/%s: unsupported iTIP method %r',
+                         collection.slug, uid, method)
+            return _dav_error(
+                'supported-calendar-data',
+                'iTIP method %s is not supported' % (method or 'none'))
+
+        if method == 'CANCEL':
+            return self._itip_cancel(collection, message)
+        if method == 'REPLY':
+            return self._itip_reply(collection, message)
+        return self._itip_request(collection, message)
+
+    def _itip_request(self, collection, message):
+        """An invitation arrived: create or update the event for us."""
+        event_model = collection._model()
+        uid = message['uid']
+        existing = event_model.sudo().search(
+            [('uuid', '=', uid)], limit=1)
+
+        # A stale invitation must not overwrite a newer one.
+        if existing and message['sequence'] < (existing.itip_sequence or 0):
+            _logger.info('[DAV] iTIP REQUEST %s seq %s < %s, ignored',
+                         uid, message['sequence'], existing.itip_sequence)
+            return request.make_response(
+                '', headers=[('ETag', collection.record_etag(existing))],
+                status=204)
+
+        values = dict(message['event'])
+        values['uuid'] = uid
+        values['itip_sequence'] = message['sequence']
+
+        organizer = message['organizer'] or {}
+        organizer_email = organizer.get('email') or ''
+        if organizer_email:
+            owner = request.env['res.users'].sudo().search(
+                [('partner_id.email', '=', organizer_email)], limit=1)
+            if owner:
+                # Organiser is one of ours: no external address needed.
+                values['user_id'] = owner.id
+                values['imip_organizer'] = False
+            else:
+                values['imip_organizer'] = organizer_email
+
+        if existing:
+            existing.sudo().write(values)
+            record = existing
+            status = 204
+        else:
+            record = event_model.sudo().create(values)
+            status = 201
+
+        self._sync_attendees(record, message['attendees'])
+        return request.make_response(
+            '', headers=[('ETag', collection.record_etag(record))],
+            status=status)
+
+    def _itip_reply(self, collection, message):
+        """The organiser told us how an attendee responded."""
+        event_model = collection._model()
+        event = event_model.sudo().search(
+            [('uuid', '=', message['uid'])], limit=1)
+        if not event:
+            return _dav_error('valid-calendar-data',
+                              'No event with UID %s' % message['uid'])
+
+        for attendee in message['attendees']:
+            state = PARTSTAT_TO_STATE.get(attendee['partstat'])
+            if not state:
+                continue
+            rows = event.attendee_ids.filtered(
+                lambda a, e=attendee['email']: (a.email or '') == e)
+            if rows:
+                rows.sudo().write({'state': state})
+        return request.make_response(
+            '', headers=[('ETag', collection.record_etag(event))],
+            status=204)
+
+    def _itip_cancel(self, collection, message):
+        """A cancelled invitation: drop it from our calendar."""
+        event_model = collection._model()
+        event = event_model.sudo().search(
+            [('uuid', '=', message['uid'])], limit=1)
+        if not event:
+            # Cancelling something we never had is not an error.
+            return request.make_response('', status=204)
+
+        if message['sequence'] < (event.itip_sequence or 0):
+            return request.make_response('', status=204)
+
+        event.sudo().unlink()
+        return request.make_response('', status=204)
+
+    def _sync_attendees(self, event, attendees):
+        """Mirror the ATTENDEE lines onto calendar.attendee rows.
+
+        Odoo keeps one row per attendee and the organiser replies against
+        those rows, so they have to exist with the PARTSTAT we received.
+        """
+        Attendee = request.env['calendar.attendee'].sudo()
+        Partner = request.env['res.partner'].sudo()
+        for line in attendees:
+            email = line['email']
+            partner = Partner.search([('email', '=', email)], limit=1)
+            if not partner:
+                partner = Partner.create({
+                    'name': line['name'] or email,
+                    'email': email,
+                })
+            state = PARTSTAT_TO_STATE.get(line['partstat'], 'needsAction')
+            row = Attendee.search([
+                ('event_id', '=', event.id),
+                ('partner_id', '=', partner.id),
+            ], limit=1)
+            if row:
+                row.write({'state': state})
+            else:
+                Attendee.create({
+                    'event_id': event.id,
+                    'partner_id': partner.id,
+                    'email': email,
+                    'common_name': line['name'] or partner.name,
+                    'state': state,
+                })
+
     def _put_record(self, collection, uid):
         """Create or replace one record from an .ics/.vcf body."""
         body = _request_body()
@@ -1044,6 +1190,15 @@ class CalDAVController(http.Controller):
             return _bad_request('Empty body')
         _logger.info('[DAV] PUT %s/%s (%d bytes)',
                      collection.slug, uid, len(body))
+
+        # An iTIP message is not a calendar object: it is an instruction
+        # about one. Handle it before the generic parse, because a
+        # METHOD:REQUEST with attendees needs attendee rows that the
+        # generic field mapping knows nothing about.
+        if collection.dav_type == 'calendar' and b'METHOD:' in body.upper():
+            itip_response = self._put_itip(collection, uid, body)
+            if itip_response is not None:
+                return itip_response
 
         existing = collection.get_record(uid)
         try:

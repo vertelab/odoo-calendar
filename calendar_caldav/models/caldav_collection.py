@@ -558,13 +558,21 @@ class CaldavCollection(models.Model):
         if 'videocall_location' in event._fields and event.videocall_location:
             vevent.add('url').value = event.videocall_location
 
-        # Organiser and attendees. The organiser is the user_id partner;
-        # without it clients cannot tell whose event this is.
-        if event.user_id:
-            organiser = vevent.add('organizer')
-            organiser.value = 'mailto:%s' % (
+        # Organiser and attendees. An event received from another system
+        # keeps Odoo's default user_id (OdooBot), so imip_organizer has to
+        # win — otherwise the client shows the wrong person as organiser
+        # and a reply goes to the wrong address.
+        organiser_email = event.imip_organizer or ''
+        organiser_name = ''
+        if not organiser_email and event.user_id:
+            organiser_email = (
                 event.user_id.partner_id.email or event.user_id.email or '')
-            organiser.params['CN'] = [_param_text(event.user_id.name)]
+            organiser_name = event.user_id.name or ''
+        if organiser_email:
+            organiser = vevent.add('organizer')
+            organiser.value = 'mailto:%s' % organiser_email
+            organiser.params['CN'] = [_param_text(
+                organiser_name or organiser_email)]
         for attendee in event.attendee_ids:
             mail = attendee.partner_id.email or attendee.email
             if not mail:

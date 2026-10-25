@@ -1,7 +1,7 @@
 {
     "name": "Calendar CalDAV",
     "summary": "CalDAV support for Odoo Calendar",
-    "version": "18.0.1.7.5",
+    "version": "18.0.1.8.0",
     "category": "Calendar",
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se/apps/odoo-calendar/calendar_caldav",
@@ -11,7 +11,7 @@
     # stays — res.ppartner is the personal address book, and the model lives
     # there. That module is installable=False too, but it is already
     # installed, so the dependency resolves.
-    "depends": ["calendar", "personal_contact_carddav"],
+    "depends": ["calendar", "mail", "personal_contact_carddav"],
     "data": [
         "security/ir.model.access.csv",
         "data/caldav_collection_data.xml",

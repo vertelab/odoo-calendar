@@ -402,3 +402,191 @@ class TestSupportedReports(common.TransactionCase):
         # Class 2 means "supports locking" — we do not.
         self.assertNotIn('2', [part.strip()
                                for part in DAV_CAPABILITIES.split(',')])
+
+
+class TestItipParsing(common.TransactionCase):
+    """RFC 5546: read the method out of a payload before acting on it."""
+
+    OUTLOOK_REQUEST = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Microsoft Corporation//Outlook 16.0 MIMEDIR//EN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:040000008200E00074C5B7101A82E00800000000
+SUMMARY:Projektmote
+DTSTART:20261101T090000Z
+DTEND:20261101T100000Z
+LOCATION:Rum 12
+ORGANIZER;CN=Anna Svensson:mailto:anna@example.com
+ATTENDEE;CN=Anders;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:anders@vertel.se
+SEQUENCE:2
+END:VEVENT
+END:VCALENDAR"""
+
+    def test_reads_method_uid_and_sequence(self):
+        from ..services.ical import parse_itip
+        result = parse_itip(self.OUTLOOK_REQUEST)
+        self.assertEqual(result['method'], 'REQUEST')
+        self.assertEqual(result['uid'],
+                         '040000008200E00074C5B7101A82E00800000000')
+        self.assertEqual(result['sequence'], 2)
+
+    def test_reads_organizer_and_attendee_partstat(self):
+        from ..services.ical import parse_itip
+        result = parse_itip(self.OUTLOOK_REQUEST)
+        self.assertEqual(result['organizer']['email'], 'anna@example.com')
+        self.assertEqual(result['organizer']['name'], 'Anna Svensson')
+        self.assertEqual(len(result['attendees']), 1)
+        self.assertEqual(result['attendees'][0]['email'], 'anders@vertel.se')
+        self.assertEqual(result['attendees'][0]['partstat'], 'NEEDS-ACTION')
+        self.assertTrue(result['attendees'][0]['rsvp'])
+
+    def test_converts_utc_to_naive(self):
+        """Odoo stores naive UTC; an aware datetime would shift the event."""
+        from ..services.ical import parse_itip
+        result = parse_itip(self.OUTLOOK_REQUEST)
+        self.assertIsNone(result['event']['start'].tzinfo)
+        self.assertEqual(result['event']['start'].hour, 9)
+
+    def test_rejects_payload_without_uid(self):
+        """Without a UID a PUT is not idempotent and a REPLY cannot match."""
+        from ..services.ical import ItipError, parse_itip
+        payload = ("BEGIN:VCALENDAR\nVERSION:2.0\nMETHOD:REQUEST\n"
+                   "BEGIN:VEVENT\nSUMMARY:x\nEND:VEVENT\nEND:VCALENDAR")
+        with self.assertRaises(ItipError):
+            parse_itip(payload)
+
+    def test_rejects_payload_without_vevent(self):
+        from ..services.ical import ItipError, parse_itip
+        payload = "BEGIN:VCALENDAR\nVERSION:2.0\nEND:VCALENDAR"
+        with self.assertRaises(ItipError):
+            parse_itip(payload)
+
+
+class TestItipReply(common.TransactionCase):
+    """The REPLY Odoo has never been able to send."""
+
+    def setUp(self):
+        super().setUp()
+        self.user = self.env['res.users'].create({
+            'name': 'ITIP Attendee',
+            'login': 'itip-attendee@example.test',
+            'email': 'itip-attendee@example.test',
+        })
+        self.event = self.env['calendar.event'].create({
+            'name': 'External invitation',
+            'start': datetime(2026, 11, 1, 9, 0),
+            'stop': datetime(2026, 11, 1, 10, 0),
+            'imip_organizer': 'anna@example.com',
+            'itip_sequence': 2,
+            'partner_ids': [(6, 0, [self.user.partner_id.id])],
+        })
+
+    def test_reply_carries_method_and_partstat(self):
+        from icalendar import Calendar
+        from ..services.ical import build_itip_reply
+        attendee = self.event.attendee_ids.filtered(
+            lambda a: a.partner_id == self.user.partner_id)[:1]
+        payload = build_itip_reply(self.event, attendee, 'ACCEPTED')
+        parsed = Calendar.from_ical(payload)
+        self.assertEqual(str(parsed.get('method')), 'REPLY')
+        vevent = parsed.walk('VEVENT')[0]
+        self.assertEqual(str(vevent.get('uid')), self.event.uuid)
+        self.assertEqual(str(vevent.get('sequence')), '2')
+        self.assertIn('anna@example.com', str(vevent.get('organizer')))
+        attendee_line = vevent.get('attendee')
+        self.assertEqual(attendee_line.params['PARTSTAT'], 'ACCEPTED')
+
+    def test_no_reply_is_sent_to_an_internal_organizer(self):
+        """Odoo updates its own attendees through the ORM; mail is noise."""
+        self.event.write({
+            'imip_organizer': False,
+            'user_id': self.user.id,
+        })
+        attendee = self.event.attendee_ids[:1]
+        self.assertFalse(self.event._send_itip_reply(attendee, 'accepted'))
+
+
+class TestItipSenderVerification(common.TransactionCase):
+    """An .ics is a write instruction; only the organiser may send one."""
+
+    def _message(self, headers):
+        from email.mime.text import MIMEText
+        message = MIMEText('invitation follows')
+        for key, value in headers.items():
+            message[key] = value
+        return message
+
+    def test_sender_must_match_organizer(self):
+        Message = self.env['mail.message']
+        message = self._message({
+            'From': 'attacker@evil.example',
+            'Authentication-Results': 'mx.vertel.se; spf=pass evil.example',
+        })
+        self.assertFalse(Message._sender_may_speak_for(
+            'attacker@evil.example', 'anna@example.com', message))
+
+    def test_missing_authentication_is_not_a_pass(self):
+        Message = self.env['mail.message']
+        message = self._message({'From': 'anna@example.com'})
+        self.assertFalse(Message._sender_may_speak_for(
+            'anna@example.com', 'anna@example.com', message))
+
+    def test_failing_authentication_is_rejected(self):
+        Message = self.env['mail.message']
+        message = self._message({
+            'Authentication-Results': 'mx.vertel.se; spf=fail example.com',
+        })
+        self.assertFalse(Message._sender_may_speak_for(
+            'anna@example.com', 'anna@example.com', message))
+
+    def test_authenticated_organizer_is_accepted(self):
+        Message = self.env['mail.message']
+        message = self._message({
+            'Authentication-Results': 'mx.vertel.se; spf=pass example.com',
+        })
+        self.assertTrue(Message._sender_may_speak_for(
+            'anna@example.com', 'anna@example.com', message))
+
+
+class TestItipOrganizerSerialization(common.TransactionCase):
+    """The organiser a client sees must be the real one, not OdooBot."""
+
+    def test_external_organizer_wins_over_user_id(self):
+        event = self.env['calendar.event'].create({
+            'name': 'Received from Outlook',
+            'start': datetime(2026, 11, 5, 9, 0),
+            'stop': datetime(2026, 11, 5, 10, 0),
+            'imip_organizer': 'anna@example.com',
+        })
+        self.assertTrue(event.user_id, 'Odoo sets a default user_id')
+        collection = self.env['caldav.collection'].search(
+            [('dav_type', '=', 'calendar')], limit=1)
+        payload = collection.to_vobject(event).serialize()
+        # ORGANIZER must be the external address. Odoo still adds the
+        # record owner as an ATTENDEE, which is Odoo's own behaviour and
+        # not something this module should change.
+        organizer_line = [
+            line for line in payload.splitlines()
+            if line.upper().startswith('ORGANIZER')]
+        self.assertEqual(len(organizer_line), 1)
+        self.assertIn('anna@example.com', organizer_line[0])
+        self.assertNotIn('odoobot', organizer_line[0].lower())
+
+    def test_internal_organizer_still_used_when_no_external(self):
+        user = self.env['res.users'].create({
+            'name': 'Internal Organiser',
+            'login': 'internal-organiser@example.test',
+            'email': 'internal-organiser@example.test',
+        })
+        event = self.env['calendar.event'].create({
+            'name': 'Our own meeting',
+            'start': datetime(2026, 11, 5, 9, 0),
+            'stop': datetime(2026, 11, 5, 10, 0),
+            'user_id': user.id,
+            'partner_ids': [(6, 0, [user.partner_id.id])],
+        })
+        collection = self.env['caldav.collection'].search(
+            [('dav_type', '=', 'calendar')], limit=1)
+        payload = collection.to_vobject(event).serialize()
+        self.assertIn('internal-organiser@example.test', payload)
