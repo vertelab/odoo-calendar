@@ -275,7 +275,73 @@ def _home_props(dav_type):
     )
 
 
-def _collection_props(collection):
+def _scheduling_props(segment, props):
+    """Properties of the scheduling inbox/outbox (RFC 6638 §2.2, §5.2)."""
+    href = xmlutil.escape(urls.scheduling_url('calendar', segment))
+    if segment == 'inbox':
+        resourcetype = (
+            '<d:resourcetype><d:collection/>'
+            '<cal:schedule-inbox/></d:resourcetype>')
+        extra = (
+            '<cal:calendar-user-address-set>'
+            '<d:href>%s</d:href>'
+            '</cal:calendar-user-address-set>'
+            % xmlutil.escape(
+                'mailto:%s' % (request.env.user.partner_id.email
+                               or request.env.user.email or '')))
+    else:
+        resourcetype = (
+            '<d:resourcetype><d:collection/>'
+            '<cal:schedule-outbox/></d:resourcetype>')
+        extra = (
+            '<cal:supported-calendar-data>'
+            '<cal:calendar-data content-type="text/calendar" version="2.0"/>'
+            '</cal:supported-calendar-data>'
+            '<cal:supported-calendar-component-set>'
+            '<cal:comp name="VEVENT"/>'
+            '</cal:supported-calendar-component-set>')
+    return (
+        '%s'
+        '<d:displayname>%s</d:displayname>'
+        '<d:getcontenttype>httpd/unix-directory</d:getcontenttype>'
+        '<d:current-user-principal><d:href>%s</d:href>'
+        '</d:current-user-principal>'
+        '%s'
+        % (resourcetype,
+           'Scheduling Inbox' if segment == 'inbox' else 'Scheduling Outbox',
+           xmlutil.escape(urls.root_url('calendar') + '/'),
+           extra)
+    )
+
+
+def _calendar_user_addresses(collection, user=None):
+    """The addresses that identify this user in scheduling (RFC 6638 §2.1).
+
+    ``calendar-user-address-set`` is how a client knows which ATTENDEE line
+    is "me" when a REPLY arrives, and which address to put in ORGANIZER
+    when it sends a REQUEST.
+
+    ``user`` is passed in rather than read from ``request`` so the property
+    builder stays callable outside a request (tests, scripts).
+    """
+    if user is None:
+        # Fall back to the collection's owner, then to the request user.
+        # ``request.env`` raises outside a request, so it is only touched
+        # when there is genuinely nothing else to go on.
+        user = collection.user_id
+        if not user:
+            user = request.env.user
+    addresses = []
+    email = user.partner_id.email or user.email
+    if email:
+        addresses.append('mailto:%s' % email)
+    # The principal URL is a valid address type too, and clients that do
+    # not use mailto fall back to it.
+    addresses.append(urls.root_url(collection.dav_type) + '/')
+    return addresses
+
+
+def _collection_props(collection, user=None):
     """Properties of one collection (calendar or addressbook)."""
     href = xmlutil.escape(urls.collection_url(collection))
     home = xmlutil.escape(urls.root_url(collection.dav_type) + '/')
@@ -286,6 +352,14 @@ def _collection_props(collection):
             '<cal:comp name="VEVENT"/>'
             '</cal:supported-calendar-component-set>'
         )
+        # RFC 6638 §2.1: a client cannot schedule anything without being
+        # told where to POST it. The inbox is per user, the outbox per
+        # collection, and calendar-user-address-set says which addresses
+        # count as "us" when a REPLY comes back.
+        addresses = _calendar_user_addresses(collection, user)
+        address_set = ''.join(
+            '<d:href>%s</d:href>' % xmlutil.escape(address)
+            for address in addresses)
         extra = (
             '<cal:calendar-description>%s</cal:calendar-description>'
             '<A:calendar-color>%s</A:calendar-color>'
@@ -296,12 +370,25 @@ def _collection_props(collection):
             'version="2.0"/>'
             '</cal:supported-calendar-data>'
             '<cal:calendar-timezone>%s</cal:calendar-timezone>'
+            '<cal:calendar-user-address-set>%s</cal:calendar-user-address-set>'
+            '<cal:schedule-inbox-URL><d:href>%s</d:href>'
+            '</cal:schedule-inbox-URL>'
+            '<cal:schedule-outbox-URL><d:href>%s</d:href>'
+            '</cal:schedule-outbox-URL>'
+            '<cal:schedule-calendar-transp>'
+            '<cal:%s/>'
+            '</cal:schedule-calendar-transp>'
             % (xmlutil.escape(collection.name),
                xmlutil.escape(collection.client_property(
                    '{http://apple.com/ns/ical/}calendar-color')
                    or DEFAULT_CALENDAR_COLOR),
                collection.calendar_order or 0,
-               xmlutil.escape(DEFAULT_TIMEZONE))
+               xmlutil.escape(DEFAULT_TIMEZONE),
+               address_set,
+               xmlutil.escape(urls.scheduling_url('calendar', 'inbox')),
+               xmlutil.escape(urls.scheduling_url('calendar', 'outbox')),
+               'transparent' if collection.dav_type == 'calendar'
+               else 'opaque')
         )
     else:
         resourcetype = xmlutil.ADDRESSBOOK_RESOURCETYPE
@@ -596,6 +683,151 @@ class CalDAVController(http.Controller):
         if method in ('GET', 'HEAD'):
             return self._get_collection(bound, user)
         return _options_response()
+
+    # ── RFC 6638 scheduling inbox / outbox ───────────────────────────────
+
+    @http.route(
+        ['/caldav/inbox', '/caldav/inbox/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'REPORT', 'POST'],
+        strict_slashes=False,
+    )
+    def caldav_inbox(self):
+        return self._scheduling_dispatch('inbox')
+
+    @http.route(
+        ['/caldav/outbox', '/caldav/outbox/'],
+        type='http', auth='public', csrf=False,
+        methods=['GET', 'HEAD', 'PROPFIND', 'OPTIONS', 'POST'],
+        strict_slashes=False,
+    )
+    def caldav_outbox(self):
+        return self._scheduling_dispatch('outbox')
+
+    def _scheduling_dispatch(self, segment):
+        """The scheduling inbox and outbox (RFC 6638 §2.2, §5.2).
+
+        The inbox is where another system delivers an invitation; the
+        outbox is where a client hands us one to send. Both are POST
+        endpoints — a GET on the outbox is meaningless and answered as an
+        empty collection so a probing client does not treat it as broken.
+        """
+        method = request.httprequest.method
+        if method == 'OPTIONS':
+            return _options_response()
+        auth = _basic_auth()
+        if auth:
+            return auth
+
+        if method == 'POST':
+            if segment == 'outbox':
+                return self._outbox_post()
+            return self._inbox_post()
+
+        if method == 'PROPFIND':
+            body = _request_body()
+            props = xmlutil.requested_props(body)
+            href = xmlutil.escape(
+                urls.scheduling_url('calendar', segment))
+            return _xml_response(xmlutil.multistatus([
+                xmlutil.response(href, _scheduling_props(segment, props))
+            ]))
+
+        # GET/HEAD on the inbox lists what is waiting; on the outbox there
+        # is nothing to list, so answer with an empty collection.
+        return _xml_response(xmlutil.multistatus([
+            xmlutil.response(
+                xmlutil.escape(urls.scheduling_url('calendar', segment)),
+                _scheduling_props(segment, None))
+        ]))
+
+    def _inbox_post(self):
+        """An invitation delivered to us as an iTIP message."""
+        body = _request_body()
+        if not body:
+            return _bad_request('Empty body')
+        try:
+            message = parse_itip(body)
+        except ItipError as exc:
+            _logger.info('[DAV] inbox POST rejected: %s', exc)
+            return _dav_error('valid-calendar-data', str(exc))
+
+        method = message['method']
+        if method not in SUPPORTED_METHODS:
+            return _dav_error(
+                'supported-calendar-data',
+                'iTIP method %s is not supported' % (method or 'none'))
+
+        collection = self._default_calendar()
+        if not collection:
+            return _dav_error(
+                'valid-calendar-data',
+                'No calendar to deliver the invitation to.')
+
+        if method == 'CANCEL':
+            return self._itip_cancel(collection, message)
+        if method == 'REPLY':
+            return self._itip_reply(collection, message)
+        return self._itip_request(collection, message)
+
+    def _outbox_post(self):
+        """A client hands us an iTIP message to send on its behalf.
+
+        RFC 6638 §6.1: the server applies the message to the organiser's
+        own calendar and delivers it. We do not relay mail here — the
+        message is applied locally and the reply path (1b) does the
+        mailing — but the request must succeed so the client does not
+        retry forever.
+        """
+        body = _request_body()
+        if not body:
+            return _bad_request('Empty body')
+        try:
+            message = parse_itip(body)
+        except ItipError as exc:
+            _logger.info('[DAV] outbox POST rejected: %s', exc)
+            return _dav_error('valid-calendar-data', str(exc))
+
+        if message['method'] not in SUPPORTED_METHODS:
+            return _dav_error(
+                'supported-calendar-data',
+                'iTIP method %s is not supported' % (message['method'] or 'none'))
+
+        collection = self._default_calendar()
+        if not collection:
+            return _dav_error(
+                'valid-calendar-data', 'No calendar to schedule from.')
+
+        _logger.info('[DAV] outbox POST %s uid=%s',
+                     message['method'], message['uid'])
+        if message['method'] == 'REQUEST':
+            response = self._itip_request(collection, message)
+        elif message['method'] == 'REPLY':
+            response = self._itip_reply(collection, message)
+        else:
+            response = self._itip_cancel(collection, message)
+        # RFC 6638 §6.1: a successful scheduling POST answers 200 with the
+        # recipient list, not 201 — nothing was created at the request URI.
+        if response.status_code in (201, 204):
+            return request.make_response(
+                '<?xml version="1.0" encoding="utf-8"?>'
+                '<C:schedule-response '
+                'xmlns:C="urn:ietf:params:xml:ns:caldav">'
+                '<C:response>'
+                '<C:recipient><d:href xmlns:d="DAV:">%s</d:href></C:recipient>'
+                '<C:request-status>2.0;Success</C:request-status>'
+                '</C:response>'
+                '</C:schedule-response>'
+                % xmlutil.escape(message['uid']),
+                headers=[('Content-Type', XML_CONTENT_TYPE)],
+                status=200)
+        return response
+
+    def _default_calendar(self):
+        """The calendar an invitation lands in when no collection is named."""
+        user = urls.user_for_request()
+        calendars = urls.collections_for('calendar', user)
+        return calendars[:1] if calendars else False
 
     @http.route(
         ['/caldav', '/caldav/', '/carddav', '/carddav/',
@@ -1069,6 +1301,8 @@ class CalDAVController(http.Controller):
             return self._itip_cancel(collection, message)
         if method == 'REPLY':
             return self._itip_reply(collection, message)
+        if method == 'COUNTER':
+            return self._itip_counter(collection, message)
         return self._itip_request(collection, message)
 
     def _itip_request(self, collection, message):
@@ -1102,9 +1336,25 @@ class CalDAVController(http.Controller):
             else:
                 values['imip_organizer'] = organizer_email
 
-        if existing:
-            existing.sudo().write(values)
-            record = existing
+        # A RECURRENCE-ID means "this one occurrence", not the series.
+        # Odoo stores one row per occurrence, so the write has to land on
+        # the row whose start matches — otherwise a single declined
+        # instance would rewrite the whole series.
+        recurrence_id = message['recurrence_id']
+        target = existing
+        if recurrence_id and existing:
+            instance = event_model.sudo().search([
+                ('recurrence_id', '=', existing.recurrence_id.id),
+                ('start', '=', recurrence_id),
+            ], limit=1) if existing.recurrence_id else event_model.browse()
+            if instance:
+                target = instance
+                values.pop('uuid', None)
+                values.pop('itip_sequence', None)
+
+        if target:
+            target.sudo().write(values)
+            record = target
             status = 204
         else:
             record = event_model.sudo().create(values)
@@ -1132,6 +1382,40 @@ class CalDAVController(http.Controller):
                 lambda a, e=attendee['email']: (a.email or '') == e)
             if rows:
                 rows.sudo().write({'state': state})
+        return request.make_response(
+            '', headers=[('ETag', collection.record_etag(event))],
+            status=204)
+
+    def _itip_counter(self, collection, message):
+        """A counter-proposal: someone asked for another time.
+
+        Odoo has no counter-proposal state, so we do not move the event.
+        Record the proposal on the event so the organiser can see it and
+        answer by editing the meeting — silently dropping it would leave
+        both sides waiting.
+        """
+        event_model = collection._model()
+        event = event_model.sudo().search(
+            [('uuid', '=', message['uid'])], limit=1)
+        if not event:
+            return _dav_error('valid-calendar-data',
+                              'No event with UID %s' % message['uid'])
+
+        proposed = message['event']
+        start = proposed.get('start')
+        stop = proposed.get('stop')
+        event.sudo().message_post(
+            body=(
+                '<p><strong>Motförslag på ny tid</strong></p>'
+                '<p>En deltagare har föreslagit en annan tid:</p>'
+                '<ul><li>Från: %s</li><li>Till: %s</li></ul>'
+                '<p>Händelsen är <em>inte</em> flyttad. Ändra tiden i '
+                'kalendern om förslaget passar.</p>'
+                % (start or '(saknas)', stop or '(saknas)')
+            ),
+            subtype_xmlid='mail.mt_note',
+            message_type='notification',
+        )
         return request.make_response(
             '', headers=[('ETag', collection.record_etag(event))],
             status=204)

@@ -27,8 +27,9 @@ from odoo import fields
 
 _logger = logging.getLogger(__name__)
 
-#: iTIP methods we act on.  COUNTER and DECLINECOUNTER are stage 2.
-SUPPORTED_METHODS = ('REQUEST', 'REPLY', 'CANCEL')
+#: iTIP methods we act on.  DECLINECOUNTER is not implemented: Odoo has no
+#: concept of a counter-proposal, so answering one would mean inventing it.
+SUPPORTED_METHODS = ('REQUEST', 'REPLY', 'CANCEL', 'COUNTER')
 
 #: iTIP PARTSTAT values, mapped to ``calendar.attendee.state``.
 PARTSTAT_TO_STATE = {
@@ -160,6 +161,8 @@ def parse_itip(data):
 
     recurrence_id = vevent.get('recurrence-id')
     if recurrence_id is not None:
+        # A RECURRENCE-ID names the instance being changed. Without it a
+        # change to one occurrence of a series would rewrite the series.
         values['_recurrence_id'] = _to_naive_utc(recurrence_id.dt)
 
     sequence = vevent.get('sequence')
@@ -273,3 +276,41 @@ def _sequence_of(event):
     it answers, which is what the organiser matches on.
     """
     return getattr(event, 'itip_sequence', 0) or 0
+
+
+def build_itip_counter(event, attendee, proposed_start, proposed_stop):
+    """Build a ``METHOD:COUNTER`` payload proposing another time.
+
+    RFC 5546 §3.2.3: an attendee who cannot make the proposed time answers
+    with a counter-proposal instead of a plain decline. The organiser then
+    accepts or declines it.
+    """
+    calendar = Calendar()
+    calendar.add('prodid', '-//Odoo//calendar_caldav//EN')
+    calendar.add('version', '2.0')
+    calendar.add('method', 'COUNTER')
+
+    vevent = Event()
+    vevent.add('uid', event.uuid or 'event-%s@odoo' % event.id)
+    vevent.add('sequence', _sequence_of(event))
+    vevent.add('dtstamp', fields.Datetime.now())
+    vevent.add('dtstart', proposed_start)
+    vevent.add('dtend', proposed_stop)
+    if event.name:
+        vevent.add('summary', event.name)
+
+    organizer_email = _organizer_email(event)
+    if organizer_email:
+        organizer = vCalAddress('mailto:%s' % organizer_email)
+        if event.user_id and event.user_id.name:
+            organizer.params['CN'] = event.user_id.name
+        vevent.add('organizer', organizer, encode=0)
+
+    address = vCalAddress('mailto:%s' % (attendee.email or ''))
+    if attendee.common_name:
+        address.params['CN'] = attendee.common_name
+    address.params['PARTSTAT'] = 'TENTATIVE'
+    vevent.add('attendee', address, encode=0)
+
+    calendar.add_component(vevent)
+    return calendar.to_ical()

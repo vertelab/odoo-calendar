@@ -95,7 +95,32 @@ class MailMessage(models.Model):
             _logger.info('[iMIP] no Odoo user among the recipients')
             return False
 
+        if itip['method'] == 'COUNTER':
+            # A counter-proposal has no state in Odoo. Record it on the
+            # event rather than dropping it: both sides would otherwise
+            # wait for the other.
+            return self._record_counter(itip, recipient)
+
         return self._apply_itip(itip, recipient)
+
+    def _record_counter(self, itip, user):
+        event = self.env['calendar.event'].sudo().search(
+            [('uuid', '=', itip['uid'])], limit=1)
+        if not event:
+            return False
+        proposed = itip['event']
+        event.message_post(
+            body=(
+                '<p><strong>Motförslag på ny tid</strong></p>'
+                '<ul><li>Från: %s</li><li>Till: %s</li></ul>'
+                '<p>Händelsen är <em>inte</em> flyttad.</p>'
+                % (proposed.get('start') or '(saknas)',
+                   proposed.get('stop') or '(saknas)')
+            ),
+            subtype_xmlid='mail.mt_note',
+            message_type='notification',
+        )
+        return True
 
     def _report_rejected_itip(self, itip, parsed, sender, organizer):
         """Post a note on the message explaining why nothing happened.

@@ -8,6 +8,8 @@ The URL space is:
     /caldav/                          principal + calendar home set
     /caldav/<collection>/             one calendar
     /caldav/<collection>/<uid>.ics    one event
+    /caldav/inbox/                    scheduling inbox  (RFC 6638)
+    /caldav/outbox/                   scheduling outbox (RFC 6638)
 
     /carddav/                         addressbook home set
     /carddav/<collection>/            one addressbook
@@ -30,6 +32,11 @@ CARDDAV_ROOT = '/carddav'
 # A slug is what we put in the URL: lowercase, digits, dash.
 _SLUG_RE = re.compile(r'^[a-z0-9][a-z0-9-]*$')
 
+#: RFC 6638 reserves these two names inside the calendar home set. A
+#: collection may never take them, or a client would PUT an event into a
+#: URL that means something else.
+SCHEDULING_SEGMENTS = ('inbox', 'outbox')
+
 
 def base_url():
     """Scheme + host, without a trailing slash."""
@@ -45,6 +52,11 @@ def root_url(dav_type):
 def collection_url(collection):
     """The collection's own URL."""
     return '%s/%s/' % (root_url(collection.dav_type), collection.slug)
+
+
+def scheduling_url(dav_type, segment):
+    """The scheduling inbox or outbox URL for a collection type."""
+    return '%s/%s/' % (root_url(dav_type), segment)
 
 
 def record_url(collection, record):

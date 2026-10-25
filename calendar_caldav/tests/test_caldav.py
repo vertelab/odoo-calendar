@@ -239,7 +239,7 @@ class TestCollectionProps(common.TransactionCase):
         from ..controllers.main import _collection_props
         with patch.object(urls, 'base_url',
                           return_value='https://example.test'):
-            return _collection_props(self.collection)
+            return _collection_props(self.collection, self.env.user)
 
     def test_addressbook_announces_a_sync_token(self):
         """Without DAV:sync-token in PROPFIND clients cannot do delta sync."""
@@ -274,7 +274,7 @@ class TestCollectionProps(common.TransactionCase):
         from ..controllers.main import _collection_props
         with patch.object(urls, 'base_url',
                           return_value='https://example.test'):
-            props = _collection_props(calendar)
+            props = _collection_props(calendar, self.env.user)
         self.assertIn('<cal:calendar-query/>', props)
         self.assertIn('<cal:calendar-multiget/>', props)
         self.assertNotIn('<card:addressbook-query/>', props)
@@ -377,7 +377,7 @@ class TestSupportedReports(common.TransactionCase):
         from unittest.mock import patch
         from ..controllers.main import _collection_props
         with patch.object(urls, 'base_url', return_value='https://example.test'):
-            return _collection_props(self.calendar)
+            return _collection_props(self.calendar, self.env.user)
 
     def test_free_busy_is_announced(self):
         props = self._props()
@@ -648,3 +648,112 @@ class TestItipRejectionIsVisible(common.TransactionCase):
         after = self.env['calendar.event'].search_count(
             [('uuid', '=', 'reject-test-uid')])
         self.assertEqual(before, after, 'no event may be created')
+
+
+class TestSchedulingProperties(common.TransactionCase):
+    """RFC 6638 §2.1: a client cannot schedule what it cannot find."""
+
+    def setUp(self):
+        super().setUp()
+        self.calendar = self.env['caldav.collection'].search(
+            [('dav_type', '=', 'calendar')], limit=1)
+        self.user = self.env['res.users'].create({
+            'name': 'Scheduling User',
+            'login': 'scheduling@example.test',
+            'email': 'scheduling@example.test',
+        })
+
+    def _props(self, collection=None):
+        """Build the collection properties outside a request context.
+
+        ``_collection_props`` reaches for ``request`` in two places — the
+        base URL and the current user — so both are supplied here rather
+        than read from an unbound request.
+        """
+        from unittest.mock import patch
+        from ..controllers.main import _collection_props
+        collection = collection or self.calendar
+        with patch.object(urls, 'base_url', return_value='https://example.test'), \
+                patch.object(urls, 'user_for_request', return_value=self.user):
+            return _collection_props(collection, self.user)
+
+    def test_announces_inbox_and_outbox(self):
+        props = self._props()
+        self.assertIn('schedule-inbox-URL', props)
+        self.assertIn('schedule-outbox-URL', props)
+        self.assertIn('/caldav/inbox/', props)
+        self.assertIn('/caldav/outbox/', props)
+
+    def test_announces_calendar_user_address_set(self):
+        """Without this a client cannot tell which ATTENDEE line is 'me'."""
+        props = self._props()
+        self.assertIn('calendar-user-address-set', props)
+        self.assertIn('mailto:', props)
+
+    def test_announces_calendar_transparency(self):
+        props = self._props()
+        self.assertIn('schedule-calendar-transp', props)
+        self.assertIn('transparent', props)
+
+    def test_scheduling_urls_are_not_collection_slugs(self):
+        """inbox/outbox are reserved; a collection may not shadow them."""
+        self.assertIn('inbox', urls.SCHEDULING_SEGMENTS)
+        self.assertIn('outbox', urls.SCHEDULING_SEGMENTS)
+
+
+class TestItipCounter(common.TransactionCase):
+    """RFC 5546 §3.2.3: a counter-proposal must not be dropped."""
+
+    def test_counter_is_supported(self):
+        from ..services.ical import SUPPORTED_METHODS
+        self.assertIn('COUNTER', SUPPORTED_METHODS)
+
+    def test_counter_builds_a_valid_payload(self):
+        from icalendar import Calendar
+        from ..services.ical import build_itip_counter
+        user = self.env['res.users'].create({
+            'name': 'Counter Attendee',
+            'login': 'counter@example.test',
+            'email': 'counter@example.test',
+        })
+        event = self.env['calendar.event'].create({
+            'name': 'Counter test',
+            'start': datetime(2026, 11, 10, 9, 0),
+            'stop': datetime(2026, 11, 10, 10, 0),
+            'imip_organizer': 'anna@example.com',
+            'partner_ids': [(6, 0, [user.partner_id.id])],
+        })
+        attendee = event.attendee_ids.filtered(
+            lambda a: a.partner_id == user.partner_id)[:1]
+        payload = build_itip_counter(
+            event, attendee,
+            datetime(2026, 11, 10, 14, 0), datetime(2026, 11, 10, 15, 0))
+        parsed = Calendar.from_ical(payload)
+        self.assertEqual(str(parsed.get('method')), 'COUNTER')
+        vevent = parsed.walk('VEVENT')[0]
+        self.assertEqual(vevent.get('dtstart').dt.hour, 14)
+        self.assertIn('anna@example.com', str(vevent.get('organizer')))
+
+
+class TestRecurrenceId(common.TransactionCase):
+    """A RECURRENCE-ID names one instance, never the series."""
+
+    def test_parser_keeps_the_recurrence_id(self):
+        from ..services.ical import parse_itip
+        payload = """BEGIN:VCALENDAR
+VERSION:2.0
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:series-test
+SUMMARY:Serie
+DTSTART:20261112T090000Z
+DTEND:20261112T100000Z
+RECURRENCE-ID:20261112T090000Z
+ORGANIZER:mailto:anna@example.com
+SEQUENCE:1
+END:VEVENT
+END:VCALENDAR"""
+        result = parse_itip(payload)
+        self.assertIsNotNone(result['recurrence_id'])
+        self.assertEqual(result['recurrence_id'].hour, 9)
+        self.assertNotIn('_recurrence_id', result['event'])
