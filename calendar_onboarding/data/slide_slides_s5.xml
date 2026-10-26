@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SEKTION 5: Manuellt test — verifiera att det fungerar
+         Slides: 2 (1 article, 1 quiz)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- SECTION HEADER -->
+    <record id="slide_category_cal_s5" model="slide.slide">
+        <field name="name">5. Manuellt test</field>
+        <field name="is_category" eval="True"/>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="sequence">400</field>
+    </record>
+
+    <!-- SLIDE 5.1: Manuellt test -->
+    <record id="slide_cal_s5_01" model="slide.slide">
+        <field name="name">Manuellt test — kalender och kontakter</field>
+        <field name="sequence">410</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="False"/>
+        <field name="completion_time">0.50</field>
+        <field name="html_content" type="html">
+<section class="s_cover o_cc o_cc3 pt160 pb160">
+    <div class="container">
+        <h1 class="display-3-fs" style="text-align: center;">Manuellt test</h1>
+        <p class="lead" style="text-align: center;">Fem minuter som visar att kalendern och adressboken verkligen synkroniserar — åt båda hållen.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Innan du börjar</h2>
+        <p>Du behöver:</p>
+        <ul>
+            <li>din mobil med kalender- och kontakapp (eller DAVx⁵ på Android)</li>
+            <li>att kontot är uppkopplat enligt sektion 2 i den här kursen</li>
+            <li>tillgång till Odoo i en webbläsare på datorn</li>
+        </ul>
+        <p class="small text-muted">Testet tar cirka fem minuter. Gör det gärna en gång när du får ditt konto, och igen om något känns fel senare.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>Test 1 — från Odoo till mobilen</h2>
+        <ol>
+            <li>Öppna <strong>Kalender</strong> i Odoo på datorn.</li>
+            <li>Skapa ett möte i morgon klockan 10:00 och döp det till <strong>Test synk</strong>.</li>
+            <li>Vänta en minut. Öppna kalenderappen i mobilen.</li>
+            <li>Mötet <strong>Test synk</strong> ska nu synas i morgon klockan 10:00.</li>
+        </ol>
+        <p><strong>Förväntat resultat:</strong> mötet syns i mobilen inom en minut, med rätt tid och rätt namn.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>Test 2 — från mobilen till Odoo</h2>
+        <ol>
+            <li>Öppna samma möte i mobilens kalenderapp.</li>
+            <li>Ändra tiden till 11:00 och spara.</li>
+            <li>Vänta en minut. Ladda om kalendern i Odoo.</li>
+            <li>Mötet ska nu ligga klockan 11:00 även där.</li>
+        </ol>
+        <p><strong>Förväntat resultat:</strong> ändringen slår igenom i Odoo. Det är detta som är tvåvägssynk — och det som skiljer en riktig synkronisering från en kopia.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>Test 3 — kontakterna</h2>
+        <ol>
+            <li>Lägg upp en ny kontakt i Odoo med namn <strong>Testkontakt</strong> och ett telefonnummer.</li>
+            <li>Vänta en minut. Öppna kontaktappen i mobilen.</li>
+            <li>Sök på <strong>Testkontakt</strong>.</li>
+        </ol>
+        <p><strong>Förväntat resultat:</strong> kontakten finns i mobilen med rätt telefonnummer. Ser du <em>två</em> adressböcker — en gemensam och en egen — är det rätt; det är så det ska vara.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <h2>Om det inte fungerar</h2>
+        <p>Nästan alla fel beror på något av dessa två:</p>
+        <ol>
+            <li><strong>Kontot är inte uppkopplat, eller bara halvt.</strong> CalDAV och CardDAV är två separata konton. Har kalendern börjat synka men inte kontakterna är det CardDAV-kontot som saknas.</li>
+            <li><strong>Kalendern är avbockad i mobilen.</strong> Öppna kalenderappen och kontrollera att kontot och dess kalendrar har bockar i listan.</li>
+        </ol>
+        <p class="small text-muted">Fungerar det fortfarande inte: hör av dig till IT och beskriv vilket av de tre testerna som stannade. Det räcker som felbeskrivning.</p>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Städa efter dig</h3>
+                <p class="lead">Ta bort testmötet och testkontakten när du är klar — annars ligger de kvar och skräpar i allas kalendrar.</p>
+            </div>
+        </div>
+    </div>
+</section>
+        </field>
+        <field name="description">Steg för steg: verifiera att kalender och kontakter synkroniserar både från Odoo till mobilen och tillbaka. Tre tester, förväntat resultat och de två vanligaste felen.</field>
+    </record>
+
+    <!-- SLIDE 5.2: Quiz — Manuellt test -->
+    <record id="slide_cal_s5_02" model="slide.slide">
+        <field name="name">🧪 Testa dina kunskaper — Manuellt test</field>
+        <field name="sequence">420</field>
+        <field name="slide_category">quiz</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="False"/>
+        <field name="completion_time">0.25</field>
+        <field name="quiz_first_attempt_reward">100</field>
+        <field name="quiz_second_attempt_reward">75</field>
+        <field name="quiz_third_attempt_reward">50</field>
+        <field name="quiz_fourth_attempt_reward">25</field>
+        <field name="description">Kontrollera att du vet hur du verifierar synkroniseringen själv.</field>
+    </record>
+
+    <record id="slide_cal_s5_02_q1" model="slide.question">
+        <field name="question">Vad är det avgörande tecknet på att synkroniseringen fungerar?</field>
+        <field name="sequence">1</field>
+        <field name="slide_id" ref="slide_cal_s5_02"/>
+    </record>
+    <record id="slide_cal_s5_02_q1_a1" model="slide.answer">
+        <field name="text_value">Att mötet syns i mobilen</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Det visar bara att det gick åt ett håll. En engångskopia ser likadan ut.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q1"/>
+    </record>
+    <record id="slide_cal_s5_02_q1_a2" model="slide.answer">
+        <field name="text_value">Att en ändring gjord i mobilen syns i Odoo</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Tvåvägssynk är det som skiljer en riktig synkronisering från en kopia.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q1"/>
+    </record>
+    <record id="slide_cal_s5_02_q1_a3" model="slide.answer">
+        <field name="text_value">Att appen inte visar några felmeddelanden</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Frånvaro av fel är inte samma sak som närvaro av funktion.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q1"/>
+    </record>
+
+    <record id="slide_cal_s5_02_q2" model="slide.question">
+        <field name="question">Kalendern synkar men kontakterna gör det inte. Vad är troligast?</field>
+        <field name="sequence">2</field>
+        <field name="slide_id" ref="slide_cal_s5_02"/>
+    </record>
+    <record id="slide_cal_s5_02_q2_a1" model="slide.answer">
+        <field name="text_value">Att CardDAV-kontot saknas — det är ett separat konto</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt. CalDAV och CardDAV läggs upp var för sig, och det är lätt att bara göra den ena.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q2"/>
+    </record>
+    <record id="slide_cal_s5_02_q2_a2" model="slide.answer">
+        <field name="text_value">Att mobilen behöver startas om</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Hjälper sällan — felet sitter i uppkopplingen, inte i telefonen.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q2"/>
+    </record>
+    <record id="slide_cal_s5_02_q2_a3" model="slide.answer">
+        <field name="text_value">Att adressboken är tom i Odoo</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Möjligt, men kontrollera uppkopplingen först — det är den vanligaste orsaken.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q2"/>
+    </record>
+
+    <record id="slide_cal_s5_02_q3" model="slide.question">
+        <field name="question">Hur länge ska man rimligen vänta innan man drar slutsatsen att synken inte fungerar?</field>
+        <field name="sequence">3</field>
+        <field name="slide_id" ref="slide_cal_s5_02"/>
+    </record>
+    <record id="slide_cal_s5_02_q3_a1" model="slide.answer">
+        <field name="text_value">Några sekunder</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">För kort. Första synken kan ta upp till en minut.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q3"/>
+    </record>
+    <record id="slide_cal_s5_02_q3_a2" model="slide.answer">
+        <field name="text_value">Ungefär en minut</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt. Har det inte slagit igenom efter en minut är något fel — då felsöker du.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q3"/>
+    </record>
+    <record id="slide_cal_s5_02_q3_a3" model="slide.answer">
+        <field name="text_value">Ett dygn</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Alldeles för länge — då har du gått en hel dag med fel kalender.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q3"/>
+    </record>
+
+    <record id="slide_cal_s5_02_q4" model="slide.question">
+        <field name="question">Varför ska man ta bort testmötet och testkontakten efteråt?</field>
+        <field name="sequence">4</field>
+        <field name="slide_id" ref="slide_cal_s5_02"/>
+    </record>
+    <record id="slide_cal_s5_02_q4_a1" model="slide.answer">
+        <field name="text_value">För att de annars ligger kvar i allas kalendrar och adressböcker</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt. Företagets kalender och adressbok är delade — testdata syns för alla.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q4"/>
+    </record>
+    <record id="slide_cal_s5_02_q4_a2" model="slide.answer">
+        <field name="text_value">För att systemet blir långsamt av testdata</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Två poster påverkar ingen prestanda. Skälet är ordning, inte hastighet.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q4"/>
+    </record>
+    <record id="slide_cal_s5_02_q4_a3" model="slide.answer">
+        <field name="text_value">Det behövs inte — testdata är ofarligt</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Ofarligt men störande. Nästa person som söker på "Test" hittar dina rester.</field>
+        <field name="question_id" ref="slide_cal_s5_02_q4"/>
+    </record>
+
+    </data>
+</odoo>
