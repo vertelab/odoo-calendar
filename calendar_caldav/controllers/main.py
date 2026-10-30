@@ -1674,7 +1674,15 @@ class CalDAVController(http.Controller):
             if itip_response is not None:
                 return itip_response
 
-        existing = collection.get_record(uid)
+        # The body has to be parsed BEFORE the lookup. `uid` here is the
+        # href stem the client chose for the file, and it is not required to
+        # equal the UID inside the body. Looking the record up by the href
+        # stem therefore missed every record whose body UID differed, so a
+        # second PUT of the same event created a NEW row instead of updating
+        # the existing one (two rows verified 2026-10-29), and GET/DELETE by
+        # href answered 404 because the href stem never matched a stored
+        # uuid. RFC 4791 §5.3.4 makes the UID in the body authoritative: the
+        # href is just a name for the resource.
         try:
             values = collection.from_vobject(
                 body.decode('utf-8', errors='replace'))
@@ -1685,10 +1693,26 @@ class CalDAVController(http.Controller):
         if not values:
             return _bad_request('Body contained no usable component')
 
+        # Prefer the UID the body declares; fall back to the href stem only
+        # when the body carries none (a client that omits UID, or a
+        # collection without a UID field).
+        body_uid = None
+        if collection.field_uuid:
+            body_uid = (values.get(collection.field_uuid.name) or '').strip()
+        lookup_uid = body_uid or uid
+        if body_uid and uid and body_uid != uid:
+            _logger.info('[DAV] PUT href %s differs from body UID %s; '
+                         'using the body UID', uid, body_uid)
+        existing = collection.get_record(lookup_uid)
+
         if collection.dav_type == 'tasks':
-            values = _prepare_task_values(collection, values, uid)
+            values = _prepare_task_values(collection, values, lookup_uid)
 
         model = collection._model()
+        # Remember the href the client used, so a later GET/DELETE by that
+        # href resolves even when it differs from the body UID.
+        if 'dav_href' in model._fields and uid:
+            values['dav_href'] = uid
         if existing:
             # Never let a client move a record out of its own collection:
             # the domain decided it was visible, so the write is allowed,

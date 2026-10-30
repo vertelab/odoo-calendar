@@ -16,6 +16,19 @@ from odoo import api, fields, models
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
+    dav_href = fields.Char(
+
+        string="DAV href",
+
+        index=True,
+
+        readonly=True,
+
+        help="File name (href stem) the client last used for this record.",
+
+    )
+
+
     caldav_uuid = fields.Char(
         string='CalDAV UID',
         copy=False,

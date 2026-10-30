@@ -348,7 +348,24 @@ class CaldavCollection(models.Model):
         selector = self._search_domain()
         if selector:
             domain = ['&'] + domain + selector
-        return self._model().sudo().search(domain)[:1]
+        found = self._model().sudo().search(domain)[:1]
+        if found:
+            return found
+
+        # Fallback: the href stem a client chose for the file need not equal
+        # the UID inside the body (RFC 4791 §5.3.4 makes the body UID
+        # authoritative, the href is just a name). A client that PUT an event
+        # under href X with body UID Y still GETs and DELETEs X afterwards,
+        # so a lookup by X has to find the row stored under Y. Without this
+        # GET/DELETE by href answered 404 for every such record (verified
+        # 2026-10-29). The selector still applies, so this cannot reach a
+        # record outside the collection the request is bound to.
+        if 'dav_href' in self._model()._fields:
+            href_domain = [('dav_href', '=', uid)]
+            if selector:
+                href_domain = ['&'] + href_domain + selector
+            return self._model().sudo().search(href_domain)[:1]
+        return self._model().browse()
 
     @staticmethod
     def _split_uid(uid):

@@ -21,6 +21,19 @@ from odoo import api, fields, models
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
+    dav_href = fields.Char(
+
+        string="DAV href",
+
+        index=True,
+
+        readonly=True,
+
+        help="File name (href stem) the client last used for this record.",
+
+    )
+
+
     caldav_uuid = fields.Char(
         string='DAV UID',
         copy=False,

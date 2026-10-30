@@ -37,6 +37,19 @@ class CalendarEvent(models.Model):
              "incoming REQUEST with a lower value is ignored.",
     )
 
+    # The href stem a client used for the file. RFC 4791 §5.3.4 makes the
+    # UID inside the body authoritative, but a client that PUT an event under
+    # href X with body UID Y still GETs and DELETEs X afterwards. Storing the
+    # href lets that lookup succeed instead of answering 404 (verified
+    # 2026-10-29: PUT 201, PUT 204, GET by href 404 before this field).
+    dav_href = fields.Char(
+        string="DAV href",
+        index=True,
+        readonly=True,
+        help="File name (href stem) the client last used for this record. "
+             "Not the identity — the UID in the body is.",
+    )
+
     dav_last_modified = fields.Datetime(
         string="Last Modified (DAV)",
         compute="_compute_dav_last_modified",
