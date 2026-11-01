@@ -2,7 +2,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 {
     'name': 'Calendar: Onboarding (LMS)',
-    'version': '18.0.3.0.0',
+    'version': '18.0.3.1.0',
     'summary': 'Onboardingskurs: kalender, kontakter och DAV-synk',
     'description': """
 Kalender & kontakter i Vertel

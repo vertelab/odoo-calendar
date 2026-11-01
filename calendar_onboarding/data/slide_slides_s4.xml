@@ -144,6 +144,195 @@
         <field name="description">Vad resursbokning är och hur du bokar mötesrum eller utrustning på ett möte utan att dubbelboka.</field>
     </record>
 
+    <!-- SLIDE 4.1b: Linux — GNOME Online Accounts -->
+    <record id="slide_cal_s4_linux" model="slide.slide">
+        <field name="name">Linux — kalender, kontakter och filer i ett svep</field>
+        <field name="sequence">315</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.30</field>
+        <field name="html_content" type="html">
+<section class="s_cover o_cc o_cc2 pt120 pb120">
+    <div class="container">
+        <h1 class="display-4-fs" style="text-align: center;">Linux — en inloggning, tre funktioner</h1>
+        <p class="lead" style="text-align: center;">På Ubuntu har skrivbordet redan allt som behövs. Ingen extra programvara.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Inbyggt sedan länge</h2>
+        <p>GNOME Online Accounts — <strong>Inställningar → Konton</strong> — har stöd för CalDAV, CardDAV och WebDAV inbyggt. Du anger servern <strong>en gång</strong> och får kalender, kontakter och filer samtidigt. Det är den enklaste vägen av alla operativsystem.</p>
+    </div>
+</section>
+
+<section class="s_text_image pt32 pb64">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">Så gör du</h2>
+                <ol>
+                    <li>Öppna <strong>Inställningar</strong> → <strong>Konton</strong></li>
+                    <li>Klicka <strong>Lägg till konto</strong> och välj <strong>Anslutningsbar (WebDAV)</strong></li>
+                    <li>Ange:
+                        <ul class="small">
+                            <li><strong>Server:</strong> <code>https://ledningssystem.vertel.se</code></li>
+                            <li><strong>Användarnamn:</strong> din e-postadress</li>
+                            <li><strong>Lösenord:</strong> ditt Odoo-lösenord</li>
+                        </ul>
+                    </li>
+                    <li>Klicka <strong>Anslut</strong></li>
+                </ol>
+                <p class="small text-muted">Systemet hittar rätt slutpunkter automatiskt via <code>/.well-known/caldav</code> och <code>/.well-known/carddav</code> — du behöver inte skriva några långa sökvägar.</p>
+            </div>
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">Vad du får</h2>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <i class="fa fa-calendar text-primary me-2"/>
+                        <strong>Kalender</strong> — syns i GNOME Kalender och Evolution.
+                    </div>
+                    <div class="col-12 mb-3">
+                        <i class="fa fa-address-card text-primary me-2"/>
+                        <strong>Kontakter</strong> — syns i GNOME Kontakter.
+                    </div>
+                    <div class="col-12 mb-3">
+                        <i class="fa fa-folder-open text-primary me-2"/>
+                        <strong>Filer</strong> — dyker upp i Nautilus sidopanel under <em>Nätverk</em>. Inget <code>⌘K</code> eller <code>davs://</code> behövs.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <h2>Vill du hellre montera filerna själv?</h2>
+        <p>Nautilus har inbyggt WebDAV-stöd. Skriv <code>davs://ledningssystem.vertel.se/webdav/</code> i adressfältet (<strong>Ctrl+L</strong>) och logga in. Vill du ha det permanent monterat använder du <code>gvfs-mount</code> eller lägger en rad i <code>/etc/fstab</code> med <code>davfs2</code>.</p>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Om det inte fungerar</h3>
+                <p class="mb-1"><strong>"Kunde inte ansluta"</strong> — kontrollera att du använder <code>https://</code> och att servern är <code>ledningssystem.vertel.se</code>.</p>
+                <p class="mb-1"><strong>Kalendern tom</strong> — kontrollera att kalendern är ikryssad under kontots inställningar.</p>
+                <p class="mb-0"><strong>Filer syns inte</strong> — filer kräver att WebDAV är aktiverat på din instans. Kontakta IT om panelen saknas.</p>
+            </div>
+        </div>
+    </div>
+</section>
+        </field>
+        <field name="description">Ubuntu och GNOME har CalDAV, CardDAV och WebDAV inbyggt — ett konto ger kalender, kontakter och filer samtidigt.</field>
+    </record>
+
+    <!-- SLIDE 4.1c: Windows — tre vägar -->
+    <record id="slide_cal_s4_windows" model="slide.slide">
+        <field name="name">Windows — tre sätt att få kalender och kontakter</field>
+        <field name="sequence">325</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.40</field>
+        <field name="html_content" type="html">
+<section class="s_cover o_cc o_cc3 pt120 pb120">
+    <div class="container">
+        <h1 class="display-4-fs" style="text-align: center;">Windows — tre sätt</h1>
+        <p class="lead" style="text-align: center;">Windows inbyggda kalender klarar inte en egen server. Här är vad som fungerar.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Varför är Windows krångligare?</h2>
+        <p>Windows 11:s kalender och kontakter har visserligen stöd för CalDAV och CardDAV, men gränssnittet visar bara fyra leverantörer: Google, iCloud, Yahoo och Exchange. Det finns <strong>ingen</strong> väg att ange en egen server.</p>
+        <p>Det är inte ett fel hos oss — Microsoft bygger integrationer mot utvalda partners, inte en generisk protokollklient. Du behöver därför ett program som talar CalDAV och CardDAV på riktigt.</p>
+    </div>
+</section>
+
+<section class="s_features pt32 pb64">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="rounded bg-o-color-3 d-inline-flex align-items-center justify-content-center mb-3" style="width:48px;height:48px;">
+                    <strong class="h4-fs mb-0">1</strong>
+                </div>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Thunderbird — rekommenderas</h3>
+                    <p>Gratis, öppen källkod, och klarar <strong>mail, kalender och kontakter i en klient</strong>. Det enklaste valet på Windows.</p>
+                    <p class="small text-muted">Ange bara din e-postadress — servern hittar mailinställningarna automatiskt.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="rounded bg-o-color-3 d-inline-flex align-items-center justify-content-center mb-3" style="width:48px;height:48px;">
+                    <strong class="h4-fs mb-0">2</strong>
+                </div>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Klassisk Outlook + tillägg</h3>
+                    <p>Om du måste använda Outlook. Mail fungerar direkt; kalender och kontakter kräver <strong>CalDAV Synchronizer</strong>.</p>
+                    <p class="small text-muted">Gäller den installerade klassiska versionen — inte nya Outlook.</p>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="rounded bg-o-color-3 d-inline-flex align-items-center justify-content-center mb-3" style="width:48px;height:48px;">
+                    <strong class="h4-fs mb-0">3</strong>
+                </div>
+                <div class="overflow-hidden">
+                    <h3 class="h5-fs">Inbyggda kalendern</h3>
+                    <p class="text-danger"><strong>Avrådes.</strong> Knepet med iCloud-konto bygger på ett gränssnittsfel och slutar fungera vid nästa uppdatering.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_text_image pt32 pb64">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">Thunderbird steg för steg</h2>
+                <ol class="small">
+                    <li>Installera Thunderbird från thunderbird.net</li>
+                    <li><strong>E-post:</strong> ange bara din e-postadress — inställningarna hämtas automatiskt. Ange lösenord när den frågar.</li>
+                    <li><strong>Kalender:</strong> Kalender-fliken → <em>Skapa ny kalender</em> → <em>På nätverket</em>. Ange <code>https://ledningssystem.vertel.se/.well-known/caldav</code></li>
+                    <li><strong>Kontakter:</strong> Adressbok-fliken → <em>Ny adressbok</em> → <em>CardDAV</em>. Ange <code>https://ledningssystem.vertel.se/.well-known/carddav</code></li>
+                </ol>
+                <p class="small text-muted">Thunderbird hittar kalendrar och adressböcker automatiskt när du angett rotadressen.</p>
+            </div>
+            <div class="col-lg-6 pt16 pb16">
+                <h2 class="h3-fs">Filer på Windows</h2>
+                <p>WebDAV som nätverksenhet fungerar, men med två begränsningar: Windows har stängt av WebClient-tjänsten som standard, och den har en hård gräns på <strong>50 MB</strong> per fil.</p>
+                <ol class="small">
+                    <li>Öppna <strong>Utforskaren</strong> → <em>Den här datorn</em> → <em>Anslut nätverksenhet</em></li>
+                    <li>Ange <code>https://ledningssystem.vertel.se/webdav/</code></li>
+                    <li>Logga in med din e-postadress och ditt lösenord</li>
+                </ol>
+                <p class="small text-muted">Behöver du komma åt större filer, använd webbläsaren — där finns ingen storleksgräns.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Ny Outlook har ingen CalDAV-klient</h3>
+                <p class="mb-0"><em>Outlook för Windows</em> — den nya webbaserade appen — synkar kalendrar från Google, Yahoo och iCloud via Microsofts moln, men <strong>inte</strong> från en egen server. Behöver du kalender och kontakter i Outlook måste du använda den klassiska versionen med tillägg.</p>
+            </div>
+        </div>
+    </div>
+</section>
+        </field>
+        <field name="description">Windows inbyggda kalender klarar inte egen CalDAV-server. Tre vägar: Thunderbird (rekommenderas), klassisk Outlook med tillägg, eller webbläsaren.</field>
+    </record>
+
     <!-- SLIDE 4.3: Quiz — Skrivbordet och resurser -->
     <record id="slide_cal_s4_03" model="slide.slide">
         <field name="name">🧪 Testa dina kunskaper — Skrivbordet</field>
