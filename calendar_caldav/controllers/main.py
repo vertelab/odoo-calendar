@@ -1279,7 +1279,8 @@ class CalDAVController(http.Controller):
         time_range = xmlutil.time_range_from_body(body)
         records = collection.search_records()
         if time_range:
-            records = self._filter_time_range(records, time_range)
+            records = self._filter_time_range(
+                records, time_range, collection.dav_type)
         if collection.dav_type == 'addressbook':
             records = self._filter_addressbook(records, body)
         _logger.info('[DAV] %s query %s -> %d records',
@@ -1333,12 +1334,19 @@ class CalDAVController(http.Controller):
 
         return records.filtered(matches)
 
-    def _filter_time_range(self, records, time_range):
+    def _filter_time_range(self, records, time_range, dav_type='calendar'):
         """Keep records overlapping the requested window.
 
         Odoo already stores one row per occurrence of a recurring event, so
         a plain overlap test on start/stop is correct — no RRULE expansion
         is needed here.
+
+        A task collection holds ``project.task``, which has no ``start`` or
+        ``stop``: its only date is ``date_deadline`` (published as VTODO
+        ``DUE``). Reading ``record.start`` there raised AttributeError and
+        answered the whole REPORT with 500 whenever the client sent a
+        time-range. Tasks are matched on their deadline instead; a task
+        without one is undated and always kept.
         """
         from datetime import datetime
 
@@ -1359,8 +1367,20 @@ class CalDAVController(http.Controller):
             return records
 
         def overlaps(record):
-            rec_start = record.start
-            rec_stop = record.stop or rec_start
+            if dav_type == 'tasks':
+                # A task is a single point in time (its deadline), not a
+                # span. Without a deadline it cannot be placed in any
+                # window, so it is kept rather than silently dropped.
+                deadline = record.date_deadline
+                if deadline is None:
+                    return True
+                if end and deadline >= end:
+                    return False
+                if start and deadline < start:
+                    return False
+                return True
+            rec_start = getattr(record, 'start', None)
+            rec_stop = getattr(record, 'stop', None) or rec_start
             if rec_start is None:
                 return False
             if end and rec_start >= end:
