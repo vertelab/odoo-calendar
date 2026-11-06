@@ -3,7 +3,7 @@ import datetime
 import logging
 
 import requests
-from ics import Calendar
+from icalendar import Calendar
 
 from odoo import _, api, models
 from odoo.exceptions import UserError
@@ -31,26 +31,39 @@ class ImportHolidays(models.Model):
             raise UserError(_(
                 "No holiday calendar URL is configured. Set it in Settings "
                 "(parameter 'holiday.url.ics') before importing holidays."))
-        calendar = Calendar(requests.get(url, timeout=30).text)
-        responsible = self.env['res.users'].search([('login', '=', 'holidays')], limit=1)
-        if not responsible:
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+        except requests.RequestException as exc:
             raise UserError(_(
-                "The calendar-owning user 'holidays' does not exist. Create it "
-                "before importing holidays."))
+                "Could not read the holiday calendar at %(url)s: %(error)s",
+                url=url, error=exc)) from exc
+        # webcal.guru's file makes python-ics 0.7.3 recurse until the stack
+        # blows, so the calendar is read with icalendar instead.
+        calendar = Calendar.from_ical(response.content)
 
-        for event in list(calendar.timeline):
+        # The 'holidays' user is module data (data/users.xml), so it exists as
+        # soon as the module is installed and this cron does not depend on
+        # somebody having saved the settings form first.
+        responsible = self.env.ref('ics_import_holidays.user_holidays')
+
+        for component in calendar.walk('VEVENT'):
+            name = str(component.get('SUMMARY') or '').strip()
+            begin = component.get('DTSTART').dt
+            if isinstance(begin, datetime.datetime):
+                begin = begin.date()
+            if not name:
+                continue
             event_xmlid = "%s.calendar_%s_%s" % (
                 IMPORT,
-                event.name.replace(' ', '_'),
-                event.begin.date().strftime('%Y-%m-%d'),
+                name.replace(' ', '_'),
+                begin.strftime('%Y-%m-%d'),
             )
-            try:
-                self.env.ref(event_xmlid)
-            except ValueError:
+            if not self.env.ref(event_xmlid, raise_if_not_found=False):
                 calendar_event = self.env['calendar.event'].create({
-                    'name': event.name,
-                    'start': event.begin.date().strftime('%Y-%m-%d'),
-                    'stop': event.begin.date().strftime('%Y-%m-%d'),
+                    'name': name,
+                    'start': begin.strftime('%Y-%m-%d'),
+                    'stop': begin.strftime('%Y-%m-%d'),
                     'allday': True,
                     'user_id': responsible.id,
                 })
@@ -65,22 +78,23 @@ class ImportHolidays(models.Model):
             # the day is not planned as working time.
             for resource_calendar in self.env['resource.calendar'].search_read(
                     [], ['id', 'hours_per_day']):
-                hours_week = resource_calendar['hours_per_day'] * 5
-                leave_name = '%s_%s_%s' % (
-                    hours_week,
-                    event.name.replace(' ', '_'),
-                    event.begin.date().strftime('%Y-%m-%d'),
+                # Key the leave on the calendar id, not on hours_per_day:
+                # two schedules can share the same hours, and keying on the
+                # hours would make them collide on one xmlid so the second
+                # schedule silently never got its leave.
+                leave_name = 'cal%s_%s_%s' % (
+                    resource_calendar['id'],
+                    name.replace(' ', '_'),
+                    begin.strftime('%Y-%m-%d'),
                 )
                 leave_xmlid = '%s.leaves_%s' % (
                     IMPORT, leave_name.replace('.', '_'))
-                try:
-                    self.env.ref(leave_xmlid)
-                except ValueError:
+                if not self.env.ref(leave_xmlid, raise_if_not_found=False):
                     leave = self.env['resource.calendar.leaves'].create({
-                        'name': event.name,
+                        'name': name,
                         'calendar_id': resource_calendar['id'],
-                        'date_from': event.begin.date().strftime('%Y-%m-%d %H:%M:%S'),
-                        'date_to': (event.begin.date() + datetime.timedelta(days=1)
+                        'date_from': begin.strftime('%Y-%m-%d %H:%M:%S'),
+                        'date_to': (begin + datetime.timedelta(days=1)
                                     ).strftime('%Y-%m-%d %H:%M:%S'),
                     })
                     self.env['ir.model.data'].create({

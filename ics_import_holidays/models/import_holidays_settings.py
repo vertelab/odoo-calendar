@@ -20,14 +20,3 @@ class ResCalendarSettings(models.TransientModel):
         help="Holiday calendar to import. The events are mirrored into the "
              "calendar and into every working schedule as leaves.",
     )
-
-    @api.model
-    def create(self, vals_list):
-        res = super().create(vals_list)
-        if vals_list.get('ics_url') and not self.env['res.users'].search(
-                [('login', '=', 'holidays')], limit=1):
-            self.env['res.users'].sudo().create({
-                'name': 'Holidays',
-                'login': 'holidays',
-            })
-        return res

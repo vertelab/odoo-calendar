@@ -19,7 +19,7 @@
 
 {
     'name': 'Calendar: Import holidays',
-    'version': '18.0.1.0.1',
+    'version': '18.0.1.0.2',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Import holidays will update monthly basis so you are always on the right.',
     'category': 'Calendar',
@@ -27,16 +27,19 @@
 Import holidays
 ===============
 
-    This is a module you can use to import holidays into the calendar and the resource calendar.
-        Currently it only allows for one URL containing an .ics file to be imported.
-        It updates monthly for new holidays so that you are always up to date.
+Import holidays into the calendar and every working schedule.
 
-    Required python library: 'ics', just do "pip install ics" on your machine and you should be able to install the module.
+One URL pointing at an .ics file is imported. The events are mirrored into
+``calendar.event`` and into ``resource.calendar.leaves`` on every working
+schedule, so public holidays are not planned as working time. The import
+re-runs monthly and only creates what is missing.
 
-    Features:
+Requires the python library ``ics``.
 
-        - UI Integration: Extends 1 view(s) in the Odoo interface.
-        - Extends Odoo: Builds on calendar.event.
+Contributors
+------------
+
+* Vertel Sverige AB
     ''',
     #'sequence': '1',
     'author': 'Vertel Sverige AB',
@@ -46,13 +49,14 @@ Import holidays
     'contributor': '',
     'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
-    'depends': ['calendar', 'hr', 'cron_tick'],
+    'depends': ['base_setup', 'calendar', 'hr', 'cron_tick'],
     'data': [
         "security/ir.model.access.csv",
         "views/res_config_settings.xml",
         "data/cron_tasks.xml",
+        "data/users.xml",
     ],
     'external_dependencies': {
-    'python': ['ics'],
+    'python': ['icalendar'],
     },
 }
