@@ -1,42 +1,33 @@
-from ast import Store
+# -*- coding: utf-8 -*-
 import logging
-from multiprocessing.sharedctypes import Value
-from odoo import fields, models, api, _
-import time
-import requests
+
+from odoo import api, fields, models
 
 _logger = logging.getLogger(__name__)
-IMPORT = '__import__'
+
+# Scheduling lives in data/cron_tasks.xml (cron.task), not here. Creating an
+# ir.cron when the settings form is saved cannot be verified against the code
+# and duplicates on every save; a cron.task carries model_name/method_name as
+# fields, so a missing method fails once with a descriptive error.
+
 
 class ResCalendarSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    ics_url = fields.Char(string='Enter the URL of the ICS file', config_parameter='holiday.url.ics')
-        
+    ics_url = fields.Char(
+        string='URL of the ICS file',
+        config_parameter='holiday.url.ics',
+        help="Holiday calendar to import. The events are mirrored into the "
+             "calendar and into every working schedule as leaves.",
+    )
+
     @api.model
     def create(self, vals_list):
         res = super().create(vals_list)
-        
-        if (ics_url := vals_list.get("ics_url")):
-            ics_xmlid = f"{IMPORT}.ics_{time.strftime('%Y-%m-%d_%H:%M:%S')}_{ics_url.replace('.','_')}"
-            try:
-                ref_try = self.env.ref(ics_xmlid)  
-            except ValueError:
-                external_uid = self.env['ir.model.data'].create({'module': IMPORT, 
-                                    'name': ics_xmlid.split('.')[-1], 
-                                    'model': 'ir.cron'})                               
-
-                cron_name = 'Update holidays URL: ' + ics_url
-                calendar_event_cron_model = self.env['ir.model'].search([('model', '=', 'calendar.event')]).id
-
-                if not self.env['ir.cron'].search([('name', '=', cron_name)]):
-                    self.env['ir.cron'].create([{'name': cron_name,
-                                            'model_id': calendar_event_cron_model, 'user_id': 2, 'interval_number': 1,  
-                                            'interval_type': 'months', 'code': 'model._holiday_cron()', 
-                                            'numbercall': -1}])
-
-                if not self.env['res.users'].search([('login', '=', "holidays")]):
-                    self.env['res.users'].sudo().create({'name': "Holidays", 'login': "holidays"})
+        if vals_list.get('ics_url') and not self.env['res.users'].search(
+                [('login', '=', 'holidays')], limit=1):
+            self.env['res.users'].sudo().create({
+                'name': 'Holidays',
+                'login': 'holidays',
+            })
         return res
-    
-    

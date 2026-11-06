@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Monthly refresh of the holiday calendar configured in
+             Settings. A cron.task carries model_name/method_name as fields,
+             so a missing method fails once with a descriptive error instead
+             of every interval. See the sanitation note in the diff that
+             introduced this file (replaces the ir.cron previously created
+             from the settings form). -->
+
+        <record id="cron_task_holiday_import" model="cron.task">
+            <field name="name">Calendar: import holidays</field>
+            <field name="technical_name">holiday_import</field>
+            <field name="model_name">calendar.event</field>
+            <field name="method_name">_holiday_cron</field>
+            <field name="cadence">month</field>
+            <field name="module">ics_import_holidays</field>
+        </record>
+    </data>
+</odoo>

@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Odoo SA, Open Source Management Solution, third party addon
-#    Copyright (C) 2022- Vertel Sverige AB (<https://vertel.se>).
+#    Odoo, Open Source Management Solution
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -15,13 +13,13 @@
 #    GNU Affero General Public License for more details.
 #
 #    You should have received a copy of the GNU Affero General Public License
-#    along with this program. If not, see <http://www.gnu.org/licenses/>.
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
 
 {
     'name': 'Calendar: Import holidays',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.0.1',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Import holidays will update monthly basis so you are always on the right.',
     'category': 'Calendar',
@@ -30,7 +28,7 @@ Import holidays
 ===============
 
     This is a module you can use to import holidays into the calendar and the resource calendar.
-        Currently it only allows for one URL containing an .ics file to be imported. 
+        Currently it only allows for one URL containing an .ics file to be imported.
         It updates monthly for new holidays so that you are always up to date.
 
     Required python library: 'ics', just do "pip install ics" on your machine and you should be able to install the module.
@@ -48,9 +46,11 @@ Import holidays
     'contributor': '',
     'maintainer': 'Vertel Sverige AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
-    'depends': ['calendar', 'hr',],
+    'depends': ['calendar', 'hr', 'cron_tick'],
     'data': [
+        "security/ir.model.access.csv",
         "views/res_config_settings.xml",
+        "data/cron_tasks.xml",
     ],
     'external_dependencies': {
     'python': ['ics'],
