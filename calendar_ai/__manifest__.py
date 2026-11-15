@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Calendar: AI',
-    'version': '18.0.1.0.0',
+    'version': '1.0.0',
     'summary': 'OKF-indexering av kalenderhändelser (calendar.event)',
     'category': 'Productivity/Calendar',
     'author': 'Vertel AB',

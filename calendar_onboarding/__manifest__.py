@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Kalender & kontakter i Vertel',
-    'version': '18.0.1.0.0',
+    'version': '1.0.0',
     'summary': 'Onboardingskurs: kalender, kontakter och DAV-synk',
     'description': """
 Lär dig synka kalender och adressbok mot mobil, Outlook och Thunderbird — och boka resurser.
