@@ -2,7 +2,6 @@
 
 from odoo import SUPERUSER_ID, api, fields, models, tools
 from odoo.http import request
-from odoo.osv import expression
 from odoo.tools.translate import _, LazyTranslate
 
 _lt = LazyTranslate(__name__)

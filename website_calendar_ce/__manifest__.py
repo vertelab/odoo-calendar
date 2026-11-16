@@ -54,7 +54,7 @@ Website Calendar CE
         'views/calendar_booking_views.xml',
         'views/website_calendar_templates.xml',
         'security/website_calendar_security.xml',
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
 
         # 'views/snippets/snippets.xml',
 

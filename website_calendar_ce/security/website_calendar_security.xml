@@ -13,10 +13,4 @@
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin')), (4, ref('base.default_user'))]"/>
     </record>
 
-    <record id="calendar_booking_type_rule_public" model="ir.rule">
-        <field name="name">Calendar: public: published only</field>
-        <field name="model_id" ref="model_calendar_booking_type"/>
-        <field name="domain_force">[('website_published', '=', True)]</field>
-        <field name="groups" eval="[(4, ref('base.group_public')), (4, ref('base.group_portal'))]"/>
-    </record>
 </odoo>

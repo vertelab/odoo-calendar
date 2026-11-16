@@ -14,6 +14,7 @@ calendar_caldav/hooks.py
 calendar_caldav/controllers/main.py
 calendar_caldav/models/calendar_event.py
 calendar_caldav/models/ir_http.py
+calendar_caldav/security/ir.access.csv
 calendar_caldav/security/ir.model.access.csv
 calendar_caldav/services/caldav.py
 calendar_caldav/static/description/index.html
@@ -72,6 +73,7 @@ website_booking_checkout/controllers/main.py
 website_booking_checkout/models/calendar_booking.py
 website_booking_checkout/models/product.py
 website_booking_checkout/models/sale_order.py
+website_booking_checkout/security/ir.access.csv
 website_booking_checkout/security/ir.model.access.csv
 website_booking_checkout/static/description/index.html
 website_booking_checkout/static/src/js/website_calendar_ce.js
@@ -86,8 +88,8 @@ website_calendar_ce/data/website_calendar_demo.xml
 website_calendar_ce/models/calendar_booking.py
 website_calendar_ce/models/calendar_event.py
 website_calendar_ce/models/res_partner.py
+website_calendar_ce/security/ir.access.csv
 website_calendar_ce/security/ir.model.access.csv
-website_calendar_ce/security/website_calendar_security.xml
 website_calendar_ce/static/description/index.html
 website_calendar_ce/static/src/js/booking_employee_url.js
 website_calendar_ce/static/src/js/booking_snippets_options.js
@@ -125,6 +127,7 @@ website_calendar_slot_range/views/website_calendar_templates.xml
 website_calendar_waitlist/controllers/main.py
 website_calendar_waitlist/controllers/portal.py
 website_calendar_waitlist/models/calendar_booking.py
+website_calendar_waitlist/security/ir.access.csv
 website_calendar_waitlist/security/ir.model.access.csv
 website_calendar_waitlist/static/description/index.html
 website_calendar_waitlist/views/calendar_booking_views.xml

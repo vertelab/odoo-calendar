@@ -2,7 +2,7 @@
 from odoo import models, fields, api, _
 import logging
 import datetime
-from odoo.osv import expression
+# odoo.osv was removed in 20.0; this module does not use expression.
 from datetime import date, datetime, timedelta
 from odoo.exceptions import UserError
 import pytz

@@ -8,7 +8,7 @@
     "license": "AGPL-3",
     "depends": ["calendar"],
     "data": [
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
     ],
     "test": [
         "tests/test_caldav.py",

@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, models, fields, _
 from odoo.http import request
-from odoo.osv import expression
+# odoo.osv was removed in 20.0; this module does not use expression.
 from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
