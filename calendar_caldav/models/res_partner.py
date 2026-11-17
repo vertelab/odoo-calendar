@@ -67,11 +67,16 @@ class ResPartner(models.Model):
 
 
 class ResPpartner(models.Model):
-    """Personal contacts (personal_contact_carddav).
+    """Personal contacts — CardDAV UID.
+
+    The model itself lives in ``res_ppartner.py``; it moved here from
+    ``personal_contact_carddav`` on 2026-11-17 when the Radicale track was
+    retired. The DAV UID stays in this file to keep the CardDAV concern
+    apart from the model definition.
 
     res.ppartner does not inherit res.partner — it is a standalone model
     with its own address fields — so the DAV UID has to be declared here
-    too, not inherited.
+    explicitly, not inherited.
     """
     _inherit = 'res.ppartner'
 

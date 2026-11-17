@@ -39,8 +39,10 @@
             <field name="name">Personal Contacts</field>
             <field name="sequence">30</field>
             <field name="dav_type">addressbook</field>
-            <field name="model_id" ref="personal_contact_carddav.model_res_ppartner"/>
-            <field name="field_uuid" ref="field_res_ppartner__caldav_uuid"/>
+            <!-- res.ppartner moved into this module 2026-11-17; the model
+                 and its caldav_uuid field are now owned by calendar_caldav. -->
+            <field name="model_id" ref="calendar_caldav.model_res_ppartner"/>
+            <field name="field_uuid" ref="calendar_caldav.field_res_ppartner__caldav_uuid"/>
             <field name="domain">[('user_id', '=', user.id)]</field>
         </record>
 
