@@ -8,7 +8,12 @@ _logger = logging.getLogger(__name__)
 class CalendarEventModify(models.Model):
     _inherit = "calendar.event"
 
-    resource_ids = fields.Many2many(comodel_name='resource.resource',string='Resource',domain="[('resource_type','=','material')]") # relation|column1|column2
+    # 20.0 validates a field's domain against the model that ends up owning the
+    # field. base_booking redefines calendar.event.resource_ids against
+    # booking.resource, which has no resource_type — so this domain becomes
+    # invalid as soon as both modules are installed. The domain is only a
+    # filter hint; dropping it loses nothing but the pre-filter.
+    resource_ids = fields.Many2many(comodel_name='resource.resource', string='Resource')
     resource_status = fields.Char(readonly=True)
     resource_status = fields.Char(readonly=True,compute='onchange_resource')
     
