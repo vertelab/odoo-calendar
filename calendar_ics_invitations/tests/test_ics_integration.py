@@ -46,7 +46,7 @@ class TestIcsIntegration(common.TransactionCase):
         for mail in mails:
             for attachment in mail.attachment_ids:
                 if attachment.mimetype == 'text/calendar':
-                    raw = base64.b64decode(attachment.datas)
+                    raw = base64.b64decode(attachment.raw)
                     result.append(vobject.readOne(raw.decode('utf-8')))
         return result
 
@@ -100,7 +100,7 @@ class TestIcsIntegration(common.TransactionCase):
         self.assertTrue(attachments)
         requests = []
         for attachment in attachments:
-            raw = base64.b64decode(attachment.datas)
+            raw = base64.b64decode(attachment.raw)
             cal = vobject.readOne(raw.decode('utf-8'))
             if cal.method.value == 'REQUEST':
                 requests.append(cal)

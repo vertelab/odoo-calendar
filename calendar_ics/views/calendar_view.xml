@@ -64,9 +64,6 @@
                 <filter icon="terp-go-today" string="Active" domain="[('cative','=',True)]" help="Active"/>
                 <filter icon="terp-go-today" string="Inactive" domain="[('user_id','=',False)]" help="Inactive"/>
                 <separator/>
-                <group expand="0" string="Group By">
-                    <filter string="Owner" icon="terp-personal" domain="[]" context="{'group_by':'user_id'}"/>
-                </group>
             </search>
         </field>
     </record>
