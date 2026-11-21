@@ -33,6 +33,8 @@ class TestCaldavCollection(common.TransactionCase):
             'login': 'dav_test_user',
             'email': 'dav.test@example.com',
             'groups_id': [(6, 0, [cls.env.ref('base.group_user').id])],
+            'company_id': cls.env.company.id,
+            'company_ids': [(6, 0, [cls.env.company.id])],
         })
         cls.collection = cls.env['caldav.collection'].search([
             ('slug', '=', 'calendar'),
@@ -62,6 +64,8 @@ class TestCaldavCollection(common.TransactionCase):
             'name': 'DAV Other User',
             'login': 'dav_other_user',
             'groups_id': [(6, 0, [self.env.ref('base.group_user').id])],
+            'company_id': self.env.company.id,
+            'company_ids': [(6, 0, [self.env.company.id])],
         })
         event = self.env['calendar.event'].create({
             'name': 'DAV private test',
@@ -161,6 +165,8 @@ class TestCaldavCollection(common.TransactionCase):
             'email': 'dav-other-lookup@example.com',
             'groups_id': [(6, 0, [self.env.ref(
                 'base.group_user').id])],
+            'company_id': self.env.company.id,
+            'company_ids': [(6, 0, [self.env.company.id])],
         })
         collection = self.collection.with_user_context(other)
         self.assertFalse(
@@ -251,6 +257,8 @@ class TestCollectionProps(common.TransactionCase):
         self.user = self.env['res.users'].create({
             'name': 'Props User',
             'login': 'props.user@example.com',
+            'company_id': self.env.company.id,
+            'company_ids': [(6, 0, [self.env.company.id])],
         })
         self.collection = self.env['caldav.collection'].sudo().create({
             'name': 'Props Contacts',
@@ -498,6 +506,8 @@ class TestItipReply(common.TransactionCase):
             'name': 'ITIP Attendee',
             'login': 'itip-attendee@example.test',
             'email': 'itip-attendee@example.test',
+            'company_id': self.env.company.id,
+            'company_ids': [(6, 0, [self.env.company.id])],
         })
         self.event = self.env['calendar.event'].create({
             'name': 'External invitation',
@@ -604,6 +614,8 @@ class TestItipOrganizerSerialization(common.TransactionCase):
             'name': 'Internal Organiser',
             'login': 'internal-organiser@example.test',
             'email': 'internal-organiser@example.test',
+            'company_id': self.env.company.id,
+            'company_ids': [(6, 0, [self.env.company.id])],
         })
         event = self.env['calendar.event'].create({
             'name': 'Our own meeting',
@@ -687,6 +699,8 @@ class TestSchedulingProperties(common.TransactionCase):
             'name': 'Scheduling User',
             'login': 'scheduling@example.test',
             'email': 'scheduling@example.test',
+            'company_id': self.env.company.id,
+            'company_ids': [(6, 0, [self.env.company.id])],
         })
 
     def _props(self, collection=None):
@@ -741,6 +755,8 @@ class TestItipCounter(common.TransactionCase):
             'name': 'Counter Attendee',
             'login': 'counter@example.test',
             'email': 'counter@example.test',
+            'company_id': self.env.company.id,
+            'company_ids': [(6, 0, [self.env.company.id])],
         })
         event = self.env['calendar.event'].create({
             'name': 'Counter test',
