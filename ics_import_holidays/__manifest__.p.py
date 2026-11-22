@@ -51,7 +51,11 @@ Contributors
     'repository': 'https://github.com/vertelab/odoo-calendar',
     'depends': ['base_setup', 'calendar', 'hr', 'cron_tick'],
     'data': [
+        # #if VERSION >= "20.0"
+        "security/ir.access.csv",
+# #else
         "security/ir.model.access.csv",
+# #endif
         "views/res_config_settings.xml",
         "data/cron_tasks.xml",
         "data/users.xml",
