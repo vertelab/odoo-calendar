@@ -161,7 +161,7 @@ class CalendarEvent(models.Model):
         Taket räknas på antalet ägare UTÖVER företaget — företaget är
         alltid med (det är händelsens organisatoriska koncept).
         """
-        raw = self.env['ir.config_parameter'].sudo().get_param(
+        raw = self.env['ir.config_parameter'].sudo().get_str(
             'calendar_ai.okf_owner_limit', '25')
         try:
             limit = int(raw)
