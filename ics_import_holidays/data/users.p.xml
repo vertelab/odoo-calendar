@@ -1,0 +1,8 @@
+<odoo>
+    <record id="user_holidays" model="res.users">
+        <field name="name">Holidays</field>
+        <field name="login">holidays</field>
+        <field name="active" eval="False"/>
+        <field name="groups_id" eval="[(6, 0, [])]"/>
+    </record>
+</odoo>

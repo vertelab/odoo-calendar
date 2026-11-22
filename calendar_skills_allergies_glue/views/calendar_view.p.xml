@@ -1,0 +1,45 @@
+<odoo>
+    <!-- <record id="add_partner_skills_allergies_view" model="ir.ui.view">
+        <field name="name">add_partner_skills_allergies_view</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <field name="function" position="before" >
+                <field name="skill_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="allergy_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+            </field>
+        </field>
+    </record> -->
+
+
+  <record id="contract_add_skill_allergies" model="ir.ui.view">
+      <field name="name">contract_add_skills_allergies_view</field>
+      <field name="model">contract.contract</field>
+      <field name="inherit_id" ref="contract.contract_contract_form_view"/>
+      <field name="arch" type="xml">
+        <xpath expr="//field[@name='tag_ids']" position="after">
+          <field name="skill_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+          <field name="allergy_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+        </xpath>
+      </field>
+  </record>
+
+   <record model="ir.ui.view" id="add_contract_skill_and_allergies">
+    <field name="name">add_contract_skill_and_allergies</field>
+    <field name="model">calendar.attendee</field>
+    <field name="inherit_id" ref="calendar_attendee_planning.view_calender_attendee_kanban"/>
+    <field name="arch" type="xml">
+      <xpath expr="//div[@name='title']" position="inside">
+        <field name="contract_skill_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+        <field name="contract_allergy_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+      </xpath>
+      <xpath expr="//div[@name='allergiesandskills']" position="inside">
+        <field name="partner_skill_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+        <field name="partner_allergy_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+      </xpath>
+    </field>
+  </record>
+
+
+
+</odoo>

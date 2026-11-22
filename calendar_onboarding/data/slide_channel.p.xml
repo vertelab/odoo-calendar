@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Kalender & kontakter i Vertel — onboardingskurs
+         4 sektioner, 14 slides (8 article, 1 infographic, 4 quiz, 1 video-ref)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="slide_channel_calendar" model="slide.channel">
+        <field name="name">Kalender &amp; kontakter i Vertel</field>
+        <field name="user_id" ref="base.user_admin"/>
+        <field name="enroll">public</field>
+        <field name="channel_type">training</field>
+        <field name="allow_comment" eval="True"/>
+        <field name="promote_strategy">latest</field>
+        <field name="is_published" eval="True"/>
+        <field name="description">
+Kalendern och adressboken är navet i den digitala arbetsplatsen. Den här kursen
+visar hur du får dina möten och kontakter att följa med överallt — i mobilen,
+i Outlook och i Thunderbird — utan att behöva föra samma uppgifter två gånger.
+
+Vi går igenom CalDAV och CardDAV (de öppna standarder som gör synkroniseringen
+möjlig), hur du kopplar upp respektive klient, hur du skiljer på företagets
+gemensamma adressbok och din egen privata lista, och hur du bokar rum och
+utrustning på ett möte.
+
+        </field>
+    </record>
+
+    </data>
+</odoo>

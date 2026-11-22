@@ -1,0 +1,89 @@
+<odoo>
+    <template id="online_booking_types" name="Booking Types" inherit_id="website.snippet_options">
+        <xpath expr="." position="inside">
+            <div data-snippet-option-id="booking_type"
+                data-selector=".s_online_booking"
+                data-selector-children=".oe_structure"
+                data-js="online_booking_options">
+            </div>
+        </xpath>
+    </template>
+
+    <template id="s_online_booking" name="Online Booking">
+        <section class="s_online_booking">
+            <div class="container">
+                <div class="oe_structure container mb128 o_website_calendar_booking">
+                    <ul class="wizard mt32 float-right">
+                        <li class="text-primary">Booking<span class="chevron"></span></li>
+                        <li class="text-muted">Time<span class="chevron"></span></li>
+                        <li class="text-muted">Confirmation<span class="chevron"></span></li>
+                    </ul>
+                    <h1 class="o_page_header mt32">
+                        Schedule an Booking
+                    </h1>
+                    <div id="booking_header"/>
+                </div>
+            </div>
+        </section>
+    </template>
+
+
+<!--<template id="s_online_booking" name="Online Booking">-->
+<!--    <section class="s_online_booking">-->
+<!--        <div class="container">-->
+<!--            <div class="oe_structure container mb128 o_website_calendar_booking">-->
+<!--                <ul class="wizard mt32 float-right">-->
+<!--                    <li class="text-primary">Booking<span class="chevron"></span></li>-->
+<!--                    <li class="text-muted">Time<span class="chevron"></span></li>-->
+<!--                    <li class="text-muted">Confirmation<span class="chevron"></span></li>-->
+<!--                </ul>-->
+<!--                <h1 class="o_page_header mt32">-->
+<!--                    Schedule an Booking-->
+<!--                </h1>-->
+<!--                <div t-if="message=='cancel'" class="alert alert-danger mt16" role="alert">-->
+<!--                    <p>-->
+<!--                        <strong>Booking canceled!</strong>-->
+<!--                            You can schedule another booking from here.-->
+<!--                    </p>-->
+<!--                </div>-->
+<!--                <t t-if="booking_type">-->
+<!--                    <form class="o_website_appoinment_form w-md-50" t-attf-action="/website/calendar/#{ slug(booking_type) }/booking" type="post">-->
+<!--                        <div id="booking" class="form-group row">-->
+<!--                            <label for="calendarType" class="col-md-3 col-form-label">Booking</label>-->
+<!--                            <div class="col-md-9">-->
+<!--                                <select class="form-control" id="calendarType" t-att-disabled="len(suggested_booking_types)==1 and '1' or None">-->
+<!--                                    <t t-if="suggested_booking_types">-->
+<!--                                        <t t-foreach="suggested_booking_types" t-as="cal">-->
+<!--                                            <option t-att-value="cal.id" t-att-selected="cal.id == booking_type.id and 'selected'">-->
+<!--                                                <t t-esc="cal.name"/>-->
+<!--                                            </option>-->
+<!--                                        </t>-->
+<!--                                    </t>-->
+<!--                                </select>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                        <t t-call="website_calendar_ce.employee_select"/>-->
+<!--                        <div class="form-group row">-->
+<!--                            <div class="offset-md-8 col-md-4">-->
+<!--                                <button type="submit" class="btn btn-primary">View Availabilities <span class="fa fa-arrow-right"/></button>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </form>-->
+<!--                    <div t-raw="booking_type.message_intro" class="o_calendar_intro mb32"/>-->
+<!--                </t>-->
+<!--                <t t-if="not booking_type">-->
+<!--                    <span>Need to select booking type in options.</span>-->
+<!--                </t>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </section>-->
+<!--</template>-->
+
+
+    <template id="snippets" inherit_id="website.snippets" name="Place into bar">
+        <xpath expr="//div[@id='snippet_structure']/div[hasclass('o_panel_body')]" position="inside">
+            <t t-snippet="website_calendar_ce.s_online_booking"
+                t-thumbnail="/website_calendar_ce/static/src/img/ui/calendar.jpg"/>
+        </xpath>
+    </template>
+</odoo>

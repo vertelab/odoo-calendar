@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SEKTION 2: Koppla mobilen
+         Slides: 4 (2 article, 1 article/guide, 1 quiz)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <record id="slide_category_cal_s2" model="slide.slide">
+        <field name="name">2. Koppla mobilen</field>
+        <field name="is_category" eval="True"/>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="sequence">100</field>
+    </record>
+
+    <!-- SLIDE 2.1: Android -->
+    <record id="slide_cal_s2_01" model="slide.slide">
+        <field name="name">Android — DAVx⁵</field>
+        <field name="sequence">110</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.35</field>
+        <field name="html_content" type="html">
+<section class="s_cover o_cc o_cc3 pt160 pb160">
+    <div class="container">
+        <h1 class="display-3-fs" style="text-align: center;">Android — DAVx⁵</h1>
+        <p class="lead" style="text-align: center;">Android har ingen inbyggd DAV-klient. DAVx⁵ är standardlösningen.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Varför en extra app?</h2>
+        <p>Android kan hantera Google-konton och Exchange, men har inget inbyggt stöd för CalDAV eller CardDAV. <strong>DAVx⁵</strong> fyller den luckan: den kopplar upp sig mot servern och gör kalendern och adressboken tillgängliga för telefonens vanliga appar.</p>
+        <p>Du behöver alltså inte byta kalenderapp. DAVx⁵ arbetar i bakgrunden och matar telefonens befintliga kalender och kontakter med data.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>Installera</h2>
+        <p>DAVx⁵ finns i två kanaler:</p>
+        <table class="table table-bordered">
+            <thead>
+                <tr><th>Kanal</th><th>Kostnad</th><th>Not</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Google Play</strong></td><td>Engångsköp</td><td>Automatiska uppdateringar. Samma köp gäller på alla dina enheter med samma Google-konto.</td></tr>
+                <tr><td><strong>F-Droid</strong></td><td>Gratis</td><td>Öppen källkod. Kräver att du installerar F-Droid först.</td></tr>
+            </tbody>
+        </table>
+        <p class="small text-muted">Det är ett engångsköp — ingen månadskostnad. Appen är öppen källkod (GPLv3); avgiften i Play Store finansierar underhållet.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb64">
+    <div class="container s_allow_columns">
+        <h2>Lägg till kontot</h2>
+        <ol>
+            <li>Öppna DAVx⁵ och tryck på <strong>plus-knappen</strong>.</li>
+            <li>Välj <strong>”Logga in med URL och användarnamn”</strong>.
+                <p class="small text-muted">Välj inte alternativet med e-postadress — det söker efter kända molntjänster och hittar inte er egen server.</p>
+            </li>
+            <li>Fyll i:
+                <table class="table table-bordered mt-2">
+                    <tbody>
+                        <tr><th style="width:35%">Bas-URL</th><td>Serverns adress, följd av <code>/.well-known/caldav/</code></td></tr>
+                        <tr><th>Användarnamn</th><td>Din e-postadress i Vertel</td></tr>
+                        <tr><th>Lösenord</th><td>Ditt vanliga Odoo-lösenord</td></tr>
+                    </tbody>
+                </table>
+            </li>
+            <li>Tryck <strong>Logga in</strong>. Servern svarar med vilka kalendrar och adressböcker som finns.</li>
+            <li>Bocka i det du vill synkronisera och tryck <strong>Skapa konto</strong>.</li>
+            <li>Tillåt appen åtkomst till kalender och kontakter när Android frågar.</li>
+        </ol>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>Vanligaste misstaget</h3>
+                <p class="lead">Att skriva bara servernamnet i URL-fältet. Adressen måste peka på DAV-slutpunkten — annars hittar appen ingen kalender och inloggningen ser ut att misslyckas trots att uppgifterna är rätt.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_text_block pt40 pb64">
+    <div class="container s_allow_columns">
+        <h2>Om det inte fungerar</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr><th>Symptom</th><th>Trolig orsak</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>”Kunde inte hitta tjänsten”</td><td>URL:en är ofullständig — kontrollera att den slutar på DAV-sökvägen</td></tr>
+                <tr><td>Inloggningen nekas</td><td>Fel lösenord. Prova att logga in i Odoo-webben först för att bekräfta</td></tr>
+                <tr><td>Kontot skapas men listan är tom</td><td>Ingen kalender eller adressbok ikryssad i steget ovan</td></tr>
+                <tr><td>Inget syns i kalenderappen</td><td>Kontot är inte ikryssat i telefonens kalenderinställningar</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+        </field>
+        <field name="description">Steg-för-steg: installera DAVx⁵ på Android, lägg till kontot mot Vertels server och välj vad som ska synkroniseras. Plus felsökning för de vanligaste felen.</field>
+    </record>
+
+    <!-- SLIDE 2.2: iPhone/iPad -->
+    <record id="slide_cal_s2_02" model="slide.slide">
+        <field name="name">iPhone och iPad</field>
+        <field name="sequence">120</field>
+        <field name="slide_category">article</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="True"/>
+        <field name="completion_time">0.30</field>
+        <field name="html_content" type="html">
+<section class="s_text_block pt64 pb40">
+    <div class="container s_allow_columns">
+        <h2>Ingen extra app behövs</h2>
+        <p>iOS har inbyggt stöd för både CalDAV och CardDAV. Du lägger till kontot direkt i systeminställningarna — ingen tredjepartsapp krävs.</p>
+    </div>
+</section>
+
+<section class="s_text_block pt32 pb40">
+    <div class="container s_allow_columns">
+        <h2>Lägg till kontot</h2>
+        <ol>
+            <li>Öppna <strong>Inställningar</strong> → <strong>Kalender</strong> → <strong>Konton</strong> → <strong>Lägg till konto</strong>.</li>
+            <li>Välj <strong>Annat</strong> (längst ned i listan).</li>
+            <li>Under <em>Kontakter</em> och <em>Kalendrar</em> väljer du <strong>Lägg till CalDAV-konto</strong> respektive <strong>Lägg till CardDAV-konto</strong>. Gör båda.</li>
+            <li>Välj <strong>Avancerat</strong> och fyll i:
+                <table class="table table-bordered mt-2">
+                    <tbody>
+                        <tr><th style="width:35%">Server</th><td>Serverns adress</td></tr>
+                        <tr><th>Användarnamn</th><td>Din e-postadress i Vertel</td></tr>
+                        <tr><th>Lösenord</th><td>Ditt vanliga Odoo-lösenord</td></tr>
+                    </tbody>
+                </table>
+            </li>
+            <li>Tryck <strong>Nästa</strong>. iOS verifierar kontot och visar vad som hittades.</li>
+            <li>Spara.</li>
+        </ol>
+    </div>
+</section>
+
+<section class="s_call_to_action o_cc o_cc5 pt48 pb48">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-9">
+                <h3>CalDAV och CardDAV är två separata konton</h3>
+                <p class="lead">Till skillnad från Android-appen lägger iOS upp kalender och kontakter var för sig. Du behöver alltså göra proceduren två gånger — en för varje typ — med samma uppgifter båda gångerna.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="s_text_block pt40 pb64">
+    <div class="container s_allow_columns">
+        <h2>Kontrollera att det fungerar</h2>
+        <p>Öppna <strong>Kalender</strong>-appen. Under kalenderlistan ska du se kontot och dess kalendrar med bockar. Öppna <strong>Kontakter</strong>-appen och kontrollera att adressboken dykt upp.</p>
+        <p class="small text-muted">Första synkroniseringen kan ta någon minut om du har många händelser.</p>
+    </div>
+</section>
+        </field>
+        <field name="description">iOS har inbyggt DAV-stöd — ingen extra app. Så lägger du till CalDAV- och CardDAV-konton i Inställningar, och vad du ska kontrollera efteråt.</field>
+    </record>
+
+    <!-- SLIDE 2.3: Quiz — Mobilen -->
+    <record id="slide_cal_s2_03" model="slide.slide">
+        <field name="name">🧪 Testa dina kunskaper — Mobilen</field>
+        <field name="sequence">130</field>
+        <field name="slide_category">quiz</field>
+        <field name="channel_id" ref="calendar_onboarding.slide_channel_calendar"/>
+        <field name="is_published" eval="True"/>
+        <field name="is_preview" eval="False"/>
+        <field name="completion_time">0.25</field>
+        <field name="quiz_first_attempt_reward">100</field>
+        <field name="quiz_second_attempt_reward">75</field>
+        <field name="quiz_third_attempt_reward">50</field>
+        <field name="quiz_fourth_attempt_reward">25</field>
+        <field name="description">Testa att du har koll på hur du kopplar upp mobilen — Android och iOS.</field>
+    </record>
+
+    <record id="slide_cal_s2_03_q1" model="slide.question">
+        <field name="question">Varför behövs DAVx⁵ på Android men inte på iPhone?</field>
+        <field name="sequence">1</field>
+        <field name="slide_id" ref="slide_cal_s2_03"/>
+    </record>
+    <record id="slide_cal_s2_03_q1_a1" model="slide.answer">
+        <field name="text_value">Android har inget inbyggt DAV-stöd, iOS har det</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Android kan Google- och Exchange-konton, men saknar CalDAV/CardDAV. iOS har båda inbyggda.</field>
+        <field name="question_id" ref="slide_cal_s2_03_q1"/>
+    </record>
+    <record id="slide_cal_s2_03_q1_a2" model="slide.answer">
+        <field name="text_value">DAVx⁵ är bara ett säkerhetstillägg</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — den tillför själva DAV-funktionaliteten, inte bara säkerhet.</field>
+        <field name="question_id" ref="slide_cal_s2_03_q1"/>
+    </record>
+    <record id="slide_cal_s2_03_q1_a3" model="slide.answer">
+        <field name="text_value">iPhone kan inte synkronisera kontakter alls</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — iOS stöder både CalDAV och CardDAV, men som två separata konton.</field>
+        <field name="question_id" ref="slide_cal_s2_03_q1"/>
+    </record>
+
+    <record id="slide_cal_s2_03_q2" model="slide.question">
+        <field name="question">Vilket inloggningsalternativ ska du välja i DAVx⁵?</field>
+        <field name="sequence">2</field>
+        <field name="slide_id" ref="slide_cal_s2_03"/>
+    </record>
+    <record id="slide_cal_s2_03_q2_a1" model="slide.answer">
+        <field name="text_value">Logga in med e-postadress</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det alternativet letar efter kända molntjänster och hittar inte er egen server.</field>
+        <field name="question_id" ref="slide_cal_s2_03_q2"/>
+    </record>
+    <record id="slide_cal_s2_03_q2_a2" model="slide.answer">
+        <field name="text_value">Logga in med URL och användarnamn</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Då anger du serverns DAV-adress manuellt.</field>
+        <field name="question_id" ref="slide_cal_s2_03_q2"/>
+    </record>
+    <record id="slide_cal_s2_03_q2_a3" model="slide.answer">
+        <field name="text_value">Importera från en QR-kod</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — det alternativet finns, men används när man distribuerar konton centralt.</field>
+        <field name="question_id" ref="slide_cal_s2_03_q2"/>
+    </record>
+
+    <record id="slide_cal_s2_03_q3" model="slide.question">
+        <field name="question">Hur många konton lägger du upp i iOS?</field>
+        <field name="sequence">3</field>
+        <field name="slide_id" ref="slide_cal_s2_03"/>
+    </record>
+    <record id="slide_cal_s2_03_q3_a1" model="slide.answer">
+        <field name="text_value">Ett — iOS hanterar båda typerna i samma konto</field>
+        <field name="sequence">1</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — iOS skiljer på kalender och kontakter.</field>
+        <field name="question_id" ref="slide_cal_s2_03_q3"/>
+    </record>
+    <record id="slide_cal_s2_03_q3_a2" model="slide.answer">
+        <field name="text_value">Två — ett CalDAV-konto och ett CardDAV-konto</field>
+        <field name="sequence">2</field>
+        <field name="is_correct" eval="True"/>
+        <field name="comment">Rätt! Samma uppgifter båda gångerna, men två separata konton.</field>
+        <field name="question_id" ref="slide_cal_s2_03_q3"/>
+    </record>
+    <record id="slide_cal_s2_03_q3_a3" model="slide.answer">
+        <field name="text_value">Tre — ett för varje kalender</field>
+        <field name="sequence">3</field>
+        <field name="is_correct" eval="False"/>
+        <field name="comment">Nej — ett konto kan innehålla flera kalendrar.</field>
+        <field name="question_id" ref="slide_cal_s2_03_q3"/>
+    </record>
+
+    </data>
+</odoo>

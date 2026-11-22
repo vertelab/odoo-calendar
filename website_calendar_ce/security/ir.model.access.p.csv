@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_calendar_booking_type_all,calendar.booking.type,model_calendar_booking_type,,1,0,0,0
+access_calendar_booking_type_manager,calendar.booking.type.manager,model_calendar_booking_type,group_calendar_manager,1,1,1,1
+access_calendar_booking_slot_user,calendar.booking.slot.user,model_calendar_booking_slot,base.group_user,1,0,0,0
+access_calendar_booking_slot_manager,calendar.booking.slot.manager,model_calendar_booking_slot,group_calendar_manager,1,1,1,1
+access_calendar_booking_question_all,calendar.booking.question,model_calendar_booking_question,,1,0,0,0
+access_calendar_booking_question_manager,calendar.booking.question.manager,model_calendar_booking_question,group_calendar_manager,1,1,1,1
+access_calendar_booking_question_answer_all,calendar.booking.answer,model_calendar_booking_answer,,1,0,0,0
+access_calendar_booking_question_answer_manager,calendar.booking.answer.manager,model_calendar_booking_answer,group_calendar_manager,1,1,1,1
+access_calendar_alarm_all,calendar.alarm.all,calendar.model_calendar_alarm,,1,0,0,0
+access_calendar_booking_slot_wizard,access_calendar_booking_slot_wizard,model_calendar_booking_slot_wizard,base.group_user,1,1,1,1

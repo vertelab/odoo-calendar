@@ -1,0 +1,24 @@
+<odoo>
+    <data>
+        <record id="sale_order_form_view" model="ir.ui.view">
+            <field name="name">sale.order.form.view</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[last()]" position="after">
+                    <page string="Booking Info">
+                        <field name="sale_order_booking_id">
+                            <list editable="bottom">
+                                <field name="booking_type_id"/>
+                                <field name="start_date"/>
+                                <field name="end_date"/>
+                                <field name="sale_order_id"/>
+                                <field name="sale_order_line_id"/>
+                            </list>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

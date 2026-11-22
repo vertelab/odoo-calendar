@@ -1,0 +1,273 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="calendar_booking_type_view_kanban" model="ir.ui.view">
+        <field name="name">calendar.booking.type.kanban</field>
+        <field name="model">calendar.booking.type</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard">
+                <field name="id" invisible="1" />
+                <templates>
+                    <t t-name="card">
+                        <div>
+                            <div class="o_kanban_manage_button_section">
+                                <t t-if="widget.editable"><a class="o_kanban_manage_toggle_button" href="#"><i class="fa fa-ellipsis-v" role="img" aria-label="Manage" title="Manage"/></a></t>
+                            </div>
+                            <div t-attf-class="o_kanban_card_header">
+                                <div class="o_kanban_card_header_title">
+                                    <div class="o_primary"><field name="name" /></div>
+                                    <div class="o_secondary">
+                                        <field name="location" /><br/>
+                                        <field name="booking_tz" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="container o_kanban_card_content">
+                            <div class="col-12">
+                                <div class="row">
+                                    <button class="btn btn-primary" name="action_calendar_meetings" type="object"><field name="booking_count"/> SCHEDULED</button>
+                                </div>
+                                </div>
+                            </div>
+                            <div class="o_kanban_card_manage_pane dropdown-menu" role="menu">
+                                <a role="menuitem" type="edit" class="dropdown-item">Edit</a>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="calendar_booking_type_view_tree" model="ir.ui.view">
+        <field name="name">calendar.booking.type.tree</field>
+        <field name="model">calendar.booking.type</field>
+        <field name="arch" type="xml">
+            <list string="booking Type">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="location"/>
+                <field name="booking_tz"/>
+                <field name="employee_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="calendar_booking_type_view_form" model="ir.ui.view">
+        <field name="name">calendar.booking.type.form</field>
+        <field name="model">calendar.booking.type</field>
+        <field name="arch" type="xml">
+            <form string="booking Type">
+                <field name="website_url" invisible="1"/>
+                <sheet>
+                    <div class="oe_button_box" name="button_box" groups="base.group_user">
+                        <div name="button_box" position="inside">
+                            <button class="oe_stat_button" type="object"
+                                name="action_calendar_meetings"
+                                icon="fa-calendar">
+                                <field string="bookings" name="booking_count" widget="statinfo"/>
+                            </button>
+                            <field name="is_published" widget="website_redirect_button"/>
+                        </div>
+                    </div>
+                    <div class="oe_title">
+                        <label class="oe_edit_only" for="name"/>
+                        <h1><field name="name" placeholder="e.g. Schedule a demo"/></h1>
+                    </div>
+                    <notebook>
+                        <page string="Scheduling &amp; Availability" name="schedule_availability">
+                            <group>
+                                <group name="left_details">
+                                    <label for="booking_duration"/>
+                                    <div>
+                                          <field name="booking_duration" class="oe_inline" widget="float_time"/><span> hours</span>
+                                    </div>
+                                    <label for="min_schedule_hours" string="Schedule booking"/>
+                                    <div>
+                                        <div>
+                                          <span>at least </span><field name="min_schedule_hours" class="oe_inline" widget="float_time"/><span> hours before</span>
+                                        </div>
+                                        <div>
+                                          <span>and not after </span><field name="max_schedule_days" class="oe_inline"/><span> days</span>
+                                        </div>
+                                    </div>
+                                    <label for="min_cancellation_hours" string="Allow Cancellation"/>
+                                    <div>
+                                        <div>
+                                          <span>until </span><field name="min_cancellation_hours" class="oe_inline" widget="float_time"/><span> hours before</span>
+                                        </div>
+                                    </div>
+                                </group>
+                                <group name="right_details">
+                                    <field name="booking_tz"/>
+                                    <field name="reminder_ids" widget="many2many_tags"/>
+                                    <field name="location"/>
+                                    <field name="meeting_base_url"/>
+                                    <field name="assignation_method"/>
+                                    <field name="country_ids" widget="many2many_tags" groups="base.group_no_one"/>
+                                </group>
+                            </group>
+                            <separator string="Available Employees"/>
+                            <field name="employee_ids">
+                                <list string="Employees">
+                                    <field name="name"/>
+                                    <field name="resource_calendar_id"/>
+                                    <field name="id" widget="booking_employee_url" string="Individual booking Link" context="{'url': parent.website_url}" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Slots" name="slots">
+                            <button name="open_booking_wizard" string="Set Slot" class="btn btn-primary" type="object"/>
+                            <br/>
+                            <field name="slot_ids">
+                                <list editable="bottom">
+                                    <field name="weekday"/>
+                                    <field name="hour" string="Starting Hour (0:00 - 24:00)" widget="float_time"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Questions" name="questions">
+                            <field name="question_ids">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="question_type"/>
+                                    <field name="question_required"/>
+                                </list>
+                                <form string="Questions" name="question_form">
+                                    <group>
+                                        <group name="question_form_left">
+                                            <field name="name"/>
+                                            <field name="question_type" widget="radio"/>
+                                        </group>
+                                        <group name="question_form_right">
+                                            <field name="answer_ids" widget="many2many_tags" options="{'no_create_edit': True}"
+                                                   invisible="question_type in ('char', 'text')"
+                                                   required="question_type in ('select', 'radio', 'checkbox')"/>
+                                            <field name="placeholder" invisible="question_type in ('select', 'radio', 'checkbox')"/>
+                                            <field name="question_required"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Messages" name="messages">
+                            <separator string="booking Introduction"/>
+                            <field name="message_intro"/>
+                            <separator string="booking Confirmation"/>
+                            <field name="message_confirmation"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="calendar_booking_answer_view_form" model="ir.ui.view">
+        <field name="name">calendar.booking.answer.form</field>
+        <field name="model">calendar.booking.answer</field>
+        <field name="arch" type="xml">
+            <form string="Answer">
+                <group>
+                    <field name="name"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="calendar_booking_type_action" model="ir.actions.act_window">
+        <field name="name">Online bookings</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">calendar.booking.type</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new booking type
+            </p><p>
+                Allow your customers to make a booking on your website
+                by creating booking types here.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+        id="calendar_booking_type_menu_action"
+        parent="calendar.mail_menu_calendar"
+        name="Calendar"
+        sequence="3"
+        action="calendar.action_calendar_event"
+        groups="base.group_user"/>
+
+    <menuitem
+        id="booking_type_menu"
+        parent="calendar.mail_menu_calendar"
+        action="calendar_booking_type_action"
+        sequence="10"/>
+
+    <menuitem
+        id="website_booking_type_menu"
+        parent="website.menu_website_global_configuration"
+        action="calendar_booking_type_action"
+        sequence="200"/>
+
+
+    <record model="ir.ui.view" id="time_slot_wizard">
+        <field name="name">Time Slot Wizard</field>
+        <field name="model">calendar.booking.slot.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <div style="display:flex;flex-direction:row;">
+                        <div style="margin-left: 40px;">
+                            <label for="monday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="monday" nolabel="1"/>
+                        </div>
+                        <div style="margin-left: 40px;">
+                            <label for="tuesday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="tuesday" nolabel="1"/>
+                        </div>
+                        <div style="margin-left: 40px;">
+                            <label for="wednesday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="wednesday" nolabel="1"/>
+                        </div>
+                        <div style="margin-left: 40px;">
+                            <label for="thursday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="thursday" nolabel="1"/>
+                        </div>
+
+                        <div style="margin-left: 40px;">
+                            <label for="friday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="friday" nolabel="1"/>
+                        </div>
+
+                        <div style="margin-left: 40px;">
+                            <label for="saturday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="saturday" nolabel="1" style="position: unset !important;"/>
+                        </div>
+                        <div style="margin-left: 40px;">
+                            <label for="sunday" style="margin: 0 15px 0 0 !important;"/>
+                            <field name="sunday" nolabel="1"/>
+                        </div>
+                    </div>
+
+                    <group>
+                        <field name="booking_id"/>
+                        <field name="time_from"/>
+                    </group>
+                    <group>
+                        <label for="booking_duration"/>
+                        <div>
+                              <field name="booking_duration" widget="float_time" class="oe_inline"/><span> hours</span>
+                        </div>
+                        <field name="time_to"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Compute Slot" class="oe_highlight" type="object" name="compute_slot"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
