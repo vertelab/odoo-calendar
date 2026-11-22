@@ -1,0 +1,63 @@
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    Odoo SA, Open Source Management Solution, third party addon
+#    Copyright (C) 2022- Vertel Sverige AB (<https://vertel.se>).
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+
+{
+    'name': 'Calendar: Product Resource',
+    'version': '1.0.0',
+    'summary': 'Calendar Product Resource.',
+    'category': 'Calendar',
+    'description': '''
+Product Resource
+================
+
+    Allow clients to Schedule Bookings through your Website
+            -------------------------------------------------------
+
+    Features:
+
+        - Web integration: Exposes HTTP endpoints for external systems.
+        - UI Integration: Extends 4 view(s) in the Odoo interface.
+        - Extends Odoo: Builds on calendar.booking.type, calendar.event, product.product, product.template.
+    ''',
+    'sequence': '131',
+    'author': 'Vertel Sverige AB',
+    'website': 'https://vertel.se/apps/odoo-calendar/website_calendar_product_resource',
+    'images': ['static/description/banner.png'],  # 560x280 px.
+    'license': 'AGPL-3',
+    'maintainer': 'Vertel Sverige AB',
+    'repository': 'https://github.com/vertelab/odoo-calendar',
+    'depends': ['product', 'resource', 'website_calendar_ce'],
+    'data': [
+        "data/website_calendar_data.xml",
+        "views/product_view.xml",
+        # "views/resource_view.xml",
+        "views/calendar_booking_view.xml",
+        "views/website_calendar_templates.xml",
+    ],
+    'assets': {
+        'web.assets_frontend': [
+            'website_calendar_product_resource/static/src/js/website_calendar_ce.js'
+        ],
+    },
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+}

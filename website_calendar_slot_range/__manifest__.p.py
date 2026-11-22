@@ -1,0 +1,60 @@
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    Odoo SA, Open Source Management Solution, third party addon
+#    Copyright (C) 2022- Vertel Sverige AB (<https://vertel.se>).
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+
+{
+    'name': 'Calendar: Website Calendar Slot Range',
+    'version': '1.0.0',
+    'summary': 'Booking a range of time slot.',
+    'category': 'Calendar',
+    'description': '''
+Website Calendar Slot Range
+===========================
+
+    Allow clients to Booking a range of time slot
+            -------------------------------------------------------
+
+    Features:
+
+        - Web integration: Exposes HTTP endpoints for external systems.
+        - UI Integration: Extends 1 view(s) in the Odoo interface.
+    ''',
+    'sequence': '131',
+    'author': 'Vertel Sverige AB',
+    'website': 'https://vertel.se/apps/odoo-calendar/website_calendar_slot_range',
+    'images': ['static/description/banner.png'],  # 560x280 px.
+    'license': 'AGPL-3',
+    'contributor': '',
+    'maintainer': 'Vertel Sverige AB',
+    'repository': 'https://github.com/vertelab/odoo-calendar',
+    'depends': ['website_calendar_ce'],
+    'data': [
+        'views/website_calendar_templates.xml'
+
+    ],
+    'assets': {
+        'web.assets_frontend': [
+            'website_calendar_slot_range/static/src/js/website_calendar_ce.js'
+        ],
+    },
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+}

@@ -25,11 +25,7 @@ Product Booking Checkout
     'repository': 'https://github.com/vertelab/odoo-calendar',
     'depends': ['product', 'website_calendar_ce', 'website_sale'],
     'data': [
-        # #if VERSION >= "20.0"
-        "security/ir.access.csv",
-        # #else
         "security/ir.model.access.csv",
-        # #endif
         "views/templates.xml",
         "views/sale_order_view.xml",
         "views/product_view.xml",

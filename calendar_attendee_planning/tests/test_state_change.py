@@ -7,7 +7,8 @@ _logger = logging.getLogger(__name__)
 
 #test color change, state change when write to attendee, check overlapping, check if person has hr.leave 
 
-class TestAttendeeInteractions(common.SavepointCase):
+# 20.0: SavepointCase is gone; TransactionCase is the replacement.
+class TestAttendeeInteractions(common.TransactionCase):
 
     @classmethod
     def setUpClass(cls):

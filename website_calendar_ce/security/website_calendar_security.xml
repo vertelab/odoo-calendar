@@ -13,24 +13,4 @@
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin')), (4, ref('base.default_user'))]"/>
     </record>
 
-    <!-- DOCUMENTED TECHNICAL DEBT in 20.0. This rule restricted public and
-         portal to published booking types. ir.rule is gone in 20.0: an
-         ir.access row with a group is a PERMISSION that ORs in, and a row
-         without a group is a RESTRICTION that applies to EVERY user. There is
-         no way to restrict a single group (models.py:3601-3646 combines
-         OR(permissions) & AND(restrictions)).
-
-         Odoo's upgrade_code/19.4-00-ir-access.py drops this rule and warns:
-         "ir.rule ... without effective operations for group base.group_public".
-
-         Consequence until resolved: public and portal can read unpublished
-         booking types. Fixing it needs either a restriction that also hides
-         unpublished types from internal users, or a custom access check in
-         the controller. -->
-    <record id="calendar_booking_type_rule_public" model="ir.rule">
-        <field name="name">Calendar: public: published only</field>
-        <field name="model_id" ref="model_calendar_booking_type"/>
-        <field name="domain_force">[('website_published', '=', True)]</field>
-        <field name="groups" eval="[(4, ref('base.group_public')), (4, ref('base.group_portal'))]"/>
-    </record>
 </odoo>

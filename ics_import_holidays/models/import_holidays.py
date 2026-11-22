@@ -24,7 +24,7 @@ class ImportHolidays(models.Model):
 
     @api.model
     def _holiday_cron(self):       
-        url = self.env['ir.config_parameter'].sudo().get_param('holiday.url.ics')
+        url = self.env['ir.config_parameter'].sudo().get_str('holiday.url.ics')
         calendar = Calendar(requests.get(url).text)
         responsible_id = self.env['res.users'].search([('login', '=', 'holidays')])[0].id
 

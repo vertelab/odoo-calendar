@@ -34,7 +34,7 @@ class res_partner(models.Model):
     ics_url_field = fields.Char(string='URL to the calendar', compute='create_ics_url')
 
     def create_ics_url(self):
-        self.ics_url_field = '%s/partner/%s/calendar/public.ics' % (self.env['ir.config_parameter'].sudo().get_param('web.base.url'), self.id)
+        self.ics_url_field = '%s/partner/%s/calendar/public.ics' % (self.env['ir.config_parameter'].sudo().get_str('web.base.url'), self.id)
 
     def ics_cron_job(self):
         for ics in self.env['res.partner'].search([('ics_active','=',True)]):

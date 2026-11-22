@@ -21,7 +21,7 @@
 
 {
     'name': 'Calendar: ICS',
-    'version': '18.0.1.0.0',
+    'version': '1.0.0',
     'category': 'Calendar',
     'summary': 'Subscription on calendar.ics-urls.',
     'images': ['static/description/banner.png'], # 560x280 px.
@@ -48,7 +48,7 @@ ICS
     'data': [
         'views/res_partner_view.xml',
         # 'views/calendar_view.xml',
-        #'security/ir.model.access.csv',
+        # 'security/ir.model.access.csv',
         'data/res_partner_data.xml'
     ],
     'application': False,

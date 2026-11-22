@@ -51,7 +51,7 @@ Website Calendar Waitlist
         'views/calendar_booking_views.xml',
         'views/website_waitlist_templates.xml',
         'views/project_portal_templates.xml',
-        'security/ir.model.access.csv',
+        'security/ir.access.csv',
     ],
     'demo': [
     ],

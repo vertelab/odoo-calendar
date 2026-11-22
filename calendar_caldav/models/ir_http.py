@@ -2,7 +2,8 @@ import base64
 import logging
 
 from odoo import http, models
-SessionExpiredException = http.SessionExpiredException
+# 20.0: odoo/http.py became a package; the exception moved.
+from odoo.http.session import SessionExpiredException
 from odoo.service import db
 
 _logger = logging.getLogger(__name__)
