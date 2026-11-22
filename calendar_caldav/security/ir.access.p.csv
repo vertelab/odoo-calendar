@@ -1,0 +1,9 @@
+# #if VERSION >= "20.0"
+id,name,model_id,group_id/id,operation,domain
+access_calendar_event_dav_user,calendar.event.dav.user,calendar.event,base.group_user,ru,
+access_calendar_event_dav_manager,calendar.event.dav.manager,calendar.event,base.group_system,crud,
+access_caldav_collection_user,caldav.collection.user,caldav.collection,base.group_user,r,
+access_caldav_collection_system,caldav.collection.system,caldav.collection,base.group_system,crud,
+access_caldav_collection_field_mapping_user,caldav.collection.field_mapping.user,caldav.collection.field_mapping,base.group_user,r,
+access_caldav_collection_field_mapping_system,caldav.collection.field_mapping.system,caldav.collection.field_mapping,base.group_system,crud,
+# #endif

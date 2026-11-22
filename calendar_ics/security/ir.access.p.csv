@@ -1,0 +1,5 @@
+# #if VERSION >= "20.0"
+id,name,model_id,group_id/id,operation,domain
+access_calendar_ics_manager,res.groups,calendar.ics,base.group_erp_manager,crud,
+access_calendar_ics_all,res.groups,calendar.ics,,r,
+# #endif

@@ -1,0 +1,13 @@
+# #if VERSION >= "20.0"
+id,name,model_id,group_id/id,operation,domain
+access_calendar_booking_type_all,calendar.booking.type,calendar.booking.type,,r,
+access_calendar_booking_type_manager,calendar.booking.type.manager,calendar.booking.type,group_calendar_manager,crud,
+access_calendar_booking_slot_user,calendar.booking.slot.user,calendar.booking.slot,base.group_user,r,
+access_calendar_booking_slot_manager,calendar.booking.slot.manager,calendar.booking.slot,group_calendar_manager,crud,
+access_calendar_booking_question_all,calendar.booking.question,calendar.booking.question,,r,
+access_calendar_booking_question_manager,calendar.booking.question.manager,calendar.booking.question,group_calendar_manager,crud,
+access_calendar_booking_question_answer_all,calendar.booking.answer,calendar.booking.answer,,r,
+access_calendar_booking_question_answer_manager,calendar.booking.answer.manager,calendar.booking.answer,group_calendar_manager,crud,
+access_calendar_alarm_all,calendar.alarm.all,calendar.alarm,,r,
+access_calendar_booking_slot_wizard,access_calendar_booking_slot_wizard,calendar.booking.slot.wizard,base.group_user,crud,
+# #endif

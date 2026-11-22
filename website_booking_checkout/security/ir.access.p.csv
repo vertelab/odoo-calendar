@@ -1,0 +1,4 @@
+# #if VERSION >= "20.0"
+id,name,model_id,group_id/id,operation,domain
+access_sale_order_booking_all,sale.order.booking,sale.order.booking,,crud,
+# #endif
