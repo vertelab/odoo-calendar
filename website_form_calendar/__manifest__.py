@@ -7,7 +7,7 @@
 'website': 'https://vertel.se/apps/odoo-calendar/website_form_calendar',
     'category': 'Website/Website',
     'summary': 'Add a task suggestion form to your website.',
-    'version': '18.0.1.0.0',
+    'version': '1.0.0',
     'description': '''
 Online Booking Form
 ===================

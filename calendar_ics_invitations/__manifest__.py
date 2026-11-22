@@ -24,7 +24,7 @@
 
 {
     'name': 'Calendar: ICS Invitations',
-    'version': '18.0.1.0.0',
+    'version': '1.0.0',
     # Version ledger: 18.0 = Odoo version. 1 = Major. 0 = Minor. 0 = Bug fixes.
     'summary': 'Outlook/Teams compatible iTIP meeting invitations and cancellations',
     'category': 'Calendar',
