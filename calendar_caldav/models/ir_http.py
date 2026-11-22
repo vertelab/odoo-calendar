@@ -2,6 +2,7 @@ import base64
 import logging
 
 from odoo import http, models
+SessionExpiredException = http.SessionExpiredException
 from odoo.service import db
 
 _logger = logging.getLogger(__name__)
@@ -19,13 +20,13 @@ class IrHttp(models.AbstractModel):
 
         auth = request.httprequest.headers.get("Authorization", "")
         if not auth.startswith("Basic "):
-            raise http.SessionExpiredException("Session expired")
+            raise SessionExpiredException("Session expired")
 
         try:
             decoded = base64.b64decode(auth[6:]).decode("utf-8")
             login, password = decoded.split(":", 1)
         except Exception:
-            raise http.SessionExpiredException("Invalid Basic Auth")
+            raise SessionExpiredException("Invalid Basic Auth")
 
         credential = {"type": "password", "login": login, "password": password}
 
@@ -37,4 +38,4 @@ class IrHttp(models.AbstractModel):
             except Exception:
                 continue
 
-        raise http.SessionExpiredException("Authentication failed")
+        raise SessionExpiredException("Authentication failed")

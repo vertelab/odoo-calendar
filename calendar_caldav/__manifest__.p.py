@@ -1,0 +1,84 @@
+{
+    "name": "Calendar CalDAV",
+    "summary": "CalDAV support for Odoo Calendar",
+    # #if VERSION >= "20.0"
+    "version": "1.0.0",
+    # #else
+    "version": "18.0.1.18.0",
+    # #endif
+    "category": "Calendar",
+    "author": "Vertel Sverige AB",
+    "website": "https://vertel.se/apps/odoo-calendar/calendar_caldav",
+    "license": "AGPL-3",
+    # ── 18.0-only deps ────────────────────────────────────────────────────
+    # The 18.0 branch carries the full CalDAV server: caldav_collection,
+    # res_partner, mail_message and project_task all live in models/ and are
+    # imported by models/__init__.py. The 20.0 branch is a slimmer module
+    # (calendar_event + ir_http only).
+    #
+    # FÄLLAN (2026-11-21): a p-file sync copied the 20.0 manifest verbatim,
+    # which dropped "project" and "personal_contact_carddav" from depends
+    # while models/project_task.py stayed in the tree. Odoo then failed at
+    # registry load with
+    #     TypeError: Model 'project.task' does not exist in registry.
+    # and the container crash-looped. The depends below MUST match what
+    # models/__init__.py actually imports.
+    #
+    # base_dav (the Radicale track) was dropped 2026-10-25: it is retired and
+    # this module no longer reads dav.collection. personal_contact_carddav
+    # stays — res_partner is the personal address book, and the model lives
+    # there. That module is installable=False too, but it is already
+    # installed, so the dependency resolves.
+    # #if VERSION >= "20.0"
+    "depends": ["calendar"],
+    # #else
+    "depends": ["calendar", "mail", "project", "personal_contact_carddav"],
+    # #endif
+    "data": [
+        # #if VERSION >= "20.0"
+        "security/ir.access.csv",
+        # #else
+        "security/ir.model.access.csv",
+        "data/caldav_collection_data.xml",
+        # #endif
+    ],
+    "test": [
+        "tests/test_caldav.py",
+    ],
+    "external_dependencies": {
+        # #if VERSION >= "20.0"
+        "python": ["icalendar"],
+        # #else
+        "python": ["icalendar", "vobject"],
+        # #endif
+    },
+    "post_init_hook": "post_init_hook",
+    "installable": True,
+    "application": False,
+    "description": """
+CalDAV endpoint for Odoo Calendar at /caldav/.
+
+CalDAV clients (Thunderbird, iOS, etc.) connect using HTTP Basic Auth with
+Odoo user credentials. Multi-database setups are supported.
+
+== DNS SRV auto-discovery (RFC 6764) ==
+
+To let CalDAV clients discover the calendar automatically (by entering only
+an email address), add SRV records to the domain's DNS zone.
+
+For HTTPS (recommended):
+    _caldavs._tcp.example.com.  300  SRV  0 1 443  odoo.example.com.
+
+For HTTP:
+    _caldav._tcp.example.com.  300  SRV  0 1 80  odoo.example.com.
+
+Replace example.com with your domain and odoo.example.com with the hostname
+serving the CalDAV endpoint. The service must be reverse-proxied to the
+Odoo server's /caldav/ URL.
+
+== Well-known URI ==
+
+The module also serves /.well-known/caldav/ (RFC 6764) which redirects to
+/caldav/. Thunderbird, iOS and other clients use this for discovery.
+    """,
+}

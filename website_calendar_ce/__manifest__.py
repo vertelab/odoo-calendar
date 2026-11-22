@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    Odoo SA, Open Source Management Solution, third party addon
-#    Copyright (C) 2022- Vertel Sverige AB (<https://vertel.se>).
+#    Copyright (C) 2022- Vertel AB (<https://vertel.se>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -21,7 +21,7 @@
 
 {
     'name': 'Calendar: Website Calendar CE',
-    'version': '18.0.1.0.0',
+    'version': '1.0.0',
     # Version ledger: 14.0 = Odoo version. 1 = Major. Non regressionable code. 2 = Minor. New features that are regressionable. 3 = Bug fixes
     'summary': 'Schedule bookings with clients.',
     'category': 'Calendar',
@@ -44,7 +44,7 @@ Website Calendar CE
     'images': ['static/description/banner.png'],  # 560x280 px.
     'license': 'AGPL-3',
     'contributor': '',
-    'maintainer': 'Vertel Sverige AB',
+    'maintainer': 'Vertel AB',
     'repository': 'https://github.com/vertelab/odoo-calendar',
     'depends': ['calendar_sms', 'hr', 'website', 'mail'],
     'data': [

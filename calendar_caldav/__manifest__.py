@@ -1,20 +1,37 @@
 {
     "name": "Calendar CalDAV",
     "summary": "CalDAV support for Odoo Calendar",
-    "version": "18.0.1.17.1",
+    "version": "18.0.1.18.0",
     "category": "Calendar",
     "author": "Vertel Sverige AB",
     "website": "https://vertel.se/apps/odoo-calendar/calendar_caldav",
     "license": "AGPL-3",
+    # ── 18.0-only deps ────────────────────────────────────────────────────
+    # The 18.0 branch carries the full CalDAV server: caldav_collection,
+    # res_partner, mail_message and project_task all live in models/ and are
+    # imported by models/__init__.py. The 20.0 branch is a slimmer module
+    # (calendar_event + ir_http only).
+    #
+    # FÄLLAN (2026-11-21): a p-file sync copied the 20.0 manifest verbatim,
+    # which dropped "project" and "personal_contact_carddav" from depends
+    # while models/project_task.py stayed in the tree. Odoo then failed at
+    # registry load with
+    #     TypeError: Model 'project.task' does not exist in registry.
+    # and the container crash-looped. The depends below MUST match what
+    # models/__init__.py actually imports.
+    #
     # base_dav (the Radicale track) was dropped 2026-10-25: it is retired and
     # this module no longer reads dav.collection. personal_contact_carddav
-    # stays — res.ppartner is the personal address book, and the model lives
+    # stays — res_partner is the personal address book, and the model lives
     # there. That module is installable=False too, but it is already
     # installed, so the dependency resolves.
     "depends": ["calendar", "mail", "project", "personal_contact_carddav"],
     "data": [
         "security/ir.model.access.csv",
         "data/caldav_collection_data.xml",
+    ],
+    "test": [
+        "tests/test_caldav.py",
     ],
     "external_dependencies": {
         "python": ["icalendar", "vobject"],
@@ -31,7 +48,7 @@ Odoo user credentials. Multi-database setups are supported.
 == DNS SRV auto-discovery (RFC 6764) ==
 
 To let CalDAV clients discover the calendar automatically (by entering only
-an email address), add SRV records to the domain's DNS zone:
+an email address), add SRV records to the domain's DNS zone.
 
 For HTTPS (recommended):
     _caldavs._tcp.example.com.  300  SRV  0 1 443  odoo.example.com.
