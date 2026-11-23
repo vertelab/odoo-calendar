@@ -8,7 +8,14 @@ from odoo.http.session import SessionExpiredException
 # #else
 SessionExpiredException = http.SessionExpiredException
 # #endif
+# #if VERSION >= "20.0"
+# 20.0: odoo.service.db moved to odoo.modules.db.
+from odoo.modules.db import list_dbs as _list_dbs
+class db:  # noqa: N801 - keep the call sites unchanged
+    exp_list = staticmethod(_list_dbs)
+# #else
 from odoo.service import db
+# #endif
 
 _logger = logging.getLogger(__name__)
 

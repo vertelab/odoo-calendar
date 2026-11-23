@@ -4,7 +4,10 @@ from html import escape
 
 from odoo import http
 from odoo.http import request
-from odoo.service import db
+# 20.0: odoo.service.db moved to odoo.modules.db.
+from odoo.modules.db import list_dbs as _list_dbs
+class db:  # noqa: N801 - keep the call sites unchanged
+    exp_list = staticmethod(_list_dbs)
 from ..services.caldav import odoo_event_to_icalendar, odoo_events_to_icalendar, icalendar_to_odoo_event
 
 _logger = logging.getLogger(__name__)
