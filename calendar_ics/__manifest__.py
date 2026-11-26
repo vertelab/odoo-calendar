@@ -21,7 +21,7 @@
 
 {
     'name': 'Calendar: ICS',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.0.1',
     'category': 'Calendar',
     'summary': 'Subscription on calendar.ics-urls.',
     'images': ['static/description/banner.png'], # 560x280 px.
